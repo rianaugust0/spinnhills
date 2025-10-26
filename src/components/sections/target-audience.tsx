@@ -64,12 +64,12 @@ export function TargetAudience() {
             </ul>
           </div>
 
-          <div className="mt-16 rounded-lg bg-yellow-500/10 p-6 border border-yellow-500/30">
-            <h4 className="flex items-center justify-center gap-3 font-headline text-xl font-bold text-yellow-700">
+          <div className="mt-16 rounded-lg bg-red-500/10 p-6 border border-red-500/30">
+            <h4 className="flex items-center justify-center gap-3 font-headline text-xl font-bold text-red-700 dark:text-red-500">
               <AlertTriangle className="h-6 w-6" />
               Não é um guia pra "ver depois".
             </h4>
-            <p className="mt-4 text-lg text-yellow-800">
+            <p className="mt-4 text-lg text-red-800 dark:text-red-400">
               Cada dia perdido agora é um ponto a menos na sua nota final. Mas quem agir hoje ainda tem tempo de virar o jogo completamente.
             </p>
           </div>
