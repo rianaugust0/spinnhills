@@ -13,10 +13,10 @@ export function Story() {
               🧠 Como Eu Tirei 980 na Redação do ENEM
             </h2>
             <p className="mt-6 text-lg text-muted-foreground">
-              No meu primeiro Enem pra valer, tirei 920. Uma nota boa, mas eu sabia que dava pra ir além. No ano seguinte, decidi focar em entender a fundo o que os corretores realmente esperam.
+              Em 2023, eu estava na mesma situação que você: preocupado com a redação. Comecei mal, com notas que não me levariam a lugar nenhum. Mas decidi focar em entender a fundo o que os corretores realmente esperam.
             </p>
             <p className="mt-4 text-lg text-muted-foreground">
-              Depois de analisar dezenas de redações nota 1000 e criar um método próprio de estrutura, repertório e argumentação, o resultado veio: <strong className="text-foreground">980 pontos</strong>. Foi aí que percebi que qualquer pessoa pode alcançar uma nota alta com o método certo.
+              Depois de analisar dezenas de redações nota 1000 e aplicar algumas técnicas específicas de estrutura, repertório e argumentação, o resultado veio: <strong className="text-foreground">980 pontos</strong>. Foi aí que percebi que qualquer pessoa pode alcançar uma nota alta com o método certo.
             </p>
             <p className="mt-4 text-lg text-muted-foreground">
               Agora, reuni todo esse aprendizado em um guia prático, direto ao ponto e fácil de aplicar, mesmo que faltem poucos dias para o Enem.
