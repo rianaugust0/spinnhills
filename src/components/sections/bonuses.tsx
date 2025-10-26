@@ -49,7 +49,7 @@ export function Bonuses() {
             Disponíveis apenas até a véspera da prova! Todos 100% gratuitos na compra do guia hoje.
           </p>
         </div>
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid max-w-lg mx-auto gap-8 lg:max-w-3xl">
           {bonuses.map((bonus) => (
             <Card key={bonus.title} className="flex flex-col transition-transform duration-300 hover:scale-105 hover:shadow-xl">
               <CardHeader className="flex-row items-start gap-4 space-y-0">
