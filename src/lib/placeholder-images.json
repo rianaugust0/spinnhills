@@ -1,10 +1,10 @@
 {
   "placeholderImages": [
     {
-      "id": "author-portrait",
-      "description": "Portrait of the guide's author",
-      "imageUrl": "https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwZXJzb24lMjBzbWlsaW5nfGVufDB8fHx8MTc2MTQxNjQ3Mnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person smiling"
+      "id": "author-grades",
+      "description": "Screenshot of ENEM grades with a 980 score in writing",
+      "imageUrl": "https://storage.googleapis.com/studioprod-52595.appspot.com/a9c17983-a9bd-491c-a19c-8519e913d8cc.png",
+      "imageHint": "ENEM grades"
     },
     {
       "id": "guide-cover",
