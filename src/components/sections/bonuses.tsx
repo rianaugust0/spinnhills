@@ -9,7 +9,7 @@ const bonuses = [
     title: "10 Redações Nota 1000 Analisadas",
     value: "97",
     description: "Aprenda com exemplos reais, analisando cada linha para entender o que o corretor valoriza.",
-    image: "https://i.imgur.com/429p8Cj.png"
+    image: "https://i.imgur.com/gUrkNNK.png"
   },
   {
     icon: <Sparkles className="h-8 w-8 text-primary" />,
