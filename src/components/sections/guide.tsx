@@ -5,7 +5,7 @@ import { CheckCircle2 } from "lucide-react";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const features = [
-  "O modelo exato que usei pra tirar 960 pontos.",
+  "O modelo exato que usei pra tirar 980 pontos.",
   "As 5 competências explicadas de forma simples e estratégica.",
   "Como montar introduções irresistíveis em 5 minutos.",
   "Modelos prontos de redação pra adaptar ao tema.",
