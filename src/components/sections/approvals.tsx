@@ -30,17 +30,18 @@ export function Approvals() {
             Uma boa redação não te dá só uma boa nota. Ela te dá isso aqui:
           </p>
         </div>
-        <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3 max-w-6xl mx-auto">
+        <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3 max-w-6xl mx-auto items-start">
           {approvalImages.map((image, index) => (
             <div
               key={index}
-              className="relative overflow-hidden rounded-lg shadow-2xl transition-transform duration-300 hover:scale-105 h-[600px] bg-card p-4"
+              className="overflow-hidden rounded-lg shadow-2xl transition-transform duration-300 hover:scale-105 bg-card"
             >
               <Image
                 src={image.src}
                 alt={image.alt}
-                fill
-                className="object-contain"
+                width={600}
+                height={1200}
+                className="w-full h-auto"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 data-ai-hint={image.hint}
               />
