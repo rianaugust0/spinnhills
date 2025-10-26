@@ -36,7 +36,8 @@ const bonuses = [
     icon: <ClipboardList className="h-8 w-8 text-primary" />,
     title: "Checklist da Redação Nota 1000",
     value: "27",
-    description: "Um guia rápido de revisão para garantir que nada fique de fora antes de entregar sua redação."
+    description: "Um guia rápido de revisão para garantir que nada fique de fora antes de entregar sua redação.",
+    image: "https://i.imgur.com/hltvFcw.png"
   }
 ];
 
