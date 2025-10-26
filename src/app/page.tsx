@@ -10,10 +10,13 @@ import { TargetAudience } from "@/components/sections/target-audience";
 import { Bonuses } from "@/components/sections/bonuses";
 import { Offer } from "@/components/sections/offer";
 import { FinalCta } from "@/components/sections/final-cta";
+import { ScarcityBanner } from "@/components/scarcity-banner";
+import { LastCall } from "@/components/sections/last-call";
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-dvh bg-background">
+      <ScarcityBanner />
       <Header />
       <main className="flex-1">
         <Hero />
@@ -26,6 +29,7 @@ export default function Home() {
         <Bonuses />
         <Offer />
         <FinalCta />
+        <LastCall />
       </main>
       <Footer />
     </div>
