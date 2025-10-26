@@ -70,7 +70,7 @@ export function Bonuses() {
                       src={bonus.image} 
                       alt={`Imagem para ${bonus.title}`} 
                       fill
-                      className="rounded-md object-cover"
+                      className="rounded-md object-contain"
                       data-ai-hint="writing examples"
                     />
                   </div>
