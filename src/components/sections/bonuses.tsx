@@ -16,7 +16,7 @@ const bonuses = [
     title: "Guia de Frases e Conectivos de Ouro",
     value: "47",
     description: "Mais de 100 frases e conectivos estratégicos para deixar sua redação profissional e coerente.",
-    image: "https://i.imgur.com/KQmZSAd.png"
+    image: "https://i.imgur.com/774G4J8.png"
   },
   {
     icon: <Clock className="h-8 w-8 text-primary" />,
