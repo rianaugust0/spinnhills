@@ -12,7 +12,7 @@ import { Offer } from "@/components/sections/offer";
 import { FinalCta } from "@/components/sections/final-cta";
 import { ScarcityBanner } from "@/components/scarcity-banner";
 import { LastCall } from "@/components/sections/last-call";
-import { AiCorrector } from "@/components/sections/ai-corrector";
+import { Faq } from "@/components/sections/faq";
 import { Approvals } from "@/components/sections/approvals";
 
 export default function Home() {
@@ -29,7 +29,7 @@ export default function Home() {
         <Testimonials />
         <Approvals />
         <TargetAudience />
-        <AiCorrector />
+        <Faq />
         <Bonuses />
         <Offer />
         <FinalCta />
