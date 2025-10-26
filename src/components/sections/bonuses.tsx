@@ -29,7 +29,8 @@ const bonuses = [
     icon: <BrainCircuit className="h-8 w-8 text-primary" />,
     title: "Repertórios Socioculturais Prontos",
     value: "57",
-    description: "Mais de 30 repertórios atualizados com autores e temas modernos para usar sem medo."
+    description: "Mais de 30 repertórios atualizados com autores e temas modernos para usar sem medo.",
+    image: "https://i.imgur.com/gK1N4tM.png"
   },
   {
     icon: <ClipboardList className="h-8 w-8 text-primary" />,
