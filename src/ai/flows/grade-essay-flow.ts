@@ -42,7 +42,7 @@ const prompt = ai.definePrompt({
     Analise a seguinte redação:
 
     ---
-    {{{input}}}
+    {{{prompt}}}
     ---
     `,
 });
