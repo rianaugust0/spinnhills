@@ -11,6 +11,11 @@ const approvalImages = [
     alt: "Print de aprovação de aluno 2",
     hint: "university acceptance letter"
   },
+  {
+    src: "https://i.imgur.com/c8hoqDN.png",
+    alt: "Print de aprovação de aluno 3",
+    hint: "university acceptance note"
+  }
 ];
 
 export function Approvals() {
@@ -25,7 +30,7 @@ export function Approvals() {
             Uma boa redação não te dá só uma boa nota. Ela te dá isso aqui:
           </p>
         </div>
-        <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 max-w-4xl mx-auto">
+        <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3 max-w-6xl mx-auto">
           {approvalImages.map((image, index) => (
             <div
               key={index}
@@ -36,7 +41,7 @@ export function Approvals() {
                 alt={image.alt}
                 fill
                 className="object-contain"
-                sizes="(max-width: 768px) 100vw, 50vw"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 data-ai-hint={image.hint}
               />
             </div>
