@@ -45,7 +45,7 @@ export function Problem() {
           ))}
         </div>
         <p className="mt-12 text-center text-xl font-medium">
-          E cada dia que passa, a pressão só aumenta. <br /> Mas calma — <span className="text-primary font-bold">ainda dá tempo de virar o jogo.</span>
+          kk
         </p>
       </div>
     </section>
