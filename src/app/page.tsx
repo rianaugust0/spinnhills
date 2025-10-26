@@ -24,10 +24,10 @@ export default function Home() {
         <Problem />
         <Story />
         <Guide />
-        <AiCorrector />
         <Reality />
         <Testimonials />
         <TargetAudience />
+        <AiCorrector />
         <Bonuses />
         <Offer />
         <FinalCta />
