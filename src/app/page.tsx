@@ -13,6 +13,7 @@ import { FinalCta } from "@/components/sections/final-cta";
 import { ScarcityBanner } from "@/components/scarcity-banner";
 import { LastCall } from "@/components/sections/last-call";
 import { AiCorrector } from "@/components/sections/ai-corrector";
+import { Approvals } from "@/components/sections/approvals";
 
 export default function Home() {
   return (
@@ -26,6 +27,7 @@ export default function Home() {
         <Guide />
         <Reality />
         <Testimonials />
+        <Approvals />
         <TargetAudience />
         <AiCorrector />
         <Bonuses />
