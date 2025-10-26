@@ -1,13 +1,15 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpenCheck, BrainCircuit, ClipboardList, Clock, Sparkles } from "lucide-react";
+import Image from "next/image";
 
 const bonuses = [
   {
     icon: <BookOpenCheck className="h-8 w-8 text-primary" />,
     title: "10 Redações Nota 1000 Analisadas",
     value: "97",
-    description: "Aprenda com exemplos reais, analisando cada linha para entender o que o corretor valoriza."
+    description: "Aprenda com exemplos reais, analisando cada linha para entender o que o corretor valoriza.",
+    image: "https://i.imgur.com/429p8Cj.png"
   },
   {
     icon: <Sparkles className="h-8 w-8 text-primary" />,
@@ -62,6 +64,17 @@ export function Bonuses() {
               </CardHeader>
               <CardContent className="flex-grow">
                 <p className="text-muted-foreground">{bonus.description}</p>
+                {bonus.image && (
+                  <div className="mt-4 relative aspect-video">
+                    <Image 
+                      src={bonus.image} 
+                      alt={`Imagem para ${bonus.title}`} 
+                      fill
+                      className="rounded-md object-cover"
+                      data-ai-hint="writing examples"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
