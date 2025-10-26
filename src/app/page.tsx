@@ -4,6 +4,7 @@ import { Hero } from "@/components/sections/hero";
 import { Problem } from "@/components/sections/problem";
 import { Story } from "@/components/sections/story";
 import { Guide } from "@/components/sections/guide";
+import { AiCorrector } from "@/components/sections/ai-corrector";
 import { Reality } from "@/components/sections/reality";
 import { Testimonials } from "@/components/sections/testimonials";
 import { TargetAudience } from "@/components/sections/target-audience";
@@ -23,6 +24,7 @@ export default function Home() {
         <Problem />
         <Story />
         <Guide />
+        <AiCorrector />
         <Reality />
         <Testimonials />
         <TargetAudience />
