@@ -22,7 +22,8 @@ const bonuses = [
     icon: <Clock className="h-8 w-8 text-primary" />,
     title: "Plano Relâmpago: 7 Dias para Dominar",
     value: "67",
-    description: "Um cronograma de 7 dias para revisar, treinar e ajustar tudo até o dia da prova."
+    description: "Um cronograma de 7 dias para revisar, treinar e ajustar tudo até o dia da prova.",
+    image: "https://i.imgur.com/i1ylp97.png"
   },
   {
     icon: <BrainCircuit className="h-8 w-8 text-primary" />,
