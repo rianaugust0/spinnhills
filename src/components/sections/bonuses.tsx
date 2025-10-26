@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpenCheck, BrainCircuit, ClipboardList, Clock, Sparkles } from "lucide-react";
 import Image from "next/image";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const bonuses = [
   {
@@ -37,7 +38,7 @@ const bonuses = [
     title: "Checklist da Redação Nota 1000",
     value: "27",
     description: "Um guia rápido de revisão para garantir que nada fique de fora antes de entregar sua redação.",
-    image: "https://i.imgur.com/o2LmgcC.png"
+    image: PlaceHolderImages.find(p => p.id === 'checklist-bonus')?.imageUrl
   }
 ];
 

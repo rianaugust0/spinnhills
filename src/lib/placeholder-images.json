@@ -9,8 +9,8 @@
     {
       "id": "guide-cover",
       "description": "Cover of the Redação 920+ guide",
-      "imageUrl": "https://images.unsplash.com/photo-1535398089889-dd807df1dfaa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxib29rJTIwY292ZXJ8ZW58MHx8fHwxNzYxNDU4NjM1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "book cover"
+      "imageUrl": "https://i.imgur.com/o2LmgcC.png",
+      "imageHint": "checklist"
     },
     {
       "id": "testimonial-beatriz",
@@ -29,6 +29,12 @@
       "description": "Avatar for Ana P.",
       "imageUrl": "https://images.unsplash.com/photo-1518644730709-0835105d9daa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjB0aGlua2luZ3xlbnwwfHx8fDE3NjE0MTI1OTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person thinking"
+    },
+    {
+      "id": "checklist-bonus",
+      "description": "Imagem para Checklist da Redação Nota 1000",
+      "imageUrl": "https://i.imgur.com/o2LmgcC.png",
+      "imageHint": "checklist"
     }
   ]
 }
