@@ -34,13 +34,13 @@ export function Approvals() {
           {approvalImages.map((image, index) => (
             <div
               key={index}
-              className="relative overflow-hidden rounded-lg shadow-2xl transition-transform duration-300 hover:scale-105 h-[600px] bg-card"
+              className="relative overflow-hidden rounded-lg shadow-2xl transition-transform duration-300 hover:scale-105 h-[600px] bg-card p-4"
             >
               <Image
                 src={image.src}
                 alt={image.alt}
                 fill
-                className="object-cover"
+                className="object-contain"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 data-ai-hint={image.hint}
               />
