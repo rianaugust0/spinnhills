@@ -33,7 +33,7 @@ export async function gradeEssay(essay: string): Promise<GradeEssayOutput> {
 
 const prompt = ai.definePrompt({
     name: 'gradeEssayPrompt',
-    input: { schema: z.string() },
+    input: { schema: z.object({ prompt: z.string() }) },
     output: { schema: GradeEssayOutputSchema },
     prompt: `Você é um corretor especialista em redações do ENEM, treinado para avaliar textos de forma rigorosa e precisa, seguindo as 5 competências oficiais. Sua tarefa é analisar a redação fornecida, atribuir uma nota de 0 a 200 para cada competência e, em seguida, calcular a nota final (de 0 a 1000) somando as notas das competências.
 
@@ -55,7 +55,7 @@ const gradeEssayFlow = ai.defineFlow(
     outputSchema: GradeEssayOutputSchema,
   },
   async (essay) => {
-    const { output } = await prompt(essay);
+    const { output } = await prompt({ prompt: essay });
     if (!output) {
         throw new Error("A IA não conseguiu gerar uma correção. Tente novamente.");
     }
