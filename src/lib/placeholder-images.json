@@ -10,12 +10,12 @@
       "id": "guide-cover",
       "description": "Cover of the Redação 920+ guide",
       "imageUrl": "https://i.imgur.com/9mWKnA1.png",
-      "imageHint": "ENEM grades"
+      "imageHint": "book cover"
     },
     {
       "id": "testimonial-beatriz",
       "description": "Avatar for Beatriz M.",
-      "imageUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=1961&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "imageHint": "female student"
     },
     {
@@ -27,7 +27,7 @@
     {
       "id": "testimonial-ana",
       "description": "Avatar for Ana P.",
-      "imageUrl": "https://images.unsplash.com/photo-1594348533804-08d5aa76a39e?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "imageHint": "young woman"
     },
     {
@@ -39,7 +39,7 @@
     {
       "id": "testimonial-joao",
       "description": "Avatar for João V.",
-      "imageUrl": "https://images.unsplash.com/photo-1618641986557-1ecd230959aa?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%-3D%3D",
+      "imageUrl": "https://images.unsplash.com/photo-1557862921-37829c790f19?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       "imageHint": "male student"
     }
   ]
