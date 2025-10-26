@@ -35,6 +35,12 @@
       "description": "Imagem para Checklist da Redação Nota 1000",
       "imageUrl": "https://i.imgur.com/o2LmgcC.png",
       "imageHint": "checklist"
+    },
+    {
+      "id": "testimonial-joao",
+      "description": "Avatar for João V.",
+      "imageUrl": "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageHint": "man portrait smiling"
     }
   ]
 }
