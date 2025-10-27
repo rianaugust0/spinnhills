@@ -35,7 +35,7 @@ export function Guide() {
                 </p>
               </CardContent>
             </Card>
-            <Button asChild size="lg" className="mt-8 w-full md:w-auto text-lg h-auto py-3 whitespace-normal">
+            <Button asChild size="lg" className="mt-8 w-full text-lg h-auto py-3 whitespace-normal">
               <a href="https://pay.kiwify.com.br/hJkFpgM" target="_blank" rel="noopener noreferrer">🔵 QUERO ESSE GUIA AGORA</a>
             </Button>
           </div>
