@@ -47,13 +47,13 @@ export function ScarcityBanner() {
 
   if (!isClient) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-50 bg-destructive text-destructive-foreground py-2 text-center text-sm font-medium">
-        <div className="container flex flex-col sm:flex-row items-center justify-center gap-2">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-destructive text-destructive-foreground py-2 text-center text-sm font-medium h-[41px] sm:h-auto">
+        <div className="container flex items-center justify-center gap-2 h-full">
           <div className="flex items-center gap-2 text-center">
             <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-            <span><b>VAGAS COM DESCONTO ESGOTANDO!</b> Garanta com <b>R$362 de desconto</b></span>
+            <span><b>VAGAS COM DESCONTO ESGOTANDO!</b></span>
           </div>
-          <div className="flex items-center gap-1.5 bg-background/20 rounded-md px-3 py-1 min-w-[120px] justify-center">
+          <div className="hidden sm:flex items-center gap-1.5 bg-background/20 rounded-md px-3 py-1 min-w-[120px] justify-center">
             <span className="font-bold tabular-nums">Calculando...</span>
           </div>
         </div>
@@ -77,11 +77,12 @@ export function ScarcityBanner() {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-destructive text-destructive-foreground py-2 text-center text-sm font-medium">
-      <div className="container flex flex-col sm:flex-row items-center justify-center gap-2">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-destructive text-destructive-foreground py-2 text-center text-sm font-medium h-[41px] sm:h-auto">
+      <div className="container flex items-center justify-center gap-2 h-full">
         <div className="flex items-center gap-2 text-center">
           <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-          <span><b>VAGAS COM DESCONTO ESGOTANDO!</b> Garanta com <b>R$362 de desconto</b></span>
+          <span className="hidden sm:inline"><b>VAGAS COM DESCONTO ESGOTANDO!</b> Garanta com <b>R$362 de desconto</b></span>
+          <span className="sm:hidden"><b>DESCONTO ESGOTANDO!</b></span>
         </div>
         <div className="flex items-center gap-1.5 bg-background/20 rounded-md px-3 py-1 min-w-[120px] justify-center">
           {timerComponents.length > 0 ? timerComponents.reduce((prev, curr) => <>{prev}:{curr}</>) : <span>Tempo Esgotado!</span>}

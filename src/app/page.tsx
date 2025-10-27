@@ -19,7 +19,7 @@ import { Approvals } from "@/components/sections/approvals";
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-dvh bg-background pt-[70px] sm:pt-[41px]">
+    <div className="flex flex-col min-h-dvh bg-background pt-[97px]">
       <ScarcityBanner />
       <Header />
       <main className="flex-1">
