@@ -47,7 +47,7 @@ export function ScarcityBanner() {
 
   if (!isClient) {
     return (
-      <div className="bg-destructive text-destructive-foreground py-2 text-center text-sm font-medium">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-destructive text-destructive-foreground py-2 text-center text-sm font-medium">
         <div className="container flex flex-col sm:flex-row items-center justify-center gap-2">
           <div className="flex items-center gap-2 text-center">
             <AlertTriangle className="h-5 w-5 flex-shrink-0" />
