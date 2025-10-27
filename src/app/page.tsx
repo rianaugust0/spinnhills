@@ -29,11 +29,11 @@ export default function Home() {
         <Testimonials />
         <Approvals />
         <TargetAudience />
-        <Faq />
         <Bonuses />
         <Offer />
         <FinalCta />
         <LastCall />
+        <Faq />
       </main>
       <Footer />
     </div>
