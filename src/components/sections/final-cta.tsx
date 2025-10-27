@@ -8,7 +8,7 @@ export function FinalCta() {
           🚀 A Escolha é Sua
         </h2>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-          Você pode continuar perdido, esperando que "caia um tema fácil"... ou pode garantir agora um método testado e comprovado, por menos que o preço de uma pizza.
+          Você pode continuar perdido, esperando um milagre no dia 9 de Novembro... ou pode garantir agora um método testado e comprovado, por menos que o preço de uma pizza.
         </p>
         <p className="mt-4 text-xl font-bold">O Enem está batendo na porta. Sua redação pode ser o que muda seu futuro.</p>
         <div className="mt-8 flex justify-center">

@@ -25,7 +25,7 @@ export function TargetAudience() {
                 O relógio está correndo...
               </h3>
               <p className="mt-4 text-muted-foreground">
-                Faltam poucos dias para o Enem — e você ainda sente aquele frio na barriga só de pensar na redação. A prova que mais pesa na nota é justamente a que você menos domina.
+                Faltam poucos dias para a prova em <b>9 de Novembro</b> — e você ainda sente aquele frio na barriga só de pensar na redação. A prova que mais pesa na nota é justamente a que você menos domina.
               </p>
             </div>
             <div className="rounded-xl border bg-card p-6 text-left shadow-lg">
@@ -67,10 +67,10 @@ export function TargetAudience() {
           <div className="mt-16 rounded-lg bg-red-500/10 p-6 border border-red-500/30">
             <h4 className="flex items-center justify-center gap-3 font-headline text-xl font-bold text-red-700 dark:text-red-500">
               <AlertTriangle className="h-6 w-6" />
-              Não é um guia pra "ver depois".
+              Esta é a sua última chamada.
             </h4>
             <p className="mt-4 text-lg text-red-800 dark:text-red-400">
-              Cada dia perdido agora é um ponto a menos na sua nota final. Mas quem agir hoje ainda tem tempo de virar o jogo completamente.
+              A prova do dia 9 de Novembro não vai esperar. Cada dia perdido agora é um ponto a menos na sua nota final. Quem agir hoje ainda tem tempo de virar o jogo completamente.
             </p>
           </div>
 

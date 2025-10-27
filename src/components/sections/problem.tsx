@@ -4,8 +4,8 @@ import { Clock, Frown, HelpCircle } from "lucide-react";
 const painPoints = [
   {
     icon: <Clock className="h-8 w-8 text-primary" />,
-    title: "O tempo tá acabando.",
-    description: "A contagem regressiva para o ENEM pode ser assustadora, mas cada dia é uma nova chance de se preparar.",
+    title: "O tempo está acabando. A prova é dia 9/11.",
+    description: "Cada segundo perdido é um ponto a menos na sua nota. O relógio não vai parar e o desespero já começou a bater.",
   },
   {
     icon: <Frown className="h-8 w-8 text-primary" />,
@@ -45,7 +45,7 @@ export function Problem() {
           ))}
         </div>
         <p className="mt-12 text-center text-xl font-medium">
-          E cada dia que passa, a pressão só aumenta. <br /> Mas calma — <span className="text-primary font-bold">ainda dá tempo de virar o jogo.</span>
+        A cada hora que passa, a chance de uma nota alta diminui. A pressão é esmagadora. <br /> E se eu te dissesse que <span className="text-primary font-bold">a solução está a um clique de distância?</span>
         </p>
       </div>
     </section>

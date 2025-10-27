@@ -10,7 +10,7 @@ export function Reality() {
         </p>
         <div className="mt-8">
           <p className="text-2xl font-extrabold tracking-tight text-primary animate-pulse">
-            🔥 Não dá pra arriscar aqui. É o momento de agir com estratégia, não com sorte.
+            🔥 O tempo para sorte acabou. É 9 de Novembro. Você precisa de um método, não de um milagre.
           </p>
         </div>
       </div>

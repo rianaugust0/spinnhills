@@ -15,7 +15,7 @@ export function Hero() {
           Como Tirar <span className="text-primary">920+</span> na Redação do ENEM
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground animate-fade-in-up [animation-delay:200ms]">
-          E se aproximar do 1000 — mesmo que faltem poucos dias. O Enem está chegando, e a redação pode ser a virada de chave para você garantir sua vaga.
+          A prova de redação do ENEM é dia <b>9 de Novembro</b>. O tempo está se esgotando. Esta é sua última chance de virar o jogo e garantir a sua vaga dos sonhos.
         </p>
         <div className="mt-8 flex justify-center gap-4 animate-fade-in-up [animation-delay:400ms]">
           <Button asChild size="lg" className="text-sm sm:text-lg h-auto whitespace-normal py-3 px-4 sm:px-8">
