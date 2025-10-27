@@ -54,15 +54,17 @@ export function Bonuses() {
             Disponíveis apenas até a véspera da prova! Todos 100% gratuitos na compra do guia hoje.
           </p>
         </div>
-        <div className="mt-12 grid max-w-lg mx-auto gap-8 lg:max-w-3xl">
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-8">
           {bonuses.map((bonus) => (
             <Card key={bonus.title} className="flex flex-col transition-transform duration-300 hover:scale-105 hover:shadow-xl">
-              <CardHeader className="flex-row items-start gap-4 space-y-0">
-                {bonus.icon}
-                <div className="flex-1">
-                  <CardTitle>{bonus.title}</CardTitle>
+              <CardHeader className="flex flex-col sm:flex-row items-start gap-4 space-y-0">
+                <div className="flex items-start gap-4 w-full">
+                  {bonus.icon}
+                  <div className="flex-1">
+                    <CardTitle>{bonus.title}</CardTitle>
+                  </div>
                 </div>
-                <Badge variant="destructive" className="flex-shrink-0">
+                <Badge variant="destructive" className="flex-shrink-0 mt-2 sm:mt-0">
                   <span className="line-through">R${bonus.value}</span>
                   <span className="ml-1">GRÁTIS</span>
                 </Badge>
