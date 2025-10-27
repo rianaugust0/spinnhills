@@ -18,7 +18,7 @@ export function Hero() {
           E se aproximar do 1000 — mesmo que faltem poucos dias. O Enem está chegando, e a redação pode ser a virada de chave para você garantir sua vaga.
         </p>
         <div className="mt-8 flex justify-center gap-4 animate-fade-in-up [animation-delay:400ms]">
-          <Button asChild size="lg" className="text-sm sm:text-lg h-12 px-4 sm:px-8">
+          <Button asChild size="lg" className="text-sm sm:text-lg px-4 sm:px-8 h-auto whitespace-normal sm:whitespace-nowrap">
             <a href="https://pay.kiwify.com.br/SehdLVR" target="_blank" rel="noopener noreferrer">🟢 QUERO MINHA REDAÇÃO 920+ AGORA</a>
           </Button>
         </div>
