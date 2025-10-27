@@ -49,7 +49,7 @@ export function InsideGuide() {
         <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {guideContents.map((item, index) => (
             <Card key={index} className="flex flex-col">
-              <CardHeader className="flex-row items-center gap-4">
+              <CardHeader className="flex-col items-start gap-4 sm:flex-row sm:items-center">
                 {item.icon}
                 <CardTitle className="text-xl">{item.title}</CardTitle>
               </CardHeader>
