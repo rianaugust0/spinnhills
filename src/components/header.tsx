@@ -3,7 +3,7 @@ import { Logo } from "@/components/logo";
 
 export function Header() {
   return (
-    <header className="sticky top-[41px] z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-[70px] sm:top-[41px] z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <a href="/" className="mr-6 flex items-center space-x-2">
