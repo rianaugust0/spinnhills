@@ -18,8 +18,8 @@ export function Offer() {
               <p className="text-lg text-muted-foreground">
                 De <span className="line-through">R$97</span> por apenas:
               </p>
-              <p className="font-headline text-6xl font-extrabold text-primary sm:text-7xl">
-                R$29<span className="text-4xl sm:text-5xl">,90</span>
+              <p className="font-headline text-5xl font-extrabold text-primary sm:text-7xl">
+                R$29<span className="text-3xl sm:text-5xl">,90</span>
               </p>
               <p className="text-muted-foreground">Pagamento único. Acesso vitalício.</p>
             </div>
