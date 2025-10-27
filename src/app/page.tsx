@@ -2,6 +2,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Hero } from "@/components/sections/hero";
 import { Problem } from "@/components/sections/problem";
+import { Guarantee } from "@/components/sections/guarantee";
 import { Story } from "@/components/sections/story";
 import { Guide } from "@/components/sections/guide";
 import { InsideGuide } from "@/components/sections/inside-guide";
@@ -24,6 +25,7 @@ export default function Home() {
       <main className="flex-1">
         <Hero />
         <Problem />
+        <Guarantee />
         <Story />
         <Guide />
         <InsideGuide />
