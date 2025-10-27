@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const guideContents = [
   {
     icon: <Award className="h-8 w-8 text-primary" />,
-    title: "Modelo de Redação 980+",
+    title: "Modelo de Redação 920+",
     description: "O modelo exato que usei para tirar 980, com a estrutura pronta para você adaptar ao tema."
   },
   {
