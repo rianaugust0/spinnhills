@@ -30,7 +30,7 @@ export function ScarcityBanner() {
     return timeLeft;
   };
 
-  const [timeLeft, setTimeLeft] = useState({});
+  const [timeLeft, setTimeLeft] = useState<{ hours?: number; minutes?: number; seconds?: number }>({});
 
   useEffect(() => {
     if (!isClient) return;
@@ -39,7 +39,7 @@ export function ScarcityBanner() {
     setTimeLeft(calculateTimeLeft());
 
     const timer = setInterval(() => {
-      setTimeLeft(calculateTimeleFt());
+      setTimeLeft(calculateTimeLeft());
     }, 1000);
 
     return () => clearInterval(timer);
@@ -71,7 +71,7 @@ export function ScarcityBanner() {
       timerComponents.push(
         <span key={interval} className="font-bold tabular-nums">
           {String(value).padStart(2, '0')}
-          {interval.charAt(0)}
+          {interval === 'hours' ? 'h' : interval === 'minutes' ? 'm' : 's'}
         </span>
       );
     }
