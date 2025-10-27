@@ -1,17 +1,7 @@
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-
-const features = [
-  "O modelo exato que usei pra tirar 980 pontos.",
-  "As 5 competências explicadas de forma simples e estratégica.",
-  "Como montar introduções irresistíveis em 5 minutos.",
-  "Modelos prontos de redação pra adaptar ao tema.",
-  "Frases e conectivos poderosos que impressionam o corretor.",
-  "Checklist de revisão final pra garantir perfeição antes da entrega."
-];
 
 export function Guide() {
   const guideCoverImage = PlaceHolderImages.find(p => p.id === 'guide-cover');
@@ -36,16 +26,8 @@ export function Guide() {
               📘 Guia Prático — Como Tirar 920+ na Redação do ENEM
             </h2>
             <p className="mt-6 text-lg text-muted-foreground">
-              O passo a passo comprovado pra você escrever redações de alto nível e dominar o formato do Enem sem enrolação. <span className="font-bold text-foreground">Você vai aprender:</span>
+              O passo a passo comprovado pra você escrever redações de alto nível e dominar o formato do Enem sem enrolação. Um método direto ao ponto para você aplicar imediatamente.
             </p>
-            <ul className="mt-6 space-y-4">
-              {features.map((feature, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <CheckCircle2 className="h-6 w-6 flex-shrink-0 text-primary mt-1" />
-                  <span className="text-lg">{feature}</span>
-                </li>
-              ))}
-            </ul>
             <Card className="mt-8 bg-primary/10 border-primary/20">
               <CardContent className="p-4 text-center">
                 <p className="font-semibold text-primary">
