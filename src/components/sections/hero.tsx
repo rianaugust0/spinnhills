@@ -19,7 +19,7 @@ export function Hero() {
         </p>
         <div className="mt-8 flex justify-center gap-4 animate-fade-in-up [animation-delay:400ms]">
           <Button asChild size="lg" className="text-lg h-12 px-8">
-            <a href="#offer">🟢 QUERO MINHA REDAÇÃO 920+ AGORA</a>
+            <a href="https://pay.kiwify.com.br/SehdLVR">🟢 QUERO MINHA REDAÇÃO 920+ AGORA</a>
           </Button>
         </div>
       </div>

@@ -13,7 +13,7 @@ export function FinalCta() {
         <p className="mt-4 text-xl font-bold">O Enem está batendo na porta. Sua redação pode ser o que muda seu futuro.</p>
         <div className="mt-8 flex justify-center">
           <Button asChild size="lg" className="text-lg h-12 px-8">
-            <a href="#offer">🔥 QUERO MINHA REDAÇÃO 920+ AGORA!</a>
+            <a href="https://pay.kiwify.com.br/SehdLVR">🔥 QUERO MINHA REDAÇÃO 920+ AGORA!</a>
           </Button>
         </div>
       </div>
