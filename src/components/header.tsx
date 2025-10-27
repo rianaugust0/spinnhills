@@ -12,7 +12,7 @@ export function Header() {
         </div>
         <div className="flex flex-1 items-center justify-end space-x-2">
           <Button asChild>
-            <a href="https://pay.kiwify.com.br/SehdLVR">Quero meu Guia</a>
+            <a href="https://pay.kiwify.com.br/SehdLVR" target="_blank" rel="noopener noreferrer">Quero meu Guia</a>
           </Button>
         </div>
       </div>

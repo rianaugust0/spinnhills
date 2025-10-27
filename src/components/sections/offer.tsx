@@ -24,7 +24,7 @@ export function Offer() {
               <p className="text-muted-foreground">Pagamento único. Acesso vitalício.</p>
             </div>
             <Button asChild size="lg" className="w-full text-xl h-14 animate-pulse">
-              <a href="https://pay.kiwify.com.br/SehdLVR">🟩 QUERO GARANTIR MEU PACOTE COMPLETO</a>
+              <a href="https://pay.kiwify.com.br/SehdLVR" target="_blank" rel="noopener noreferrer">🟩 QUERO GARANTIR MEU PACOTE COMPLETO</a>
             </Button>
             <div className="mt-8 flex items-center justify-center gap-4">
               <ShieldCheck className="h-10 w-10 text-primary" />
