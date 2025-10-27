@@ -35,7 +35,7 @@ export function Approvals() {
             Uma boa redação não te dá só uma boa nota. Ela te dá isso aqui:
           </p>
         </div>
-        <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto items-start">
+        <div className="mt-12 grid grid-cols-2 gap-4 sm:gap-8 md:grid-cols-4 max-w-7xl mx-auto items-start">
           {approvalImages.map((image, index) => (
             <div
               key={index}
@@ -47,7 +47,7 @@ export function Approvals() {
                 width={600}
                 height={1200}
                 className="w-full h-auto"
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                 data-ai-hint={image.hint}
               />
             </div>

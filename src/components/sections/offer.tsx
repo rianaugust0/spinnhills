@@ -23,11 +23,11 @@ export function Offer() {
               </p>
               <p className="text-muted-foreground">Pagamento único. Acesso vitalício.</p>
             </div>
-            <Button asChild size="lg" className="w-full text-xl h-14 animate-pulse">
+            <Button asChild size="lg" className="w-full text-base sm:text-xl h-14 animate-pulse">
               <a href="https://pay.kiwify.com.br/SehdLVR" target="_blank" rel="noopener noreferrer">🟩 QUERO GARANTIR MEU PACOTE COMPLETO</a>
             </Button>
-            <div className="mt-8 flex items-center justify-center gap-4">
-              <ShieldCheck className="h-10 w-10 text-primary" />
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-center sm:text-left">
+              <ShieldCheck className="h-10 w-10 text-primary flex-shrink-0" />
               <div>
                 <h3 className="font-bold">Garantia Incondicional de 7 Dias</h3>
                 <p className="text-sm text-muted-foreground">

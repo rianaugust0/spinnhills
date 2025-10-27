@@ -30,25 +30,28 @@ export function ScarcityBanner() {
     return timeLeft;
   };
 
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  const [timeLeft, setTimeLeft] = useState({});
 
   useEffect(() => {
     if (!isClient) return;
 
-    const timer = setTimeout(() => {
-      setTimeLeft(calculateTimeLeft());
+    // Calculate initial time on client mount
+    setTimeLeft(calculateTimeLeft());
+
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeleFt());
     }, 1000);
 
-    return () => clearTimeout(timer);
-  });
+    return () => clearInterval(timer);
+  }, [isClient]);
 
   if (!isClient) {
-    // Renderiza um placeholder ou nada no servidor e na primeira renderização do cliente
+    // Render a placeholder or nothing on the server and on the first client render
     return (
       <div className="bg-destructive text-destructive-foreground py-2 text-center text-sm font-medium">
         <div className="container flex flex-col sm:flex-row items-center justify-center gap-2">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
+          <div className="flex items-center gap-2 text-center">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0" />
             <span><b>OFERTA TERMINA HOJE!</b> Garanta seu guia com <b>R$362 de desconto</b></span>
           </div>
           <div className="flex items-center gap-1.5 bg-background/20 rounded-md px-3 py-1 min-w-[120px] justify-center">
@@ -58,7 +61,7 @@ export function ScarcityBanner() {
       </div>
     );
   }
-
+  
   const timerComponents: JSX.Element[] = [];
 
   Object.keys(timeLeft).forEach((interval) => {
@@ -75,11 +78,11 @@ export function ScarcityBanner() {
   });
 
   return (
-    <div className="bg-destructive text-destructive-foreground py-2 text-center text-sm font-medium">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-destructive text-destructive-foreground py-2 text-center text-sm font-medium">
       <div className="container flex flex-col sm:flex-row items-center justify-center gap-2">
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5" />
-          <span><b>OFERTA TERMINA HOJE!</b> Garanta seu guia com <b>R$362 de desconto</b></span>
+        <div className="flex items-center gap-2 text-center">
+          <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+          <span><b>OFERTA TERMINA HOJE!</b> Garanta com <b>R$362 de desconto</b></span>
         </div>
         <div className="flex items-center gap-1.5 bg-background/20 rounded-md px-3 py-1 min-w-[120px] justify-center">
           {timerComponents.length > 0 ? timerComponents.reduce((prev, curr) => <>{prev}:{curr}</>) : <span>Tempo Esgotado!</span>}

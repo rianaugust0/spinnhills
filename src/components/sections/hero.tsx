@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 
 export function Hero() {
   return (
-    <section className="py-20 text-center sm:py-32">
+    <section className="pt-28 pb-20 text-center sm:pt-40 sm:pb-32">
       <div className="container">
         <Badge
           variant="outline"
@@ -18,7 +18,7 @@ export function Hero() {
           E se aproximar do 1000 — mesmo que faltem poucos dias. O Enem está chegando, e a redação pode ser a virada de chave para você garantir sua vaga.
         </p>
         <div className="mt-8 flex justify-center gap-4 animate-fade-in-up [animation-delay:400ms]">
-          <Button asChild size="lg" className="text-lg h-12 px-8">
+          <Button asChild size="lg" className="text-base sm:text-lg h-12 px-6 sm:px-8">
             <a href="https://pay.kiwify.com.br/SehdLVR" target="_blank" rel="noopener noreferrer">🟢 QUERO MINHA REDAÇÃO 920+ AGORA</a>
           </Button>
         </div>
