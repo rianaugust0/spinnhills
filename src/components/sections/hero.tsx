@@ -9,12 +9,12 @@ export function Hero() {
       {/* Background Image/Video */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="https://picsum.photos/seed/classy-barber/1920/1080"
+          src="https://picsum.photos/seed/barber-tools/1920/1080"
           alt="Barbearia HillsCut estilosa"
           fill
           className="object-cover"
           priority
-          data-ai-hint="barber action"
+          data-ai-hint="barber scissors machine"
         />
         <div className="absolute inset-0 bg-deep-black/60"></div>
       </div>
