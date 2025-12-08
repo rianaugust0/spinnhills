@@ -21,7 +21,7 @@ const differentials = [
     icon: <GlassWater className="h-10 w-10 text-gold" />,
     title: 'Bebidas Premium',
     description: 'Aprecie um bom whisky, uma cerveja artesanal ou um café especial enquanto cuidamos do seu visual.',
-    image: 'https://images.unsplash.com/photo-1618033190359-5adf53d4c72d?q=80&w=1887&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1550985223-e0b5c7381525?q=80&w=1887&auto=format&fit=crop',
     aiHint: 'whiskey glass bar',
   },
   {
