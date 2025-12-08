@@ -26,11 +26,11 @@ export function About() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center">
           <div className="relative h-[500px] lg:h-[600px] rounded-lg overflow-hidden shadow-lg order-last lg:order-first">
              <Image 
-                src="https://i.imgur.com/k2x1z9k.png"
+                src="https://picsum.photos/seed/barbershop-about/800/1000"
                 alt="Interior da Barbearia HillsCut"
                 fill
                 className="object-cover"
-                data-ai-hint="barbershop interior chairs"
+                data-ai-hint="barbershop interior"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-dark-gray via-dark-gray/50 to-transparent"></div>
           </div>
