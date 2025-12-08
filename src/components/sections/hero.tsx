@@ -1,10 +1,19 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function Hero() {
   return (
     <section id="inicio" className="relative h-screen flex items-center justify-center text-center text-white overflow-hidden bg-deep-black">
+      <Image
+        src="https://i.ibb.co/3s6wTzV/a-cinematic-shot-of-a-barber-shop-with-a-stylish-barber-working-on-a-client-the-focus-is-on-the-bar.png"
+        alt="Barbeiro trabalhando em um cliente em um ambiente luxuoso"
+        fill
+        className="object-cover opacity-30"
+        priority
+        data-ai-hint="barbershop cinematic"
+      />
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 animate-fade-in-up">
         <h1 className="font-headline text-6xl md:text-8xl lg:text-9xl text-ice-white uppercase tracking-wider leading-tight">
