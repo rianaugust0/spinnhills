@@ -9,7 +9,7 @@ export function Hero() {
       {/* Background Image/Video */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="https://picsum.photos/seed/barber-action/1920/1080"
+          src="https://i.imgur.com/k2x1z9k.png"
           alt="Barbeiro da HillsCut em ação"
           fill
           className="object-cover"
