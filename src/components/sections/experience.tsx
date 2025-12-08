@@ -7,7 +7,7 @@ const differentials = [
     icon: <Wind className="h-10 w-10 text-gold" />,
     title: 'Toalha Quente',
     description: 'Relaxe e prepare sua pele com nossas toalhas quentes e óleos essenciais, um ritual que transforma o barbear.',
-    image: 'https://images.unsplash.com/photo-1595123548902-62380a157582?q=80&w=1887&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1580615848834-f239335197b1?q=80&w=1887&auto=format&fit=crop',
     aiHint: 'barber hot towel',
   },
   {
@@ -21,7 +21,7 @@ const differentials = [
     icon: <GlassWater className="h-10 w-10 text-gold" />,
     title: 'Bebidas Premium',
     description: 'Aprecie um bom whisky, uma cerveja artesanal ou um café especial enquanto cuidamos do seu visual.',
-    image: 'https://images.unsplash.com/photo-1550985223-e0b5c7381525?q=80&w=1887&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1617092562498-8e6a57c1a82b?q=80&w=1887&auto=format&fit=crop',
     aiHint: 'whiskey glass bar',
   },
   {
