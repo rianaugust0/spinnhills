@@ -23,16 +23,26 @@ export function About() {
   return (
     <section id="sobre" className="py-20 sm:py-32 bg-dark-gray">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center">
+          <div className="relative h-[500px] lg:h-[600px] rounded-lg overflow-hidden shadow-lg order-last lg:order-first">
+             <Image 
+                src="https://picsum.photos/seed/barber-about/800/1200"
+                alt="Interior da Barbearia HillsCut"
+                fill
+                className="object-cover"
+                data-ai-hint="barbershop interior chairs"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-gray via-dark-gray/50 to-transparent"></div>
+          </div>
           <div className="space-y-8">
             <h2 className="font-headline text-5xl sm:text-6xl text-ice-white uppercase tracking-wider">
-              Mais que uma barbearia, <br />
-              <span className="text-gold">um refúgio.</span>
+              Nossa <br />
+              <span className="text-gold">História</span>
             </h2>
             <p className="text-muted-foreground leading-relaxed max-w-xl">
               Na HillsCut, unimos a tradição da barbearia clássica com um toque moderno e sofisticado. Cada detalhe, do ambiente ao atendimento, foi pensado para proporcionar uma experiência única e revigorante. Aqui, você não apenas corta o cabelo, você redescobre seu estilo.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-4">
+            <div className="space-y-6 pt-4">
               {features.slice(1).map((feature) => (
                 <div key={feature.title} className="flex items-start space-x-4">
                   <div className="bg-deep-black p-3 rounded-md mt-1">{feature.icon}</div>
@@ -43,16 +53,6 @@ export function About() {
                 </div>
               ))}
             </div>
-          </div>
-          <div className="relative h-96 lg:h-[500px] rounded-lg overflow-hidden shadow-lg">
-             <Image 
-                src="https://picsum.photos/seed/barber-about/800/1000"
-                alt="Interior da Barbearia HillsCut"
-                fill
-                className="object-cover"
-                data-ai-hint="barbershop interior"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-gray via-dark-gray/50 to-transparent"></div>
           </div>
         </div>
       </div>
