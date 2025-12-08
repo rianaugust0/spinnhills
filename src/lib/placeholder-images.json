@@ -23,6 +23,162 @@
       "description": "Interior de uma barbearia de luxo com design sofisticado e iluminação cinematográfica.",
       "imageUrl": "https://images.unsplash.com/photo-1621607512022-6aecc4fed814?q=80&w=1887&auto=format&fit=crop",
       "imageHint": "luxury barbershop interior"
+    },
+    {
+      "id": "service-premium-cut",
+      "description": "Barbeiro finalizando um corte de cabelo masculino com tesoura em um ambiente profissional.",
+      "imageUrl": "https://images.unsplash.com/photo-1599351431202-187b51901413?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "men haircut"
+    },
+    {
+      "id": "service-beard-therapy",
+      "description": "Close-up em uma barba masculina bem cuidada, com foco na textura e forma.",
+      "imageUrl": "https://images.unsplash.com/photo-1622288390772-3543167a5369?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "man beard"
+    },
+    {
+      "id": "service-hillscut-combo",
+      "description": "Homem com cabelo e barba perfeitamente estilizados, olhando de lado em um fundo escuro.",
+      "imageUrl": "https://images.unsplash.com/photo-1615109398623-88346a601842?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "man hairstyle beard"
+    },
+    {
+      "id": "service-hair-treatment",
+      "description": "Produto de tratamento capilar sendo aplicado em cabelo masculino.",
+      "imageUrl": "https://images.unsplash.com/photo-1560361036-79c0e2520378?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "hair treatment"
+    },
+    {
+      "id": "barber-joao",
+      "description": "Retrato profissional de um barbeiro em um ambiente de barbearia de luxo.",
+      "imageUrl": "https://images.unsplash.com/photo-1623366302587-b3291e1d8184?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "professional barber portrait"
+    },
+    {
+      "id": "barber-miguel",
+      "description": "Retrato de um barbeiro moderno e estiloso.",
+      "imageUrl": "https://images.unsplash.com/photo-1616007993818-491d5c56d773?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "stylish barber"
+    },
+    {
+      "id": "barber-pedro",
+      "description": "Retrato de um barbeiro focado em seu trabalho.",
+      "imageUrl": "https://images.unsplash.com/photo-1559599021-a39c9f80b277?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "focused barber"
+    },
+    {
+      "id": "gallery-ba-1-before",
+      "description": "Homem antes de um corte de cabelo.",
+      "imageUrl": "https://images.unsplash.com/photo-1608869776252-33ff061fabf2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYW4lMjBiZWZvcmUlMjBoYWlyY3V0fGVufDB8fHx8MTc2NTIxNzc1OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man before haircut"
+    },
+    {
+      "id": "gallery-ba-1-after",
+      "description": "Homem depois de um corte de cabelo estiloso.",
+      "imageUrl": "https://images.unsplash.com/photo-1543697506-6729425f7265?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtYW4lMjBhZnRlciUyMGhhaXJjdXR8ZW58MHx8fHwxNzY1MjE3NzU5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man after haircut"
+    },
+    {
+      "id": "gallery-ba-2-before",
+      "description": "Homem com cabelo comprido antes de um corte.",
+      "imageUrl": "https://images.unsplash.com/photo-1683717909401-78ab2cbe178f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxsb25nJTIwaGFpciUyMGJlZm9yZXxlbnwwfHx8fDE3NjUyMTc3NTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "long hair before"
+    },
+    {
+      "id": "gallery-ba-2-after",
+      "description": "Homem com cabelo curto e moderno depois de um corte.",
+      "imageUrl": "https://images.unsplash.com/photo-1706612456855-bcffe53e3eb5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxzaG9ydCUyMGhhaXIlMjBhZnRlcnxlbnwwfHx8fDE3NjUyMTc3NTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "short hair after"
+    },
+    {
+      "id": "gallery-ba-3-before",
+      "description": "Homem com barba por fazer.",
+      "imageUrl": "https://images.unsplash.com/photo-1682391129792-4c1265dd5da8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx1bnRyaW1tZWQlMjBiZWFyZHxlbnwwfHx8fDE3NjUyMTc3NTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "untrimmed beard"
+    },
+    {
+      "id": "gallery-ba-3-after",
+      "description": "Homem com barba aparada e estilizada.",
+      "imageUrl": "https://images.unsplash.com/photo-1678921067408-328a49ae3098?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx0cmltbWVkJTIwYmVhcmR8ZW58MHx8fHwxNzY1MjE3NzYwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "trimmed beard"
+    },
+    {
+      "id": "gallery-grid-1",
+      "description": "Corte de cabelo masculino visto de lado.",
+      "imageUrl": "https://images.unsplash.com/photo-1622288390772-3543167a5369?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "side haircut"
+    },
+    {
+      "id": "gallery-grid-2",
+      "description": "Interior da barbearia com foco nas cadeiras.",
+      "imageUrl": "https://images.unsplash.com/photo-1621607512022-6aecc4fed814?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "barbershop chairs"
+    },
+    {
+      "id": "gallery-grid-3",
+      "description": "Ferramentas de barbeiro em um balcão.",
+      "imageUrl": "https://images.unsplash.com/photo-1633767512297-6c4340411a64?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "barber tools"
+    },
+    {
+      "id": "gallery-grid-4",
+      "description": "Close-up de um barbeiro cortando cabelo com tesoura.",
+      "imageUrl": "https://images.unsplash.com/photo-1536520002442-9975ee09435a?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "haircut scissors"
+    },
+    {
+      "id": "gallery-grid-5",
+      "description": "Homem recebendo um tratamento de barba com toalha quente.",
+      "imageUrl": "https://images.unsplash.com/photo-1580615848834-f239335197b1?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "beard treatment"
+    },
+    {
+      "id": "gallery-grid-6",
+      "description": "Corte de cabelo masculino finalizado.",
+      "imageUrl": "https://images.unsplash.com/photo-1599351431202-187b51901413?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "finished haircut"
+    },
+    {
+      "id": "testimonial-1",
+      "description": "Retrato de um cliente satisfeito.",
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "happy client"
+    },
+    {
+      "id": "testimonial-2",
+      "description": "Retrato de um homem com uma barba bem cuidada.",
+      "imageUrl": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "man beard"
+    },
+    {
+      "id": "testimonial-3",
+      "description": "Retrato de um homem em um ambiente sofisticado.",
+      "imageUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "sophisticated man"
+    },
+    {
+      "id": "testimonial-4",
+      "description": "Retrato de um homem sorrindo.",
+      "imageUrl": "https://images.unsplash.com/photo-1521119989659-a83eee488004?q=80&w=1894&auto=format&fit=crop",
+      "imageHint": "smiling man"
+    },
+    {
+      "id": "promo-first-visit",
+      "description": "Imagem conceitual para desconto de primeira visita.",
+      "imageUrl": "https://images.unsplash.com/photo-1508359942477-38de6ac382e1?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "welcome gift"
+    },
+    {
+      "id": "promo-combo",
+      "description": "Homem com cabelo e barba perfeitamente estilizados.",
+      "imageUrl": "https://images.unsplash.com/photo-1615109398623-88346a601842?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "hair beard combo"
+    },
+    {
+      "id": "promo-loyalty",
+      "description": "Cartão de fidelidade ou selo de recompensa.",
+      "imageUrl": "https://images.unsplash.com/photo-1512910824059-832d2a454526?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "loyalty card"
     }
   ]
 }

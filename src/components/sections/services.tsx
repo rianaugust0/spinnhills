@@ -45,17 +45,19 @@ export function Services() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {services.map((service) => {
-            const image = PlaceHolderImages.find(p => p.id === service.imageId)!;
+            const image = PlaceHolderImages.find(p => p.id === service.imageId);
             return (
               <Card key={service.title} className="bg-dark-gray border-gold/20 overflow-hidden group flex flex-col">
-                <div className="relative h-64 w-full">
-                  <Image
-                    src={image.imageUrl}
-                    alt={image.description}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    data-ai-hint={image.imageHint}
-                  />
+                <div className="relative h-64 w-full bg-dark-gray">
+                  {image && (
+                    <Image
+                      src={image.imageUrl}
+                      alt={image.description}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      data-ai-hint={image.imageHint}
+                    />
+                  )}
                 </div>
                 <CardHeader className="flex-grow">
                   <CardTitle className="font-headline text-3xl text-gold tracking-wider">{service.title}</CardTitle>
