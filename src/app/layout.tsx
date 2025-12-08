@@ -1,10 +1,9 @@
 import type {Metadata} from 'next';
-import Script from 'next/script';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Redação 920+',
-  description: 'Alcance 920+ na redação do ENEM com um método comprovado.',
+  title: 'Barbearia Imperial',
+  description: 'A sua barbearia de confiança.',
 };
 
 export default function RootLayout({
@@ -14,33 +13,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="scroll-smooth">
-      <head>
-        <link rel="icon" href="https://i.imgur.com/2U2l5aD.png" type="image/png" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased">
+      <body>
         {children}
-        <Script id="utmify-pixel" strategy="afterInteractive">
-          {`
-            window.pixelId = "69012ad08262488321289774";
-            var a = document.createElement("script");
-            a.setAttribute("async", "");
-            a.setAttribute("defer", "");
-            a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
-            document.head.appendChild(a);
-          `}
-        </Script>
-        <Script
-          src="https://cdn.utmify.com.br/scripts/utms/latest.js"
-          data-utmify-prevent-xcod-sck
-          data-utmify-prevent-subids
-          async
-          defer
-          strategy="afterInteractive"
-        ></Script>
       </body>
     </html>
   );
