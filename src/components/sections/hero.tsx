@@ -1,24 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
 import Link from 'next/link';
 
 export function Hero() {
   return (
-    <section id="inicio" className="relative h-screen flex items-center justify-center text-center text-white overflow-hidden">
-      {/* Background Image/Video */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="https://i.imgur.com/k2x1z9k.png"
-          alt="Barbeiro da HillsCut em ação"
-          fill
-          className="object-cover"
-          priority
-          data-ai-hint="barber working client"
-        />
-        <div className="absolute inset-0 bg-deep-black/60"></div>
-      </div>
-
+    <section id="inicio" className="relative h-screen flex items-center justify-center text-center text-white overflow-hidden bg-deep-black">
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 animate-fade-in-up">
         <h1 className="font-headline text-6xl md:text-8xl lg:text-9xl text-ice-white uppercase tracking-wider leading-tight">
