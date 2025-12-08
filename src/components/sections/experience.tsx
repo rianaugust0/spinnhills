@@ -1,3 +1,4 @@
+
 import { Wind, Gem, GlassWater, Scissors } from 'lucide-react';
 import Image from 'next/image';
 
