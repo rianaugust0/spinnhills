@@ -34,7 +34,7 @@ export function Hero() {
         
         <div className="mt-10">
           <Badge variant="secondary" className="bg-dark-gray/50 border border-gold/20 text-ice-white py-2 px-4 text-sm font-semibold backdrop-blur-sm">
-            Atendimento com hora marcada • Cancelamento fácil • PIX e cartão
+            Atendimento com hora marcada • Ambiente Climatizado • PIX e cartão
           </Badge>
         </div>
       </div>
