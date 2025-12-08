@@ -9,7 +9,7 @@ const promotions = [
     title: 'Primeira Visita',
     description: 'Ganhe 20% de desconto no seu primeiro corte ou barba. Uma boas-vindas ao estilo HillsCut.',
     price: '-20%',
-    image: 'https://picsum.photos/seed/promo1/800/600',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop',
     aiHint: 'man surprised',
   },
   {
@@ -17,7 +17,7 @@ const promotions = [
     title: 'Combo Cabelo + Barba',
     description: 'Renove o visual completo com nosso combo e ganhe um tratamento capilar de hidratação.',
     price: 'Brinde',
-    image: 'https://picsum.photos/seed/promo2/800/600',
+    image: 'https://images.unsplash.com/photo-1599351022246-85b5b058a5f3?q=80&w=1887&auto=format&fit=crop',
     aiHint: 'man getting haircut',
   },
   {
@@ -25,7 +25,7 @@ const promotions = [
     title: 'Programa Fidelidade',
     description: 'A cada 10 serviços, o 11º é por nossa conta. Porque cliente fiel merece ser recompensado.',
     price: 'Grátis',
-    image: 'https://picsum.photos/seed/promo3/800/600',
+    image: 'https://images.unsplash.com/photo-1566522649817-2da4483a1b38?q=80&w=1887&auto=format&fit=crop',
     aiHint: 'loyalty card',
   },
 ];

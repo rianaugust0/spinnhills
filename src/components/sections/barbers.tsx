@@ -8,7 +8,7 @@ const barbers = [
     specialty: 'Especialista em Cortes Clássicos e Barba',
     quote: '"Cada corte é uma assinatura. Deixo a minha com precisão e estilo."',
     attended: '2.100+',
-    image: 'https://picsum.photos/seed/barber1/500/500',
+    image: 'https://images.unsplash.com/photo-1567028344493-27c1f9244839?q=80&w=1887&auto=format&fit=crop',
     aiHint: 'male portrait',
   },
   {
@@ -16,7 +16,7 @@ const barbers = [
     specialty: 'Mestre do Degradê e Penteados Modernos',
     quote: '"A transição perfeita é a alma do corte. Eu crio arte em cada degradê."',
     attended: '1.800+',
-    image: 'https://picsum.photos/seed/barber2/500/500',
+    image: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=1887&auto=format&fit=crop',
     aiHint: 'man smiling',
   },
   {
@@ -24,7 +24,7 @@ const barbers = [
     specialty: 'Foco em Finalizações e Design de Barba',
     quote: '"O diabo mora nos detalhes. Minha missão é entregar a perfeição."',
     attended: '1.500+',
-    image: 'https://picsum.photos/seed/barber3/500/500',
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1887&auto=format&fit=crop',
     aiHint: 'serious man',
   },
 ];

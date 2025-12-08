@@ -5,31 +5,31 @@ import { Card, CardContent } from '@/components/ui/card';
 const beforeAfters = [
   {
     id: 1,
-    before: 'https://picsum.photos/seed/ba-before1/600/600',
-    after: 'https://picsum.photos/seed/ba-after1/600/600',
+    before: 'https://images.unsplash.com/photo-1596392253835-2c543a68615c?q=80&w=1887&auto=format&fit=crop',
+    after: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop',
     aiHint: 'man before after',
   },
   {
     id: 2,
-    before: 'https://picsum.photos/seed/ba-before2/600/600',
-    after: 'https://picsum.photos/seed/ba-after2/600/600',
+    before: 'https://images.unsplash.com/photo-1585869209529-f5595a898938?q=80&w=1887&auto=format&fit=crop',
+    after: 'https://images.unsplash.com/photo-1616091093714-c64882e9ab55?q=80&w=1887&auto=format&fit=crop',
     aiHint: 'man before after haircut',
   },
   {
     id: 3,
-    before: 'https://picsum.photos/seed/ba-before3/600/600',
-    after: 'https://picsum.photos/seed/ba-after3/600/600',
+    before: 'https://images.unsplash.com/photo-1622299292925-a13f73801557?q=80&w=1887&auto=format&fit=crop',
+    after: 'https://images.unsplash.com/photo-1622723704225-88d40011e723?q=80&w=1887&auto=format&fit=crop',
     aiHint: 'beard trim before after',
   },
 ];
 
 const galleryImages = [
-  { id: 1, src: 'https://picsum.photos/seed/gallery1/600/800', alt: 'Corte de cabelo estiloso', aiHint: 'stylish haircut' },
-  { id: 2, src: 'https://picsum.photos/seed/gallery2/600/800', alt: 'Barba sendo aparada', aiHint: 'beard trim' },
-  { id: 3, src: 'https://picsum.photos/seed/gallery3/800/600', alt: 'Cliente relaxando na cadeira', aiHint: 'man relaxing barbershop' },
-  { id: 4, src: 'https://picsum.photos/seed/gallery4/600/800', alt: 'Detalhe da navalha', aiHint: 'razor detail' },
-  { id: 5, src: 'https://picsum.photos/seed/gallery5/800/600', alt: 'Ambiente da barbearia', aiHint: 'barbershop ambient' },
-  { id: 6, src: 'https://picsum.photos/seed/gallery6/600/800', alt: 'Finalização de penteado', aiHint: 'hair styling' },
+  { id: 1, src: 'https://images.unsplash.com/photo-1622299353923-873c49a69123?q=80&w=1887&auto=format&fit=crop', alt: 'Corte de cabelo estiloso', aiHint: 'stylish haircut' },
+  { id: 2, src: 'https://images.unsplash.com/photo-1563299346-97641c69a0a0?q=80&w=2070&auto=format&fit=crop', alt: 'Barba sendo aparada', aiHint: 'beard trim' },
+  { id: 3, src: 'https://images.unsplash.com/photo-1642226279932-9c1c688b31b3?q=80&w=2070&auto=format&fit=crop', alt: 'Cliente relaxando na cadeira', aiHint: 'man relaxing barbershop' },
+  { id: 4, src: 'https://images.unsplash.com/photo-1632345031435-8727f6197a25?q=80&w=1887&auto=format&fit=crop', alt: 'Detalhe da navalha', aiHint: 'razor detail' },
+  { id: 5, src: 'https://images.unsplash.com/photo-1621607512022-6aecc4fed814?q=80&w=1887&auto=format&fit=crop', alt: 'Ambiente da barbearia', aiHint: 'barbershop ambient' },
+  { id: 6, src: 'https://images.unsplash.com/photo-1599351022246-85b5b058a5f3?q=80&w=1887&auto=format&fit=crop', alt: 'Finalização de penteado', aiHint: 'hair styling' },
 ];
 
 export function Gallery() {

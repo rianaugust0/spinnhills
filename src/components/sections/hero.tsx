@@ -7,7 +7,7 @@ export function Hero() {
   return (
     <section id="inicio" className="relative h-screen flex items-center justify-center text-center text-white overflow-hidden bg-deep-black">
       <Image
-        src="https://picsum.photos/seed/barber-hero/1920/1080"
+        src="https://images.unsplash.com/photo-1599351431202-187b51901413?q=80&w=2070&auto=format&fit=crop"
         alt="Barbeiro trabalhando em um cliente em um ambiente luxuoso"
         fill
         className="object-cover opacity-30"

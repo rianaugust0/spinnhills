@@ -26,7 +26,7 @@ export function About() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center">
           <div className="relative h-[500px] lg:h-[600px] rounded-lg overflow-hidden shadow-lg order-last lg:order-first">
              <Image 
-                src="https://picsum.photos/seed/barbershop-about/800/1000"
+                src="https://images.unsplash.com/photo-1621607512022-6aecc4fed814?q=80&w=1887&auto=format&fit=crop"
                 alt="Interior da Barbearia HillsCut"
                 fill
                 className="object-cover"
