@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "experience-hot-towel",
+      "description": "Barbeiro preparando uma toalha quente com vapor em um ambiente de luxo.",
+      "imageUrl": "https://images.unsplash.com/photo-1580615848834-f239335197b1?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "barber hot towel"
+    },
+    {
+      "id": "experience-razor-shave",
+      "description": "Close-up de um barbeiro usando uma navalha para fazer a barba de um cliente.",
+      "imageUrl": "https://images.unsplash.com/photo-1617953141905-d2c776aac941?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "straight razor shave"
+    },
+    {
+      "id": "experience-premium-drinks",
+      "description": "Copo de whisky premium em um balcão de madeira escura em uma barbearia de luxo.",
+      "imageUrl": "https://images.unsplash.com/photo-1618342894587-583a6a9969a2?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "whiskey glass bar"
+    },
+    {
+      "id": "experience-exclusive-ambiente",
+      "description": "Interior de uma barbearia de luxo com design sofisticado e iluminação cinematográfica.",
+      "imageUrl": "https://images.unsplash.com/photo-1621607512022-6aecc4fed814?q=80&w=1887&auto=format&fit=crop",
+      "imageHint": "luxury barbershop interior"
+    }
+  ]
 }

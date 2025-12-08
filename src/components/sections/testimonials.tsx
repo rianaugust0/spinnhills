@@ -8,35 +8,32 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import Image from 'next/image';
 import { Star } from 'lucide-react';
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const testimonials = [
   {
     name: 'Carlos Andrade',
     handle: '@carlos.dev',
     text: 'A HillsCut não é só uma barbearia, é uma experiência. Profissionais incríveis e um ambiente sem igual. O melhor corte da minha vida!',
-    image: 'https://images.unsplash.com/photo-1566753323558-f4e0952af115?q=80&w=1921&auto=format&fit=crop',
-    aiHint: 'smiling man',
+    imageId: 'testimonial-1',
   },
   {
     name: 'Pedro Martins',
     handle: '@pedromartins',
     text: 'Finalmente um lugar que entende de barba. A barba terapia é sensacional, saí de lá renovado. Recomendo 100%!',
-    image: 'https://images.unsplash.com/photo-1530268729831-4b0b9e170218?q=80&w=2070&auto=format&fit=crop',
-    aiHint: 'man with beard',
+    imageId: 'testimonial-2',
   },
   {
     name: 'Lucas Ferreira',
     handle: '@lucasferreira',
     text: 'Ambiente sofisticado, atendimento impecável e o resultado final fala por si. Virei cliente fiel desde a primeira visita.',
-    image: 'https://images.unsplash.com/photo-1542178243-bc20204b769f?q=80&w=1887&auto=format&fit=crop',
-    aiHint: 'happy customer',
+    imageId: 'testimonial-3',
   },
   {
     name: 'Marcos Almeida',
     handle: '@marcos.a',
     text: 'O combo de cabelo e barba é o melhor custo-benefício. Qualidade absurda, vale cada centavo. O João é um artista!',
-    image: 'https://images.unsplash.com/photo-1615572359974-1fe357493b84?q=80&w=1887&auto=format&fit=crop',
-    aiHint: 'satisfied client',
+    imageId: 'testimonial-4',
   },
 ];
 
@@ -70,7 +67,9 @@ export function Testimonials() {
           className="w-full max-w-6xl mx-auto"
         >
           <CarouselContent>
-            {testimonials.map((testimonial, index) => (
+            {testimonials.map((testimonial, index) => {
+              const image = PlaceHolderImages.find(p => p.id === testimonial.imageId)!;
+              return (
               <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                 <div className="p-4">
                   <Card className="bg-dark-gray border border-gold/20 h-full flex flex-col">
@@ -82,11 +81,11 @@ export function Testimonials() {
                       <div className="flex items-center space-x-4">
                         <div className="relative w-16 h-16 rounded-full overflow-hidden">
                           <Image
-                            src={testimonial.image}
-                            alt={`Foto de ${testimonial.name}`}
+                            src={image.imageUrl}
+                            alt={image.description}
                             fill
                             className="object-cover"
-                            data-ai-hint={testimonial.aiHint}
+                            data-ai-hint={image.imageHint}
                           />
                         </div>
                         <div>
@@ -98,7 +97,7 @@ export function Testimonials() {
                   </Card>
                 </div>
               </CarouselItem>
-            ))}
+            )})}
           </CarouselContent>
           <CarouselPrevious className="text-gold border-gold/50 hover:bg-gold hover:text-deep-black" />
           <CarouselNext className="text-gold border-gold/50 hover:bg-gold hover:text-deep-black" />

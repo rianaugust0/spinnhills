@@ -1,36 +1,39 @@
 import Image from 'next/image';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Card, CardContent } from '@/components/ui/card';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const beforeAfters = [
   {
     id: 1,
-    before: 'https://images.unsplash.com/photo-1596392253835-2c543a68615c?q=80&w=1887&auto=format&fit=crop',
-    after: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop',
+    beforeId: 'gallery-ba-1-before',
+    afterId: 'gallery-ba-1-after',
     aiHint: 'man before after',
   },
   {
     id: 2,
-    before: 'https://images.unsplash.com/photo-1585869209529-f5595a898938?q=80&w=1887&auto=format&fit=crop',
-    after: 'https://images.unsplash.com/photo-1616091093714-c64882e9ab55?q=80&w=1887&auto=format&fit=crop',
+    beforeId: 'gallery-ba-2-before',
+    afterId: 'gallery-ba-2-after',
     aiHint: 'man before after haircut',
   },
   {
     id: 3,
-    before: 'https://images.unsplash.com/photo-1622299292925-a13f73801557?q=80&w=1887&auto=format&fit=crop',
-    after: 'https://images.unsplash.com/photo-1622723704225-88d40011e723?q=80&w=1887&auto=format&fit=crop',
+    beforeId: 'gallery-ba-3-before',
+    afterId: 'gallery-ba-3-after',
     aiHint: 'beard trim before after',
   },
 ];
 
-const galleryImages = [
-  { id: 1, src: 'https://images.unsplash.com/photo-1622299353923-873c49a69123?q=80&w=1887&auto=format&fit=crop', alt: 'Corte de cabelo estiloso', aiHint: 'stylish haircut' },
-  { id: 2, src: 'https://images.unsplash.com/photo-1563299346-97641c69a0a0?q=80&w=2070&auto=format&fit=crop', alt: 'Barba sendo aparada', aiHint: 'beard trim' },
-  { id: 3, src: 'https://images.unsplash.com/photo-1642226279932-9c1c688b31b3?q=80&w=2070&auto=format&fit=crop', alt: 'Cliente relaxando na cadeira', aiHint: 'man relaxing barbershop' },
-  { id: 4, src: 'https://images.unsplash.com/photo-1632345031435-8727f6197a25?q=80&w=1887&auto=format&fit=crop', alt: 'Detalhe da navalha', aiHint: 'razor detail' },
-  { id: 5, src: 'https://images.unsplash.com/photo-1621607512022-6aecc4fed814?q=80&w=1887&auto=format&fit=crop', alt: 'Ambiente da barbearia', aiHint: 'barbershop ambient' },
-  { id: 6, src: 'https://images.unsplash.com/photo-1599351022246-85b5b058a5f3?q=80&w=1887&auto=format&fit=crop', alt: 'Finalização de penteado', aiHint: 'hair styling' },
+const galleryImageIds = [
+  'gallery-grid-1',
+  'gallery-grid-2',
+  'gallery-grid-3',
+  'gallery-grid-4',
+  'gallery-grid-5',
+  'gallery-grid-6',
 ];
+
+const galleryImages = galleryImageIds.map(id => PlaceHolderImages.find(p => p.id === id)!);
 
 export function Gallery() {
   return (
@@ -56,26 +59,30 @@ export function Gallery() {
             className="w-full max-w-4xl mx-auto"
           >
             <CarouselContent>
-              {beforeAfters.map((item) => (
-                <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/2">
-                   <div className="p-1">
-                    <Card className="bg-transparent border-0 shadow-none">
-                      <CardContent className="p-0">
-                        <div className="grid grid-cols-2 gap-2 relative">
-                          <div className="relative aspect-square">
-                            <Image src={item.before} alt="Antes" fill className="rounded-lg object-cover" data-ai-hint={item.aiHint}/>
-                            <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 text-sm font-bold rounded">ANTES</div>
+              {beforeAfters.map((item) => {
+                const beforeImg = PlaceHolderImages.find(p => p.id === item.beforeId)!;
+                const afterImg = PlaceHolderImages.find(p => p.id === item.afterId)!;
+                return (
+                  <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/2">
+                    <div className="p-1">
+                      <Card className="bg-transparent border-0 shadow-none">
+                        <CardContent className="p-0">
+                          <div className="grid grid-cols-2 gap-2 relative">
+                            <div className="relative aspect-square">
+                              <Image src={beforeImg.imageUrl} alt="Antes" fill className="rounded-lg object-cover" data-ai-hint={item.aiHint}/>
+                              <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 text-sm font-bold rounded">ANTES</div>
+                            </div>
+                            <div className="relative aspect-square">
+                              <Image src={afterImg.imageUrl} alt="Depois" fill className="rounded-lg object-cover" data-ai-hint={item.aiHint}/>
+                              <div className="absolute bottom-2 right-2 bg-gold/80 text-deep-black px-2 py-1 text-sm font-bold rounded">DEPOIS</div>
+                            </div>
                           </div>
-                          <div className="relative aspect-square">
-                            <Image src={item.after} alt="Depois" fill className="rounded-lg object-cover" data-ai-hint={item.aiHint}/>
-                            <div className="absolute bottom-2 right-2 bg-gold/80 text-deep-black px-2 py-1 text-sm font-bold rounded">DEPOIS</div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                   </div>
-                </CarouselItem>
-              ))}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                )
+              })}
             </CarouselContent>
             <CarouselPrevious className="text-gold border-gold/50 hover:bg-gold hover:text-deep-black" />
             <CarouselNext className="text-gold border-gold/50 hover:bg-gold hover:text-deep-black" />
@@ -92,11 +99,11 @@ export function Gallery() {
               }`}
             >
               <Image
-                src={image.src}
-                alt={image.alt}
+                src={image.imageUrl}
+                alt={image.description}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
-                data-ai-hint={image.aiHint}
+                data-ai-hint={image.imageHint}
               />
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
             </div>
