@@ -1,46 +1,127 @@
-
+/**
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model. All user-generated content,
+ * such as redactions, is stored in a subcollection under that user's own document.
+ * Access is granted only to the authenticated user who owns the data, ensuring
+ * strong data privacy and isolation between users.
+ *
+ * Data Structure:
+ * The data is organized hierarchically. All user data is nested under the top-level
+ * `/users` collection. A user's profile is at `/users/{userId}`, and their specific
+ * content, like redactions, is located at `/users/{userId}/redactions/{redactionId}`.
+ * This structure leverages Firestore's path-based security to create simple and
+ * effective rules.
+ *
+ * Key Security Decisions:
+ * - User Enumeration Disabled: Listing the top-level `/users` collection is explicitly
+ *   disallowed to prevent malicious actors from discovering all registered users.
+ * - Path-Based Ownership: The rules rely on the document's path to determine
+ *   ownership (e.g., checking if `userId` in the path matches the authenticated
+ *   user's UID). This is highly performant as it avoids extra database reads.
+ * - Strict Data Isolation: A user can only access data within their own document
+ *   tree (i.e., `/users/{their_auth_uid}/...`). There is no concept of shared or
+ *   public data in this model.
+ *
+ * Denormalization for Authorization:
+ * Relational integrity is enforced by ensuring that any user-specific document
+ * created within a user's path (e.g., a redaction) also contains a `userId` field
+ * matching the user's UID. On creation, this field is validated against the path,
+ * and on update, it is enforced as immutable. This prevents a document from being
+ * moved or its ownership from being reassigned after creation.
+ */
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Clients can only read their own data and cannot write to it directly
-    match /clients/{userId} {
-      allow read: if request.auth.uid == userId;
-      allow write: if false; // No client-side writes to the client document
+    // ----------------------------------------------------------------------
+    // Helper Functions
+    // ----------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Admins can read/write any client data
-    match /clients/{userId} {
-      allow get, update, create: if get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+    /**
+     * Checks if the requesting user's UID matches the provided userId.
+     * Used to verify ownership based on path parameters.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Cuts can only be created by admins
-    match /cuts/{cutId} {
-      allow read: if get(/databases/$(database)/documents/clients/$(request.auth.uid)).exists;
-      allow create: if get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
-      allow update, delete: if false;
+    /**
+     * Checks for ownership and that the document already exists.
+     * CRITICAL for safe update and delete operations.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
     }
 
-    // Rewards are public to read for any authenticated user
-    match /rewards/{rewardId} {
-      allow read: if request.auth != null;
-      // CRUD for rewards only by admins
-      allow create, update, delete: if get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+    /**
+     * Validates required fields for User creation during prototyping.
+     * Enforces that the document's internal ID matches the document path ID.
+     */
+    function isValidUserCreate(userId) {
+      return request.resource.data.id == userId;
     }
 
-    // Users can create their own redeem records, but not read others'
-    match /redeems/{redeemId} {
-      allow read: if get(/databases/$(database)/documents/redeems/$(redeemId)).data.clientId == request.auth.uid;
-      allow create: if request.resource.data.clientId == request.auth.uid;
-      // Admins can read all redeems
-      allow list: if get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
-      allow update, delete: if false;
+    /**
+     * Enforces immutability of the User's core ID field on update.
+     */
+    function isImmutableUserId() {
+      return request.resource.data.id == resource.data.id;
     }
 
-    // Admin collection for role-based access
-    match /admins/{userId} {
-      allow read, write: if false; // Should only be managed from the Firebase Console
+    /**
+     * Validates required fields for Redaction creation during prototyping.
+     * Enforces that the redaction's internal userId points back to the owner.
+     */
+    function isValidRedactionCreate(userId) {
+      return request.resource.data.userId == userId;
+    }
+
+    /**
+     * Enforces immutability of the Redaction's userId field on update.
+     */
+    function isImmutableRedactionUserId() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    // ----------------------------------------------------------------------
+    // Collection Rules
+    // ----------------------------------------------------------------------
+
+    /**
+     * @description Manages user profile documents.
+     * @path /users/{userId}
+     * @allow (create) An authenticated user can create their own profile document.
+     * @deny (list) No user, authenticated or not, can list all users in the system.
+     * @principle Restricts access to a user's own data tree and allows self-creation of a profile.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && isValidUserCreate(userId);
+      allow update: if isExistingOwner(userId) && isImmutableUserId();
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Manages redaction documents owned by a specific user.
+     * @path /users/{userId}/redactions/{redactionId}
+     * @allow (create, read, update, delete) The user associated with {userId} can manage their own redactions.
+     * @deny (get) A different user cannot read another user's redaction.
+     * @principle Enforces strict document ownership within a user-specific subcollection.
+     */
+    match /users/{userId}/redactions/{redactionId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidRedactionCreate(userId);
+      allow update: if isExistingOwner(userId) && isImmutableRedactionUserId();
+      allow delete: if isExistingOwner(userId);
     }
   }
 }

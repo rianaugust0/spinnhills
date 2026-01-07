@@ -1,10 +1,8 @@
-
-// This file will be populated by the RequestFirebaseBackendTool
 export const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  "projectId": "hillscut-23763634-d28b8",
+  "appId": "1:178308164536:web:b86e7a993b7e3991247d4d",
+  "apiKey": "AIzaSyDow-JJwe7PYFUkEiXKvwj2nqomov1pfH4",
+  "authDomain": "hillscut-23763634-d28b8.firebaseapp.com",
+  "measurementId": "",
+  "messagingSenderId": "178308164536"
 };
