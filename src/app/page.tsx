@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
 import { useAuth, useUser } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 
 import { Button } from '@/components/ui/button';
@@ -40,13 +40,18 @@ export default function LoginPage() {
 
   const setupRecaptcha = () => {
     if (!auth) return;
+    // Only create a new verifier if one doesn't exist or is not configured for the container
     if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-        callback: (response: any) => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
-        },
-      });
+      // Ensure the container exists before creating the verifier
+      const recaptchaContainer = document.getElementById('recaptcha-container');
+      if (recaptchaContainer) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainer, {
+          size: 'invisible',
+          callback: (response: any) => {
+            // reCAPTCHA solved, allow signInWithPhoneNumber.
+          },
+        });
+      }
     }
   };
 
@@ -66,19 +71,26 @@ export default function LoginPage() {
     
     setLoading(true);
     setupRecaptcha();
-    const appVerifier = window.recaptchaVerifier!;
+    
+    const appVerifier = window.recaptchaVerifier;
+    if (!appVerifier) {
+        toast({ variant: "destructive", title: "Erro", description: "Falha ao inicializar o reCAPTCHA. Recarregue a página."});
+        setLoading(false);
+        return;
+    }
+
     const formattedPhoneNumber = `+55${phoneNumber.replace(/\D/g, '')}`;
 
     try {
       const confirmationResult = await signInWithPhoneNumber(auth, formattedPhoneNumber, appVerifier);
       window.confirmationResult = confirmationResult;
       
-      // We will create the user document after OTP verification
       setStep('otp');
       toast({ title: "Código enviado!", description: "Enviamos um código de verificação para o seu celular." });
     } catch (error: any) {
       console.error("Erro ao enviar OTP:", error);
       toast({ variant: "destructive", title: "Erro ao enviar código", description: "Não foi possível enviar o código. Verifique o número e tente novamente." });
+       // Reset reCAPTCHA on error
        if (window.recaptchaVerifier) {
         window.recaptchaVerifier.render().then((widgetId) => {
           if ((window as any).grecaptcha) {
@@ -109,7 +121,7 @@ export default function LoginPage() {
           phone: user.phoneNumber,
           points: 0,
           cuts: 0,
-          createdAt: new Date(),
+          createdAt: serverTimestamp(),
           lastCutAt: null,
         }, { merge: true });
       }
