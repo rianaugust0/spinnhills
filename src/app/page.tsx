@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RecaptchaVerifier, signInWithPhoneNumber } from 'firebase/auth';
+import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { useAuth, useUser } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
@@ -16,7 +16,7 @@ import { Loader2 } from 'lucide-react';
 declare global {
   interface Window {
     recaptchaVerifier?: RecaptchaVerifier;
-    confirmationResult?: any;
+    confirmationResult?: ConfirmationResult;
   }
 }
 
@@ -39,10 +39,9 @@ export default function LoginPage() {
   }, [user, isUserLoading, router]);
 
   const setupRecaptcha = () => {
-    if (!auth) return;
-    // Only create a new verifier if one doesn't exist or is not configured for the container
+    if (!auth) return null;
+    // Only create a new verifier if one doesn't exist
     if (!window.recaptchaVerifier) {
-      // Ensure the container exists before creating the verifier
       const recaptchaContainer = document.getElementById('recaptcha-container');
       if (recaptchaContainer) {
         window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainer, {
@@ -50,10 +49,21 @@ export default function LoginPage() {
           callback: (response: any) => {
             // reCAPTCHA solved, allow signInWithPhoneNumber.
           },
+          'expired-callback': () => {
+             // Reset reCAPTCHA
+            if (window.recaptchaVerifier) {
+                const widgetId = window.recaptchaVerifier.widgetId;
+                if(typeof widgetId === 'number') {
+                    (window as any).grecaptcha.reset(widgetId);
+                }
+            }
+          }
         });
       }
     }
+    return window.recaptchaVerifier;
   };
+
 
   const handleSendOtp = async () => {
     if (!auth || !firestore) {
@@ -70,9 +80,8 @@ export default function LoginPage() {
     }
     
     setLoading(true);
-    setupRecaptcha();
     
-    const appVerifier = window.recaptchaVerifier;
+    const appVerifier = setupRecaptcha();
     if (!appVerifier) {
         toast({ variant: "destructive", title: "Erro", description: "Falha ao inicializar o reCAPTCHA. Recarregue a página."});
         setLoading(false);
@@ -92,11 +101,10 @@ export default function LoginPage() {
       toast({ variant: "destructive", title: "Erro ao enviar código", description: "Não foi possível enviar o código. Verifique o número e tente novamente." });
        // Reset reCAPTCHA on error
        if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.render().then((widgetId) => {
-          if ((window as any).grecaptcha) {
-            (window as any).grecaptcha.reset(widgetId);
-          }
-        });
+        const widgetId = window.recaptchaVerifier.widgetId;
+        if(typeof widgetId === 'number' && (window as any).grecaptcha) {
+          (window as any).grecaptcha.reset(widgetId);
+        }
       }
     } finally {
       setLoading(false);
@@ -104,6 +112,12 @@ export default function LoginPage() {
   };
 
   const handleVerifyOtp = async () => {
+    if (!window.confirmationResult) {
+       toast({ variant: "destructive", title: "Erro", description: "Sessão de verificação expirada. Por favor, tente novamente." });
+       setStep('register');
+       setLoading(false);
+       return;
+    }
     if (otp.length !== 6) {
       toast({ variant: "destructive", title: "Erro", description: "O código deve ter 6 dígitos." });
       return;
@@ -235,3 +249,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
