@@ -1,0 +1,46 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Clients can only read their own data and cannot write to it directly
+    match /clients/{userId} {
+      allow read: if request.auth.uid == userId;
+      allow write: if false; // No client-side writes to the client document
+    }
+
+    // Admins can read/write any client data
+    match /clients/{userId} {
+      allow get, update, create: if get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Cuts can only be created by admins
+    match /cuts/{cutId} {
+      allow read: if get(/databases/$(database)/documents/clients/$(request.auth.uid)).exists;
+      allow create: if get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+      allow update, delete: if false;
+    }
+
+    // Rewards are public to read for any authenticated user
+    match /rewards/{rewardId} {
+      allow read: if request.auth != null;
+      // CRUD for rewards only by admins
+      allow create, update, delete: if get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Users can create their own redeem records, but not read others'
+    match /redeems/{redeemId} {
+      allow read: if get(/databases/$(database)/documents/redeems/$(redeemId)).data.clientId == request.auth.uid;
+      allow create: if request.resource.data.clientId == request.auth.uid;
+      // Admins can read all redeems
+      allow list: if get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+      allow update, delete: if false;
+    }
+
+    // Admin collection for role-based access
+    match /admins/{userId} {
+      allow read, write: if false; // Should only be managed from the Firebase Console
+    }
+  }
+}
