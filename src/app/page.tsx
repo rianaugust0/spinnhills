@@ -34,21 +34,20 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
-  const setupRecaptcha = () => {
-    if (!auth) return;
-    if (!window.recaptchaVerifier) {
+  useEffect(() => {
+    if (auth && !window.recaptchaVerifier) {
       window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         size: 'invisible',
         callback: (response: any) => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
+          // reCAPTCHA solved.
         },
       });
     }
-  };
+  }, [auth]);
 
   const handleSendOtp = async () => {
-    if (!auth) {
-      toast({ variant: "destructive", title: "Erro", description: "Falha ao inicializar a autenticação." });
+    if (!auth || !window.recaptchaVerifier) {
+      toast({ variant: "destructive", title: "Erro", description: "Falha ao inicializar a autenticação. Tente recarregar a página." });
       return;
     }
     if (phoneNumber.length < 10) {
@@ -57,8 +56,7 @@ export default function LoginPage() {
     }
     
     setLoading(true);
-    setupRecaptcha();
-    const appVerifier = window.recaptchaVerifier!;
+    const appVerifier = window.recaptchaVerifier;
     const formattedPhoneNumber = `+55${phoneNumber.replace(/\D/g, '')}`;
 
     try {
@@ -68,6 +66,13 @@ export default function LoginPage() {
       toast({ title: "Código enviado!", description: "Enviamos um código de verificação para o seu celular." });
     } catch (error: any) {
       console.error("Erro ao enviar OTP:", error);
+      // Reset reCAPTCHA
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.render().then((widgetId) => {
+          // @ts-ignore
+          window.grecaptcha.reset(widgetId);
+        });
+      }
       toast({ variant: "destructive", title: "Erro ao enviar código", description: "Não foi possível enviar o código. Verifique o número e tente novamente." });
     } finally {
       setLoading(false);
@@ -156,7 +161,11 @@ export default function LoginPage() {
             </Button>
              <Button
               variant="link"
-              onClick={() => setStep('phone')}
+              onClick={() => {
+                setStep('phone');
+                setPhoneNumber('');
+                setOtp('');
+              }}
               className="text-gold/80 hover:text-gold"
             >
               Usar outro número
