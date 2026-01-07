@@ -28,7 +28,7 @@ type RewardData = {
 };
 
 export default function DashboardPage() {
-  const user = useUser();
+  const { user } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();

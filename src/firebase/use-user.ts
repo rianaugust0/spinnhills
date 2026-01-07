@@ -3,9 +3,9 @@
 
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { useAuth } from './provider';
+import { useAuth } from '@/firebase';
 
-export function useUser() {
+export function useUserHook() {
   const auth = useAuth();
   const [user, setUser] = useState<User | null | undefined>(undefined); // undefined = loading
 
