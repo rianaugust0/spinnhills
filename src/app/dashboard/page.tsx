@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { doc, onSnapshot, collection, query, where } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { Loader2, LogOut, Award, Scissors, Star } from 'lucide-react';
+import { Loader2, LogOut, Award, Scissors, Star, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,12 +20,18 @@ type ClientData = {
   lastCutAt: any;
 };
 
-type RewardData = {
-  id: string;
-  title: string;
-  pointsRequired: number;
-  active: boolean;
+// Mock data as requested for UX purposes
+const mockRewards = [
+  { id: '1', title: '10% OFF no Corte', pointsRequired: 20 },
+  { id: '2', title: 'Corte Grátis', pointsRequired: 50 },
+  { id: '3', title: 'Pomada Modeladora', pointsRequired: 70 },
+];
+
+const nextRewardExample = {
+  title: 'Corte Grátis',
+  pointsRequired: 50,
 };
+
 
 export default function DashboardPage() {
   const { user, isUserLoading } = useUser();
@@ -33,48 +39,33 @@ export default function DashboardPage() {
   const firestore = useFirestore();
   const router = useRouter();
   const [clientData, setClientData] = useState<ClientData | null>(null);
-  const [rewards, setRewards] = useState<RewardData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/');
-      return; // Stop execution if user is not logged in
+      return; 
     }
 
     if (user && firestore) {
       const clientDocRef = doc(firestore, 'clients', user.uid);
-      const rewardsCollectionRef = collection(firestore, 'rewards');
       
       const unsubscribeClient = onSnapshot(clientDocRef, (docSnap) => {
         if (docSnap.exists()) {
           setClientData(docSnap.data() as ClientData);
         } else {
-          // If client data doesn't exist, they might be in the process of creation
-          // Or there was an error. For now, we stop the loading but show no data.
           console.log("Cliente não encontrado no Firestore.");
         }
-        setLoading(false); // Stop loading once we get a response
+        setLoading(false); 
       }, (error) => {
         console.error("Erro ao buscar dados do cliente:", error);
-        setLoading(false); // Also stop loading on error
-      });
-
-      const q = query(rewardsCollectionRef, where("active", "==", true));
-      const unsubscribeRewards = onSnapshot(q, (querySnapshot) => {
-        const rewardsData: RewardData[] = [];
-        querySnapshot.forEach((doc) => {
-          rewardsData.push({ id: doc.id, ...doc.data() } as RewardData);
-        });
-        setRewards(rewardsData.sort((a, b) => a.pointsRequired - b.pointsRequired));
+        setLoading(false); 
       });
 
       return () => {
         unsubscribeClient();
-        unsubscribeRewards();
       };
     } else if (!isUserLoading) {
-        // Handle case where user is not loading but either user or firestore is null
         setLoading(false);
     }
   }, [user, isUserLoading, firestore, router]);
@@ -87,7 +78,6 @@ export default function DashboardPage() {
     }
   };
   
-  // This combines the initial user auth check with the data fetching state.
   if (isUserLoading || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-deep-black">
@@ -96,7 +86,6 @@ export default function DashboardPage() {
     );
   }
   
-  // After loading, if there's still no client data, something is wrong (or they are a new user)
   if (!clientData) {
      return (
       <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black text-center p-4">
@@ -107,16 +96,17 @@ export default function DashboardPage() {
     );
   }
 
-  const nextReward = rewards.find(r => r.pointsRequired > clientData.points);
-  const pointsToNextReward = nextReward ? nextReward.pointsRequired - clientData.points : 0;
-  const progressPercentage = nextReward ? (clientData.points / nextReward.pointsRequired) * 100 : (clientData.points > 0 ? 100 : 0);
+  const currentPoints = clientData.points || 0;
+  const progressPercentage = (currentPoints / nextRewardExample.pointsRequired) * 100;
+  const pointsToNextReward = Math.max(0, nextRewardExample.pointsRequired - currentPoints);
 
   return (
     <div className="flex flex-col min-h-screen bg-deep-black">
-      <header className="p-4 flex justify-between items-center border-b border-gold/20">
+      <header className="p-4 flex justify-between items-start border-b border-gold/20">
         <div>
            <h1 className="font-headline text-2xl text-gold uppercase">Club Hills Basic</h1>
-           <p className="text-sm text-muted-foreground">Olá, {clientData.name} 👋</p>
+           <p className="text-sm text-muted-foreground mt-1">👋 Bem-vindo ao Club Hills</p>
+           <p className="text-sm text-muted-foreground">Cada corte te aproxima de recompensas exclusivas.</p>
         </div>
         <Button variant="ghost" size="icon" onClick={handleLogout}>
           <LogOut className="h-5 w-5 text-gold/80 hover:text-gold" />
@@ -132,7 +122,8 @@ export default function DashboardPage() {
               <Star className="h-5 w-5 text-gold" />
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-bold text-ice-white">{clientData.points}</div>
+              <div className="text-4xl font-bold text-ice-white">{currentPoints}</div>
+              <p className="text-xs text-muted-foreground mt-1">Pontos acumulados no clube. Use seus pontos para trocar por recompensas.</p>
             </CardContent>
           </Card>
           <Card className="bg-dark-gray border-gold/20">
@@ -142,6 +133,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-ice-white">{clientData.cuts}</div>
+              <p className="text-xs text-muted-foreground mt-1">Cada corte gera pontos no Club Hills.</p>
             </CardContent>
           </Card>
         </div>
@@ -149,20 +141,13 @@ export default function DashboardPage() {
         {/* Progress */}
         <Card className="bg-dark-gray border-gold/20">
             <CardHeader>
-              <CardTitle className="text-ice-white">Seu Progresso</CardTitle>
+              <CardTitle className="text-ice-white">🎯 Próxima recompensa: {nextRewardExample.title}</CardTitle>
             </CardHeader>
             <CardContent>
               <Progress value={progressPercentage} className="bg-deep-black [&>div]:bg-gold" />
-              {nextReward && (
-                 <p className="text-center text-muted-foreground mt-4">
-                  Faltam <span className="font-bold text-gold">{pointsToNextReward}</span> pontos para resgatar <span className="font-bold text-ice-white">{nextReward.title}</span>!
-                </p>
-              )}
-               {!nextReward && rewards.length > 0 && clientData.points > 0 && (
-                 <p className="text-center text-muted-foreground mt-4">
-                  Você já pode resgatar todas as recompensas disponíveis!
-                </p>
-              )}
+               <p className="text-center text-muted-foreground mt-4">
+                <span className="font-bold text-gold">{currentPoints} / {nextRewardExample.pointsRequired}</span> pontos acumulados
+              </p>
             </CardContent>
           </Card>
 
@@ -170,30 +155,43 @@ export default function DashboardPage() {
         <div>
           <h2 className="font-headline text-3xl text-ice-white uppercase mb-4">Recompensas</h2>
           <div className="space-y-4">
-            {rewards.map((reward) => {
-              const canRedeem = clientData.points >= reward.pointsRequired;
+            {mockRewards.map((reward) => {
+              const pointsNeeded = Math.max(0, reward.pointsRequired - currentPoints);
+              const canRedeem = currentPoints >= reward.pointsRequired;
+
+              if (canRedeem) {
+                return (
+                  <Card key={reward.id} className="bg-dark-gray border-gold/20 flex items-center justify-between p-4">
+                    <div>
+                      <p className="font-bold text-ice-white">{reward.title}</p>
+                      <p className="text-sm text-gold">{reward.pointsRequired} Pontos</p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      className="border-gold/50 text-gold hover:bg-gold hover:text-deep-black" 
+                    >
+                      Resgatar
+                    </Button>
+                </Card>
+                )
+              }
+
               return (
-                <Card key={reward.id} className={`bg-dark-gray border-gold/20 flex items-center justify-between p-4 ${!canRedeem ? 'opacity-50' : ''}`}>
-                  <div>
-                    <p className="font-bold text-ice-white">{reward.title}</p>
-                    <p className="text-sm text-gold">{reward.pointsRequired} Pontos</p>
+                <Card key={reward.id} className="bg-dark-gray border-gold/20 flex items-center justify-between p-4 opacity-60">
+                  <div className="flex items-center gap-4">
+                    <Lock className="h-5 w-5 text-gold" />
+                    <div>
+                      <p className="font-bold text-ice-white">{reward.title}</p>
+                      <p className="text-sm text-muted-foreground">Faltam {pointsNeeded} pontos para desbloquear</p>
+                    </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    className="border-gold/50 text-gold hover:bg-gold hover:text-deep-black" 
-                    disabled={!canRedeem}
-                  >
-                    {canRedeem ? 'Resgatar' : 'Insuficiente'}
-                  </Button>
               </Card>
               );
             })}
-             {rewards.length === 0 && (
-                <p className="text-muted-foreground text-center">Nenhuma recompensa disponível no momento.</p>
-             )}
           </div>
         </div>
       </main>
     </div>
   );
 }
+
