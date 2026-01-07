@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { useAuth, useUser } from '@/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 
 import { Button } from '@/components/ui/button';
@@ -43,13 +43,10 @@ export default function LoginPage() {
 
   const setupRecaptcha = () => {
     if (!auth) return;
+    
     // Prevent multiple instances
     if (window.recaptchaVerifier) {
-      // Logic to reset previous verifier if needed
-      const recaptchaContainer = document.getElementById('recaptcha-container');
-      if (recaptchaContainer) {
-        recaptchaContainer.innerHTML = ''; // Clear previous widget
-      }
+      window.recaptchaVerifier.clear();
     }
     
     const recaptchaContainer = document.getElementById('recaptcha-container');
@@ -62,17 +59,11 @@ export default function LoginPage() {
             // reCAPTCHA solved, allow signInWithPhoneNumber.
         },
         'expired-callback': () => {
-            // Response expired. Ask user to solve reCAPTCHA again.
-            if (window.recaptchaVerifier) {
-                const recaptcha = (window as any).grecaptcha;
-                try {
-                    if (recaptcha && typeof window.recaptchaVerifier.widgetId === 'number') {
-                        recaptcha.reset(window.recaptchaVerifier.widgetId);
-                    }
-                } catch (error) {
-                    console.error("Error resetting reCAPTCHA:", error);
-                }
-            }
+           toast({
+             variant: "destructive",
+             title: "reCAPTCHA expirou",
+             description: "Por favor, tente novamente.",
+           });
         }
     });
     window.recaptchaVerifier = verifier;
@@ -113,16 +104,9 @@ export default function LoginPage() {
       toast({ title: "Código enviado!", description: "Enviamos um código de verificação para o seu celular. (Use 123456 para testar)" });
     } catch (error: any) {
       console.error("Erro ao enviar OTP:", error);
-      toast({ variant: "destructive", title: "Erro ao enviar código", description: "Não foi possível enviar o código. Verifique o número e tente novamente." });
+      toast({ variant: "destructive", title: "Não foi possível enviar o código", description: "Verifique o número e tente novamente." });
        if (window.recaptchaVerifier) {
-        const recaptcha = (window as any).grecaptcha;
-        if (recaptcha && typeof window.recaptchaVerifier.widgetId === 'number') {
-            try {
-              recaptcha.reset(window.recaptchaVerifier.widgetId);
-            } catch (resetError) {
-              console.error("Error resetting reCAPTCHA on failure:", resetError);
-            }
-        }
+        window.recaptchaVerifier.clear();
       }
     } finally {
       setLoading(false);
@@ -148,14 +132,18 @@ export default function LoginPage() {
 
       if (user && firestore) {
         const clientDocRef = doc(firestore, 'clients', user.uid);
-        await setDoc(clientDocRef, {
-          name: name,
-          phone: user.phoneNumber,
-          points: 0,
-          cuts: 0,
-          createdAt: serverTimestamp(),
-          lastCutAt: null,
-        }, { merge: true });
+        // Check if user document already exists
+        const docSnap = await getDoc(clientDocRef);
+        if (!docSnap.exists()) {
+             await setDoc(clientDocRef, {
+                name: name,
+                phone: user.phoneNumber,
+                points: 0,
+                cuts: 0,
+                createdAt: serverTimestamp(),
+                lastCutAt: null,
+            });
+        }
       }
 
       toast({ title: "Login realizado com sucesso!" });
