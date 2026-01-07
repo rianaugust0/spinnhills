@@ -40,7 +40,6 @@ export default function LoginPage() {
 
   const setupRecaptcha = () => {
     if (!auth) return null;
-    // Only create a new verifier if one doesn't exist
     if (!window.recaptchaVerifier) {
       const recaptchaContainer = document.getElementById('recaptcha-container');
       if (recaptchaContainer) {
@@ -50,11 +49,11 @@ export default function LoginPage() {
             // reCAPTCHA solved, allow signInWithPhoneNumber.
           },
           'expired-callback': () => {
-             // Reset reCAPTCHA
             if (window.recaptchaVerifier) {
-                const widgetId = window.recaptchaVerifier.widgetId;
-                if(typeof widgetId === 'number') {
-                    (window as any).grecaptcha.reset(widgetId);
+                // Using any to access grecaptcha as it's not typed on window
+                const recaptcha = (window as any).grecaptcha;
+                if (recaptcha && typeof window.recaptchaVerifier.widgetId === 'number') {
+                    recaptcha.reset(window.recaptchaVerifier.widgetId);
                 }
             }
           }
@@ -101,9 +100,9 @@ export default function LoginPage() {
       toast({ variant: "destructive", title: "Erro ao enviar código", description: "Não foi possível enviar o código. Verifique o número e tente novamente." });
        // Reset reCAPTCHA on error
        if (window.recaptchaVerifier) {
-        const widgetId = window.recaptchaVerifier.widgetId;
-        if(typeof widgetId === 'number' && (window as any).grecaptcha) {
-          (window as any).grecaptcha.reset(widgetId);
+        const recaptcha = (window as any).grecaptcha;
+        if (recaptcha && typeof window.recaptchaVerifier.widgetId === 'number') {
+            recaptcha.reset(window.recaptchaVerifier.widgetId);
         }
       }
     } finally {
@@ -130,6 +129,8 @@ export default function LoginPage() {
 
       if (user && firestore) {
         const clientDocRef = doc(firestore, 'clients', user.uid);
+        // Check if document already exists before setting
+        // This is a simplified check. In a real app, you might want to handle merges differently.
         await setDoc(clientDocRef, {
           name: name,
           phone: user.phoneNumber,
@@ -137,7 +138,7 @@ export default function LoginPage() {
           cuts: 0,
           createdAt: serverTimestamp(),
           lastCutAt: null,
-        }, { merge: true });
+        }, { merge: true }); // Use merge to avoid overwriting existing user data if they re-register
       }
 
       toast({ title: "Login realizado com sucesso!" });
@@ -249,5 +250,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
