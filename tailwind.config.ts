@@ -56,22 +56,22 @@ export default {
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         gold: {
-          DEFAULT: '#C9A55F',
-          '50': '#FBF8F0',
-          '100': '#F7F1E1',
-          '200': '#EEDEB3',
-          '300': '#E5CA85',
-          '400': '#DDB657',
-          '500': '#C9A55F',
-          '600': '#A1844C',
-          '700': '#796339',
-          '800': '#514226',
-          '900': '#282113',
-          '950': '#141009'
+          DEFAULT: '#D4AF37',
+          '50': '#FCF8E9',
+          '100': '#F9F1D4',
+          '200': '#F3E3AA',
+          '300': '#EDD580',
+          '400': '#E7C756',
+          '500': '#D4AF37',
+          '600': '#AB8C2C',
+          '700': '#806921',
+          '800': '#564616',
+          '900': '#2B230B',
+          '950': '#151105'
         },
         'ice-white': '#F2F2F2',
-        'deep-black': '#0D0D0D',
-        'dark-gray': '#1A1A1A'
+        'deep-black': '#0A0A0A',
+        'dark-gray': '#121212'
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -112,7 +112,7 @@ export default {
         'fade-in-up': 'fade-in-up 0.5s ease-out forwards'
       },
       boxShadow: {
-        'gold-glow': '0 0 15px 5px rgba(201, 165, 95, 0.2)',
+        'gold-glow': '0 0 15px 5px rgba(212, 175, 55, 0.2)',
       }
     },
   },

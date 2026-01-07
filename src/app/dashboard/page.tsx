@@ -4,7 +4,7 @@
 import { useUser, useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, collection, query, where } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { Loader2, LogOut, Award, Scissors, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,7 @@ type RewardData = {
 };
 
 export default function DashboardPage() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
@@ -37,26 +37,38 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user === null) {
+    if (!isUserLoading && !user) {
       router.push('/');
     }
 
     if (user && firestore) {
       const clientDocRef = doc(firestore, 'clients', user.uid);
+      const rewardsCollectionRef = collection(firestore, 'rewards');
       
-      const unsubscribe = onSnapshot(clientDocRef, (docSnap) => {
+      const unsubscribeClient = onSnapshot(clientDocRef, (docSnap) => {
         if (docSnap.exists()) {
           setClientData(docSnap.data() as ClientData);
         } else {
-          // TODO: Create client document if it doesn't exist
-          console.log("Cliente não encontrado, precisa criar o perfil.");
+          console.log("Cliente não encontrado.");
         }
         setLoading(false);
       });
 
-      return () => unsubscribe();
+      const q = query(rewardsCollectionRef, where("active", "==", true));
+      const unsubscribeRewards = onSnapshot(q, (querySnapshot) => {
+        const rewardsData: RewardData[] = [];
+        querySnapshot.forEach((doc) => {
+          rewardsData.push({ id: doc.id, ...doc.data() } as RewardData);
+        });
+        setRewards(rewardsData.sort((a, b) => a.pointsRequired - b.pointsRequired));
+      });
+
+      return () => {
+        unsubscribeClient();
+        unsubscribeRewards();
+      };
     }
-  }, [user, firestore, router]);
+  }, [user, isUserLoading, firestore, router]);
 
 
   const handleLogout = async () => {
@@ -68,7 +80,7 @@ export default function DashboardPage() {
   
   if (loading || !clientData) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-deep-black">
         <Loader2 className="h-16 w-16 animate-spin text-gold" />
       </div>
     );
@@ -83,7 +95,7 @@ export default function DashboardPage() {
       <header className="p-4 flex justify-between items-center border-b border-gold/20">
         <div>
            <h1 className="font-headline text-2xl text-gold uppercase">Club Hills Basic</h1>
-           <p className="text-sm text-muted-foreground">Olá, {clientData.name}!</p>
+           <p className="text-sm text-muted-foreground">Olá, {clientData.name} 👋</p>
         </div>
         <Button variant="ghost" size="icon" onClick={handleLogout}>
           <LogOut className="h-5 w-5 text-gold/80 hover:text-gold" />
@@ -119,7 +131,7 @@ export default function DashboardPage() {
               <CardTitle className="text-ice-white">Seu Progresso</CardTitle>
             </CardHeader>
             <CardContent>
-              <Progress value={progressPercentage} className="bg-deep-black" />
+              <Progress value={progressPercentage} className="bg-deep-black [&>div]:bg-gold" />
               {nextReward && (
                  <p className="text-center text-muted-foreground mt-4">
                   Faltam <span className="font-bold text-gold">{pointsToNextReward}</span> pontos para resgatar <span className="font-bold text-ice-white">{nextReward.title}</span>!
@@ -137,21 +149,27 @@ export default function DashboardPage() {
         <div>
           <h2 className="font-headline text-3xl text-ice-white uppercase mb-4">Recompensas</h2>
           <div className="space-y-4">
-            {/* Placeholder for rewards list */}
-             <Card className="bg-dark-gray border-gold/20 flex items-center justify-between p-4">
-                <div>
-                  <p className="font-bold text-ice-white">Corte Grátis</p>
-                  <p className="text-sm text-gold">100 Pontos</p>
-                </div>
-                <Button variant="outline" className="border-gold/50 text-gold hover:bg-gold hover:text-deep-black" disabled>Resgatar</Button>
-            </Card>
-             <Card className="bg-dark-gray border-gold/20 flex items-center justify-between p-4 opacity-50">
-                <div>
-                  <p className="font-bold text-ice-white">Produto da Barbearia</p>
-                  <p className="text-sm text-gold">150 Pontos</p>
-                </div>
-                <Button variant="outline" className="border-gold/50 text-gold hover:bg-gold hover:text-deep-black" disabled>Pontos insuficientes</Button>
-            </Card>
+            {rewards.map((reward) => {
+              const canRedeem = clientData.points >= reward.pointsRequired;
+              return (
+                <Card key={reward.id} className={`bg-dark-gray border-gold/20 flex items-center justify-between p-4 ${!canRedeem ? 'opacity-50' : ''}`}>
+                  <div>
+                    <p className="font-bold text-ice-white">{reward.title}</p>
+                    <p className="text-sm text-gold">{reward.pointsRequired} Pontos</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="border-gold/50 text-gold hover:bg-gold hover:text-deep-black" 
+                    disabled={!canRedeem}
+                  >
+                    {canRedeem ? 'Resgatar' : 'Insuficiente'}
+                  </Button>
+              </Card>
+              );
+            })}
+             {rewards.length === 0 && (
+                <p className="text-muted-foreground text-center">Nenhuma recompensa disponível no momento.</p>
+             )}
           </div>
         </div>
       </main>
