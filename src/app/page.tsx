@@ -34,19 +34,20 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
-  useEffect(() => {
-    if (auth && !window.recaptchaVerifier) {
+  const setupRecaptcha = () => {
+    if (!auth) return;
+    if (!window.recaptchaVerifier) {
       window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         size: 'invisible',
         callback: (response: any) => {
-          // reCAPTCHA solved.
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
         },
       });
     }
-  }, [auth]);
+  };
 
   const handleSendOtp = async () => {
-    if (!auth || !window.recaptchaVerifier) {
+    if (!auth) {
       toast({ variant: "destructive", title: "Erro", description: "Falha ao inicializar a autenticação. Tente recarregar a página." });
       return;
     }
@@ -56,7 +57,8 @@ export default function LoginPage() {
     }
     
     setLoading(true);
-    const appVerifier = window.recaptchaVerifier;
+    setupRecaptcha();
+    const appVerifier = window.recaptchaVerifier!;
     const formattedPhoneNumber = `+55${phoneNumber.replace(/\D/g, '')}`;
 
     try {
@@ -70,7 +72,10 @@ export default function LoginPage() {
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.render().then((widgetId) => {
           // @ts-ignore
-          window.grecaptcha.reset(widgetId);
+          if (window.grecaptcha) {
+            // @ts-ignore
+            window.grecaptcha.reset(widgetId);
+          }
         });
       }
       toast({ variant: "destructive", title: "Erro ao enviar código", description: "Não foi possível enviar o código. Verifique o número e tente novamente." });
