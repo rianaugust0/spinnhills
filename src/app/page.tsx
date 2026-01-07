@@ -13,10 +13,10 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
+// Keep RecaptchaVerifier on the window object to avoid re-creating it on every render
 declare global {
   interface Window {
     recaptchaVerifier?: RecaptchaVerifier;
-    confirmationResult?: ConfirmationResult;
   }
 }
 
@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'welcome' | 'register' | 'otp'>('welcome');
   const [loading, setLoading] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const router = useRouter();
   const auth = useAuth();
   const firestore = useFirestore();
@@ -50,7 +51,6 @@ export default function LoginPage() {
           },
           'expired-callback': () => {
             if (window.recaptchaVerifier) {
-                // Using any to access grecaptcha as it's not typed on window
                 const recaptcha = (window as any).grecaptcha;
                 if (recaptcha && typeof window.recaptchaVerifier.widgetId === 'number') {
                     recaptcha.reset(window.recaptchaVerifier.widgetId);
@@ -90,15 +90,14 @@ export default function LoginPage() {
     const formattedPhoneNumber = `+55${phoneNumber.replace(/\D/g, '')}`;
 
     try {
-      const confirmationResult = await signInWithPhoneNumber(auth, formattedPhoneNumber, appVerifier);
-      window.confirmationResult = confirmationResult;
+      const result = await signInWithPhoneNumber(auth, formattedPhoneNumber, appVerifier);
+      setConfirmationResult(result); // Save the confirmation result to state
       
       setStep('otp');
-      toast({ title: "Código enviado!", description: "Enviamos um código de verificação para o seu celular." });
+      toast({ title: "Código enviado!", description: "Enviamos um código de verificação para o seu celular. (Use 123456 para testar)" });
     } catch (error: any) {
       console.error("Erro ao enviar OTP:", error);
       toast({ variant: "destructive", title: "Erro ao enviar código", description: "Não foi possível enviar o código. Verifique o número e tente novamente." });
-       // Reset reCAPTCHA on error
        if (window.recaptchaVerifier) {
         const recaptcha = (window as any).grecaptcha;
         if (recaptcha && typeof window.recaptchaVerifier.widgetId === 'number') {
@@ -111,7 +110,7 @@ export default function LoginPage() {
   };
 
   const handleVerifyOtp = async () => {
-    if (!window.confirmationResult) {
+    if (!confirmationResult) {
        toast({ variant: "destructive", title: "Erro", description: "Sessão de verificação expirada. Por favor, tente novamente." });
        setStep('register');
        setLoading(false);
@@ -124,13 +123,11 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const result = await window.confirmationResult.confirm(otp);
+      const result = await confirmationResult.confirm(otp);
       const user = result.user;
 
       if (user && firestore) {
         const clientDocRef = doc(firestore, 'clients', user.uid);
-        // Check if document already exists before setting
-        // This is a simplified check. In a real app, you might want to handle merges differently.
         await setDoc(clientDocRef, {
           name: name,
           phone: user.phoneNumber,
@@ -138,7 +135,7 @@ export default function LoginPage() {
           cuts: 0,
           createdAt: serverTimestamp(),
           lastCutAt: null,
-        }, { merge: true }); // Use merge to avoid overwriting existing user data if they re-register
+        }, { merge: true });
       }
 
       toast({ title: "Login realizado com sucesso!" });
