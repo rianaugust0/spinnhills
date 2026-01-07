@@ -39,6 +39,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/');
+      return; // Stop execution if user is not logged in
     }
 
     if (user && firestore) {
@@ -49,9 +50,14 @@ export default function DashboardPage() {
         if (docSnap.exists()) {
           setClientData(docSnap.data() as ClientData);
         } else {
-          console.log("Cliente não encontrado.");
+          // If client data doesn't exist, they might be in the process of creation
+          // Or there was an error. For now, we stop the loading but show no data.
+          console.log("Cliente não encontrado no Firestore.");
         }
-        setLoading(false);
+        setLoading(false); // Stop loading once we get a response
+      }, (error) => {
+        console.error("Erro ao buscar dados do cliente:", error);
+        setLoading(false); // Also stop loading on error
       });
 
       const q = query(rewardsCollectionRef, where("active", "==", true));
@@ -67,6 +73,9 @@ export default function DashboardPage() {
         unsubscribeClient();
         unsubscribeRewards();
       };
+    } else if (!isUserLoading) {
+        // Handle case where user is not loading but either user or firestore is null
+        setLoading(false);
     }
   }, [user, isUserLoading, firestore, router]);
 
@@ -78,17 +87,29 @@ export default function DashboardPage() {
     }
   };
   
-  if (loading || !clientData) {
+  // This combines the initial user auth check with the data fetching state.
+  if (isUserLoading || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-deep-black">
         <Loader2 className="h-16 w-16 animate-spin text-gold" />
       </div>
     );
   }
+  
+  // After loading, if there's still no client data, something is wrong (or they are a new user)
+  if (!clientData) {
+     return (
+      <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black text-center p-4">
+        <h1 className="text-2xl text-gold mb-4">Bem-vindo(a) ao Club Hills!</h1>
+        <p className="text-muted-foreground mb-8">Seus dados estão sendo preparados. Em breve você verá seus pontos aqui.</p>
+        <Button onClick={handleLogout}>Sair</Button>
+      </div>
+    );
+  }
 
   const nextReward = rewards.find(r => r.pointsRequired > clientData.points);
   const pointsToNextReward = nextReward ? nextReward.pointsRequired - clientData.points : 0;
-  const progressPercentage = nextReward ? (clientData.points / nextReward.pointsRequired) * 100 : 100;
+  const progressPercentage = nextReward ? (clientData.points / nextReward.pointsRequired) * 100 : (clientData.points > 0 ? 100 : 0);
 
   return (
     <div className="flex flex-col min-h-screen bg-deep-black">
@@ -137,7 +158,7 @@ export default function DashboardPage() {
                   Faltam <span className="font-bold text-gold">{pointsToNextReward}</span> pontos para resgatar <span className="font-bold text-ice-white">{nextReward.title}</span>!
                 </p>
               )}
-               {!nextReward && rewards.length > 0 &&(
+               {!nextReward && rewards.length > 0 && clientData.points > 0 && (
                  <p className="text-center text-muted-foreground mt-4">
                   Você já pode resgatar todas as recompensas disponíveis!
                 </p>

@@ -17,6 +17,7 @@ import { Loader2 } from 'lucide-react';
 declare global {
   interface Window {
     recaptchaVerifier?: RecaptchaVerifier;
+    confirmationResult?: ConfirmationResult;
   }
 }
 
@@ -27,6 +28,7 @@ export default function LoginPage() {
   const [step, setStep] = useState<'welcome' | 'register' | 'otp'>('welcome');
   const [loading, setLoading] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+
   const router = useRouter();
   const auth = useAuth();
   const firestore = useFirestore();
@@ -40,27 +42,41 @@ export default function LoginPage() {
   }, [user, isUserLoading, router]);
 
   const setupRecaptcha = () => {
-    if (!auth) return null;
-    if (!window.recaptchaVerifier) {
+    if (!auth) return;
+    // Prevent multiple instances
+    if (window.recaptchaVerifier) {
+      // Logic to reset previous verifier if needed
       const recaptchaContainer = document.getElementById('recaptcha-container');
       if (recaptchaContainer) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainer, {
-          size: 'invisible',
-          callback: (response: any) => {
-            // reCAPTCHA solved, allow signInWithPhoneNumber.
-          },
-          'expired-callback': () => {
-            if (window.recaptchaVerifier) {
-                const recaptcha = (window as any).grecaptcha;
-                if (recaptcha && typeof window.recaptchaVerifier.widgetId === 'number') {
-                    recaptcha.reset(window.recaptchaVerifier.widgetId);
-                }
-            }
-          }
-        });
+        recaptchaContainer.innerHTML = ''; // Clear previous widget
       }
     }
-    return window.recaptchaVerifier;
+    
+    const recaptchaContainer = document.getElementById('recaptcha-container');
+    if (!recaptchaContainer) return;
+
+
+    const verifier = new RecaptchaVerifier(auth, recaptchaContainer, {
+        size: 'invisible',
+        callback: (response: any) => {
+            // reCAPTCHA solved, allow signInWithPhoneNumber.
+        },
+        'expired-callback': () => {
+            // Response expired. Ask user to solve reCAPTCHA again.
+            if (window.recaptchaVerifier) {
+                const recaptcha = (window as any).grecaptcha;
+                try {
+                    if (recaptcha && typeof window.recaptchaVerifier.widgetId === 'number') {
+                        recaptcha.reset(window.recaptchaVerifier.widgetId);
+                    }
+                } catch (error) {
+                    console.error("Error resetting reCAPTCHA:", error);
+                }
+            }
+        }
+    });
+    window.recaptchaVerifier = verifier;
+    return verifier;
   };
 
 
@@ -91,7 +107,7 @@ export default function LoginPage() {
 
     try {
       const result = await signInWithPhoneNumber(auth, formattedPhoneNumber, appVerifier);
-      setConfirmationResult(result); // Save the confirmation result to state
+      setConfirmationResult(result);
       
       setStep('otp');
       toast({ title: "Código enviado!", description: "Enviamos um código de verificação para o seu celular. (Use 123456 para testar)" });
@@ -101,7 +117,11 @@ export default function LoginPage() {
        if (window.recaptchaVerifier) {
         const recaptcha = (window as any).grecaptcha;
         if (recaptcha && typeof window.recaptchaVerifier.widgetId === 'number') {
-            recaptcha.reset(window.recaptchaVerifier.widgetId);
+            try {
+              recaptcha.reset(window.recaptchaVerifier.widgetId);
+            } catch (resetError) {
+              console.error("Error resetting reCAPTCHA on failure:", resetError);
+            }
         }
       }
     } finally {
@@ -148,7 +168,7 @@ export default function LoginPage() {
     }
   };
   
-  if (isUserLoading || user) {
+  if (isUserLoading) {
     return (
        <div className="flex min-h-screen items-center justify-center bg-deep-black">
         <Loader2 className="h-16 w-16 animate-spin text-gold" />
