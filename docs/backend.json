@@ -69,7 +69,10 @@
   "auth": {
     "providers": [
       "phone"
-    ]
+    ],
+    "testPhoneNumbers": {
+      "+5562985658094": "123456"
+    }
   },
   "firestore": {
     "structure": [
