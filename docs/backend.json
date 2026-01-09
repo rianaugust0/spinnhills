@@ -1,118 +1,116 @@
-
 {
   "entities": {
-    "Redaction": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Redaction",
-      "type": "object",
-      "description": "Represents a redaction, including its content and any associated analysis or score.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Redaction entity."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title or subject of the redaction."
-        },
-        "content": {
-          "type": "string",
-          "description": "The full text content of the redaction."
-        },
-        "score": {
-          "type": "number",
-          "description": "A score representing the quality or grade of the redaction (e.g., based on a rubric)."
-        },
-        "analysis": {
-          "type": "string",
-          "description": "An analysis or feedback on the redaction, potentially highlighting strengths and weaknesses."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Redaction)"
-        }
-      },
-      "required": [
-        "id",
-        "title",
-        "content",
-        "userId"
-      ]
-    },
     "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user of the application.",
+      "description": "Representa um cliente da barbearia.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the User entity."
-        },
-        "email": {
-          "type": "string",
-          "description": "The user's email address.",
-          "format": "email"
-        },
-        "name": {
-          "type": "string",
-          "description": "The user's display name or full name."
-        }
+        "id": { "type": "string", "description": "ID único do usuário (corresponde ao UID do Auth)." },
+        "name": { "type": "string", "description": "Nome do cliente." },
+        "phone": { "type": "string", "description": "Telefone do cliente, usado como identificador único." },
+        "points": { "type": "number", "description": "Total de pontos acumulados." },
+        "cuts": { "type": "number", "description": "Total de cortes realizados." },
+        "spins": { "type": "number", "description": "Quantidade de giros disponíveis na roleta SPIN HILLS." },
+        "progressCuts": { "type": "number", "description": "Contador de cortes para o próximo giro (0 a 5)." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o cliente foi cadastrado." }
       },
-      "required": [
-        "id",
-        "email",
-        "name"
-      ]
+      "required": ["id", "name", "phone", "points", "cuts", "spins", "progressCuts", "createdAt"]
+    },
+    "Barber": {
+      "title": "Barber",
+      "type": "object",
+      "description": "Representa um barbeiro autorizado a realizar ações no sistema.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "description": "Nome do barbeiro." },
+        "pin": { "type": "string", "description": "PIN numérico para confirmação de ações." }
+      },
+      "required": ["id", "name", "pin"]
+    },
+    "Cut": {
+      "title": "Cut",
+      "type": "object",
+      "description": "Registra um corte de cabelo realizado.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string", "description": "ID do cliente que recebeu o corte." },
+        "barberId": { "type": "string", "description": "ID do barbeiro que registrou o corte." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "barberId", "createdAt"]
+    },
+    "Prize": {
+      "title": "Prize",
+      "type": "object",
+      "description": "Representa um prêmio ganho pelo cliente na roleta.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string", "description": "ID do cliente que ganhou o prêmio." },
+        "name": { "type": "string", "description": "Nome do prêmio (ex: 'Corte Grátis')." },
+        "type": { "type": "string", "description": "Tipo do prêmio." },
+        "status": { "type": "string", "enum": ["active", "expired", "redeemed"], "description": "Status atual do prêmio." },
+        "expiresAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o prêmio expira." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "redeemedAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o prêmio foi resgatado." }
+      },
+      "required": ["id", "userId", "name", "type", "status", "expiresAt", "createdAt"]
+    },
+    "Spin": {
+      "title": "Spin",
+      "type": "object",
+      "description": "Log de um giro realizado na roleta.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "prizeWon": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "prizeWon", "createdAt"]
+    },
+     "Log": {
+      "title": "Log",
+      "type": "object",
+      "description": "Registra ações importantes no sistema para auditoria.",
+      "properties": {
+        "id": { "type": "string" },
+        "action": { "type": "string", "description": "Ação realizada (ex: 'confirm-cut', 'redeem-prize')." },
+        "userId": { "type": "string" },
+        "barberId": { "type": "string" },
+        "details": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "action", "userId", "barberId", "createdAt"]
     }
   },
   "auth": {
-    "providers": [
-      "phone"
-    ],
-    "testPhoneNumbers": {
-      "+5562985658094": "123456"
-    }
+    "providers": []
   },
   "firestore": {
     "structure": [
       {
         "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profiles.  `userId` corresponds to `request.auth.uid`.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user, matching the Firebase Auth UID."
-            }
-          ]
-        }
+        "definition": { "schema": { "$ref": "#/entities/User" } }
       },
       {
-        "path": "/users/{userId}/redactions/{redactionId}",
-        "definition": {
-          "entityName": "Redaction",
-          "schema": {
-            "$ref": "#/backend/entities/Redaction"
-          },
-          "description": "Stores redactions created by a specific user. Path-based ownership: only the user with `userId` equal to `request.auth.uid` can access documents at this path.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user who owns the redaction."
-            },
-            {
-              "name": "redactionId",
-              "description": "The unique identifier for the redaction."
-            }
-          ]
-        }
+        "path": "/barbers/{barberId}",
+        "definition": { "schema": { "$ref": "#/entities/Barber" } }
+      },
+      {
+        "path": "/cuts/{cutId}",
+        "definition": { "schema": { "$ref": "#/entities/Cut" } }
+      },
+      {
+        "path": "/prizes/{prizeId}",
+        "definition": { "schema": { "$ref": "#/entities/Prize" } }
+      },
+      {
+        "path": "/spins/{spinId}",
+        "definition": { "schema": { "$ref": "#/entities/Spin" } }
+      },
+       {
+        "path": "/logs/{logId}",
+        "definition": { "schema": { "$ref": "#/entities/Log" } }
       }
-    ],
-    "reasoning": "The Firestore data structure is designed to address the 'auth/invalid-api-key' error and securely manage user redactions. The error indicates a Firebase configuration issue, which is external to the data structure but needs to be resolved for the application to function. The data structure uses path-based ownership to manage redactions, ensuring that only the owner (the user who created the redaction) can access it. This achieves Authorization Independence because access control is determined by the document's path, not by querying other documents. Segregation is achieved by storing all redactions under the respective user's document. QAPs are supported by this structure. Listing redactions is secure because the user can only list redactions under their user ID, thanks to the path-based rules."
+    ]
   }
 }

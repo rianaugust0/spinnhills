@@ -1,204 +1,217 @@
-
 'use client';
 
-import { useUser, useAuth } from '@/firebase';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, doc, updateDoc, addDoc, serverTimestamp, getDoc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
-import { Loader2, Search, Scissors, Plus, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Loader2, Search, User, Scissors, Award, Gift, RotateCw, MessageSquare, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
-type ClientData = {
-  id: string;
-  name: string;
-  phone: string;
-  points: number;
-  cuts: number;
+// Mock data - will be replaced with Firestore data
+const mockClient = {
+  id: 'mock-id-123',
+  name: 'João da Silva',
+  phone: '11987654321',
+  points: 30,
+  cuts: 3,
+  progressCuts: 3,
+  spins: 0,
 };
 
-// Mock admin check. In a real app, this should be based on custom claims.
-const ADMIN_UID = "REPLACE_WITH_ACTUAL_ADMIN_UID"; // IMPORTANT
+// Mock data - will be replaced with Firestore data
+const mockPrizes = [
+    { id: 'p1', clientName: 'João da Silva', phone: '11987654321', prize: 'Corte Grátis', expires: 5, status: 'Ativo' },
+    { id: 'p2', clientName: 'Maria Oliveira', phone: '21912345678', prize: 'Hidratação', expires: 12, status: 'Ativo' },
+];
 
 export default function AdminPage() {
-  const { user, isUserLoading } = useUser();
-  const auth = useAuth();
-  const firestore = useFirestore();
-  const router = useRouter();
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [pin, setPin] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [searchPhone, setSearchPhone] = useState('');
+  const [foundClient, setFoundClient] = useState<any | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
   const { toast } = useToast();
 
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [searchPhone, setSearchPhone] = useState('');
-  const [foundClient, setFoundClient] = useState<ClientData | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
-
-  useEffect(() => {
-    if (isUserLoading) return;
-    if (!user) {
-      router.push('/');
-      return;
-    }
-    // This is a basic security check. A real app should use custom claims.
-    if (user.uid === ADMIN_UID) {
-      setIsAdmin(true);
-    } else {
-      toast({ variant: "destructive", title: "Acesso Negado" });
-      router.push('/dashboard');
-    }
-    setLoading(false);
-  }, [user, isUserLoading, router, toast]);
-
-  const handleSearch = async () => {
-    if (!firestore || searchPhone.length < 10) {
-      toast({ variant: "destructive", title: "Erro", description: "Digite um telefone válido." });
-      return;
-    }
+  const handleSearch = () => {
     setIsSearching(true);
-    setFoundClient(null);
-    
-    // This query is inefficient and not secure for production.
-    // A better approach would be to have a dedicated function or a more structured phone number.
-    const clientsRef = collection(firestore, "clients");
-    const q = query(clientsRef, where("phone", "==", `+55${searchPhone.replace(/\D/g, '')}`));
-
-    try {
-      const querySnapshot = await getDocs(q);
-      if (querySnapshot.empty) {
-        toast({ title: "Cliente não encontrado" });
+    // Simulate API call
+    setTimeout(() => {
+      if (searchPhone === '11987654321') {
+        setFoundClient(mockClient);
       } else {
-        const clientDoc = querySnapshot.docs[0];
-        setFoundClient({ id: clientDoc.id, ...clientDoc.data() } as ClientData);
+        setFoundClient(null);
+        toast({
+          variant: 'destructive',
+          title: 'Cliente não encontrado',
+        });
       }
-    } catch (error) {
-      console.error("Erro ao buscar cliente:", error);
-      toast({ variant: "destructive", title: "Erro na busca" });
-    } finally {
       setIsSearching(false);
-    }
+    }, 1000);
   };
-  
-  const handleRegisterCut = async () => {
-    if (!firestore || !foundClient) return;
 
-    const clientDocRef = doc(firestore, 'clients', foundClient.id);
-    const cutsCollectionRef = collection(firestore, 'cuts');
+  const handleActionWithPin = (action: string) => {
+    if (pin !== '1234') { // Mock PIN
+        toast({ variant: 'destructive', title: 'PIN inválido!' });
+        return;
+    }
+    
+    setLoading(true);
+    // Simulate action
+    setTimeout(() => {
+        toast({ title: 'Sucesso!', description: `Ação "${action}" confirmada para ${foundClient.name}.` });
+        setLoading(false);
+        setIsPinModalOpen(false);
+        setPin('');
 
-    try {
-        await updateDoc(clientDocRef, {
-            points: foundClient.points + 10,
-            cuts: foundClient.cuts + 1,
-            lastCutAt: serverTimestamp()
-        });
-
-        await addDoc(cutsCollectionRef, {
-            clientId: foundClient.id,
-            date: serverTimestamp(),
-            pointsGenerated: 10
-        });
-
-        // Refresh client data
-        const updatedDoc = await getDoc(clientDocRef);
-        if (updatedDoc.exists()) {
-            setFoundClient({ id: updatedDoc.id, ...updatedDoc.data() } as ClientData);
+        // Here you would update the database, e.g., reset progress, add a spin, etc.
+        if (action === 'Confirmar Corte') {
+            const newCuts = foundClient.progressCuts + 1;
+            if (newCuts >= 5) {
+                 setFoundClient({ ...foundClient, cuts: foundClient.cuts + 1, progressCuts: 0, spins: foundClient.spins + 1 });
+                 toast({ title: '🎉 Giro Liberado!', description: `${foundClient.name} completou 5 cortes e ganhou 1 giro.` })
+            } else {
+                 setFoundClient({ ...foundClient, cuts: foundClient.cuts + 1, progressCuts: newCuts });
+            }
+        }
+         if (action === 'Liberar Giro (Indicação)') {
+            setFoundClient({ ...foundClient, spins: foundClient.spins + 1 });
         }
 
-        toast({ title: "Corte registrado!", description: `${foundClient.name} ganhou 10 pontos.` });
-    } catch (error) {
-        console.error("Erro ao registrar corte: ", error);
-        toast({ variant: "destructive", title: "Erro", description: "Não foi possível registrar o corte." });
-    }
+
+    }, 1500);
   };
 
-  if (loading || isUserLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-16 w-16 animate-spin text-gold" />
-      </div>
-    );
-  }
-  
-  if (!isAdmin) {
-      return null; // Or a specific "Access Denied" component
-  }
 
   return (
-    <div className="flex flex-col min-h-screen bg-deep-black p-4">
-      <h1 className="font-headline text-3xl text-gold uppercase text-center mb-8">Painel Administrativo</h1>
-      
+    <div className="flex flex-col min-h-screen bg-deep-black p-4 text-ice-white">
+      <header className="text-center mb-8">
+        <h1 className="font-headline text-4xl text-gold uppercase">Painel HillsCut</h1>
+        <p className="text-muted-foreground">Gerenciamento do Club Hills & Spin Hills</p>
+      </header>
+
+      {/* Search Section */}
       <Card className="bg-dark-gray border-gold/20 mb-8">
         <CardHeader>
-          <CardTitle className="text-ice-white">Buscar Cliente</CardTitle>
+          <CardTitle>Buscar Cliente</CardTitle>
+          <CardDescription>Busque pelo número de telefone para gerenciar.</CardDescription>
         </CardHeader>
         <CardContent className="flex gap-2">
           <Input 
             type="tel"
-            placeholder="Telefone do cliente com DDD"
+            placeholder="Telefone do cliente"
             value={searchPhone}
             onChange={(e) => setSearchPhone(e.target.value)}
+            className="bg-zinc-800 border-gold/30"
           />
-          <Button onClick={handleSearch} disabled={isSearching}>
+          <Button onClick={handleSearch} disabled={isSearching} className="bg-gold text-deep-black hover:bg-gold/90">
             {isSearching ? <Loader2 className="animate-spin" /> : <Search />}
           </Button>
         </CardContent>
       </Card>
       
+      {/* Client Management Section */}
       {foundClient && (
         <Card className="bg-dark-gray border-gold/20 animate-fade-in-up">
             <CardHeader>
-                <CardTitle className="text-ice-white">{foundClient.name}</CardTitle>
+                <CardTitle className="flex items-center gap-2"><User /> {foundClient.name}</CardTitle>
                 <p className="text-muted-foreground">{foundClient.phone}</p>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4 text-center">
+            <CardContent className="grid grid-cols-2 gap-4 text-center mb-4">
                 <div>
-                    <p className="text-sm text-muted-foreground">Pontos</p>
-                    <p className="text-3xl font-bold text-gold">{foundClient.points}</p>
+                    <p className="text-sm text-muted-foreground">Cortes (Progresso)</p>
+                    <p className="text-3xl font-bold text-gold">{foundClient.progressCuts} / 5</p>
                 </div>
                  <div>
-                    <p className="text-sm text-muted-foreground">Cortes</p>
-                    <p className="text-3xl font-bold text-gold">{foundClient.cuts}</p>
+                    <p className="text-sm text-muted-foreground">Giros Disponíveis</p>
+                    <p className="text-3xl font-bold text-gold">{foundClient.spins}</p>
                 </div>
             </CardContent>
-            <CardFooter>
-                 <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button className="w-full bg-gold text-deep-black hover:bg-gold/90">
-                            <Scissors className="mr-2 h-4 w-4" /> Registrar Corte
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar corte?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Isso irá adicionar 10 pontos e 1 corte para {foundClient.name}. Esta ação não pode ser desfeita.
-                        </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleRegisterCut}>Confirmar</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+            <CardFooter className="grid grid-cols-2 gap-2">
+                <Dialog open={isPinModalOpen} onOpenChange={setIsPinModalOpen}>
+                    <DialogTrigger asChild>
+                        <Button className="w-full bg-gold text-deep-black hover:bg-gold/90"><Scissors className="mr-2"/> Confirmar Corte</Button>
+                    </DialogTrigger>
+                     <DialogContent className="bg-dark-gray text-ice-white border-gold/20">
+                        <DialogHeader>
+                          <DialogTitle>Confirmação do Barbeiro</DialogTitle>
+                          <DialogDescription>Digite seu PIN para confirmar o corte para {foundClient.name}.</DialogDescription>
+                        </DialogHeader>
+                        <Input 
+                            type="password"
+                            maxLength={4}
+                            placeholder="PIN de 4 dígitos"
+                            value={pin}
+                            onChange={(e) => setPin(e.target.value)}
+                            className="bg-zinc-800 border-gold/30 text-center text-2xl tracking-[0.5em] h-14"
+                        />
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsPinModalOpen(false)}>Cancelar</Button>
+                            <Button onClick={() => handleActionWithPin('Confirmar Corte')} disabled={loading} className="bg-gold text-deep-black hover:bg-gold/90">
+                                {loading ? <Loader2 className="animate-spin"/> : "Confirmar"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full border-gold/50 text-gold hover:bg-gold hover:text-deep-black"><Gift className="mr-2"/> Liberar Giro</Button>
+                    </DialogTrigger>
+                    {/* A more complex dialog would go here to choose the reason for the spin */}
+                    <DialogContent className="bg-dark-gray text-ice-white border-gold/20">
+                        <DialogHeader>
+                            <DialogTitle>Liberar Giro Manual</DialogTitle>
+                            <DialogDescription>Selecione o motivo e confirme com seu PIN.</DialogDescription>
+                        </DialogHeader>
+                         <div className="grid gap-2 my-4">
+                            <Button variant="secondary" onClick={() => handleActionWithPin('Liberar Giro (Indicação)')}>Indicação de Amigo</Button>
+                            <Button variant="secondary" onClick={() => handleActionWithPin('Liberar Giro (Mídia Social)')}>Avaliação / Seguiu</Button>
+                         </div>
+                         <Input 
+                            type="password"
+                            maxLength={4}
+                            placeholder="Seu PIN"
+                            value={pin}
+                            onChange={(e) => setPin(e.target.value)}
+                            className="bg-zinc-800 border-gold/30 text-center text-lg h-12"
+                        />
+                        <DialogFooter>
+                            <Button variant="outline">Fechar</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </CardFooter>
         </Card>
       )}
 
-      {/* TODO: Rewards Management */}
-
+      {/* Active Prizes Section */}
+      <div className="mt-8">
+        <h2 className="font-headline text-3xl text-ice-white uppercase mb-4">Prêmios Ativos</h2>
+        <div className="space-y-4">
+            {mockPrizes.map((prize) => (
+                <Card key={prize.id} className="bg-dark-gray border-gold/20 flex justify-between items-center p-4">
+                    <div>
+                        <p className="font-bold text-ice-white">{prize.clientName}</p>
+                        <p className="text-sm text-muted-foreground">{prize.prize}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-sm font-semibold text-gold">Expira em {prize.expires} dias</p>
+                        <Button size="sm" variant="ghost" className="text-gold/80 hover:text-gold p-0 h-auto">Resgatar com PIN</Button>
+                    </div>
+                </Card>
+            ))}
+        </div>
+      </div>
     </div>
   );
 }
