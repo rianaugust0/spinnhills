@@ -4,7 +4,7 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, FerrisWheel } from 'lucide-react';
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -23,7 +23,8 @@ export default function WelcomePage() {
         <h2 className="font-headline text-2xl text-ice-white/70 uppercase tracking-widest">
             HILLSCUT
         </h2>
-        <h1 className="font-headline text-6xl text-gold uppercase tracking-widest">
+        <h1 className="font-headline text-6xl text-gold uppercase tracking-widest flex items-center justify-center gap-4">
+          <FerrisWheel className="h-12 w-12 hidden sm:block" />
           SPIN HILLS
         </h1>
         <h2 className="font-body text-lg text-ice-white/90">

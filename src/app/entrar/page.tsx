@@ -6,18 +6,11 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, FerrisWheel } from 'lucide-react';
+import { initializeFirebase } from '@/firebase';
+import { collection, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
-// TODO: Replace with Firebase implementation
-const findOrCreateUser = async (phone: string, name: string) => {
-  console.log(`Finding or creating user with phone: ${phone} and name: ${name}`);
-  // Simulate a network request
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  // In a real scenario, this would interact with Firestore
-  // For now, we just return mock data
-  return { id: phone, phone, name };
-};
-
+const { firestore } = initializeFirebase();
 
 export default function EntrarPage() {
   const [name, setName] = useState('');
@@ -32,7 +25,9 @@ export default function EntrarPage() {
       toast({ variant: 'destructive', title: 'Nome inválido', description: 'Por favor, insira seu nome completo.' });
       return;
     }
-    if (phone.length < 10) {
+    // Basic phone validation (e.g., at least 10 digits)
+    const sanitizedPhone = phone.replace(/\D/g, '');
+    if (sanitizedPhone.length < 10) {
       toast({ variant: 'destructive', title: 'Telefone inválido', description: 'Por favor, insira um telefone com DDD.' });
       return;
     }
@@ -40,14 +35,30 @@ export default function EntrarPage() {
     setLoading(true);
 
     try {
-      // This will be replaced with Firestore logic
-      await findOrCreateUser(phone, name);
+      const userDocRef = doc(firestore, 'users', sanitizedPhone);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        // User does not exist, create a new document
+        await setDoc(userDocRef, {
+          name: name,
+          phone: sanitizedPhone,
+          totalCortes: 0,
+          cortesAtuais: 0,
+          girosDisponiveis: 0,
+          premiosAtivos: [],
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        toast({ title: `Bem-vindo, ${name.split(' ')[0]}!`, description: 'Sua jornada no Spin Hills começou.' });
+      } else {
+        // User already exists, just log them in
+        toast({ title: `Bem-vindo de volta, ${userDoc.data().name.split(' ')[0]}!` });
+      }
       
       // Create session in browser
-      localStorage.setItem('spin-hills-user-phone', phone);
-      localStorage.setItem('spin-hills-user-name', name);
+      localStorage.setItem('spin-hills-user-phone', sanitizedPhone);
       
-      toast({ title: `Bem-vindo, ${name.split(' ')[0]}!`, description: 'Sua jornada no Spin Hills começou.' });
       router.push('/dashboard');
 
     } catch (error) {
@@ -65,6 +76,7 @@ export default function EntrarPage() {
   return (
     <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
       <div className="w-full max-w-sm animate-fade-in-up">
+        <FerrisWheel className="h-16 w-16 text-gold mx-auto mb-4" />
          <h1 className="font-headline text-5xl text-gold uppercase tracking-widest mb-2">
             SPIN HILLS
         </h1>
@@ -92,7 +104,7 @@ export default function EntrarPage() {
             disabled={loading}
             className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base"
           >
-            {loading ? <Loader2 className="animate-spin" /> : 'Começar a Girar'}
+            {loading ? <Loader2 className="animate-spin" /> : 'Entrar no Clube'}
           </Button>
         </div>
       </div>

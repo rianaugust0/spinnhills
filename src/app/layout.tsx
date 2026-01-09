@@ -1,8 +1,9 @@
-
 import type { Metadata } from 'next';
 import { Bebas_Neue, Poppins } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 const bebasNeue = Bebas_Neue({
   subsets: ['latin'],
@@ -32,7 +33,10 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${bebasNeue.variable} ${poppins.variable} dark`}>
       <body className="bg-deep-black text-ice-white font-body">
-        {children}
+        <FirebaseClientProvider>
+          {children}
+          <FirebaseErrorListener />
+        </FirebaseClientProvider>
         <Toaster />
       </body>
     </html>
