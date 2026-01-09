@@ -5,81 +5,39 @@
       "type": "object",
       "description": "Representa um cliente da barbearia.",
       "properties": {
-        "id": { "type": "string", "description": "ID único do usuário (corresponde ao UID do Auth)." },
         "name": { "type": "string", "description": "Nome do cliente." },
         "phone": { "type": "string", "description": "Telefone do cliente, usado como identificador único." },
-        "points": { "type": "number", "description": "Total de pontos acumulados." },
-        "cuts": { "type": "number", "description": "Total de cortes realizados." },
-        "spins": { "type": "number", "description": "Quantidade de giros disponíveis na roleta SPIN HILLS." },
-        "progressCuts": { "type": "number", "description": "Contador de cortes para o próximo giro (0 a 5)." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o cliente foi cadastrado." }
+        "totalCortes": { "type": "number", "description": "Total de cortes já realizados na barbearia." },
+        "cortesAtuais": { "type": "number", "description": "Contador de cortes para o próximo giro (0 a 5)." },
+        "girosDisponiveis": { "type": "number", "description": "Quantidade de giros disponíveis na roleta SPIN HILLS." },
+        "premiosAtivos": { "type": "array", "description": "Lista de prêmios que o cliente ganhou e ainda estão ativos.", "items": { "$ref": "#/entities/Prize" } },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o cliente foi cadastrado." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp da última atualização do documento." }
       },
-      "required": ["id", "name", "phone", "points", "cuts", "spins", "progressCuts", "createdAt"]
+      "required": ["name", "phone", "totalCortes", "cortesAtuais", "girosDisponiveis", "createdAt", "updatedAt"]
     },
-    "Barber": {
-      "title": "Barber",
+    "Rule": {
+      "title": "Rule",
       "type": "object",
-      "description": "Representa um barbeiro autorizado a realizar ações no sistema.",
+      "description": "Define as regras para ganhar giros na roleta.",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string", "description": "Nome do barbeiro." },
-        "pin": { "type": "string", "description": "PIN numérico para confirmação de ações." }
+        "tipo": { "type": "string", "enum": ["indicacao", "instagram", "fidelidade"], "description": "Tipo da regra." },
+        "descricao": { "type": "string", "description": "Descrição da regra para o cliente." },
+        "ativo": { "type": "boolean", "description": "Se a regra está ativa ou não." },
+        "limitePorUsuario": { "type": "number", "description": "Quantas vezes um usuário pode completar essa regra (ex: 1 para instagram)." }
       },
-      "required": ["id", "name", "pin"]
-    },
-    "Cut": {
-      "title": "Cut",
-      "type": "object",
-      "description": "Registra um corte de cabelo realizado.",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string", "description": "ID do cliente que recebeu o corte." },
-        "barberId": { "type": "string", "description": "ID do barbeiro que registrou o corte." },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "userId", "barberId", "createdAt"]
+      "required": ["tipo", "descricao", "ativo"]
     },
     "Prize": {
       "title": "Prize",
       "type": "object",
-      "description": "Representa um prêmio ganho pelo cliente na roleta.",
+      "description": "Representa um prêmio que pode ser ganho na roleta.",
       "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string", "description": "ID do cliente que ganhou o prêmio." },
-        "name": { "type": "string", "description": "Nome do prêmio (ex: 'Corte Grátis')." },
-        "type": { "type": "string", "description": "Tipo do prêmio." },
-        "status": { "type": "string", "enum": ["active", "expired", "redeemed"], "description": "Status atual do prêmio." },
-        "expiresAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o prêmio expira." },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "redeemedAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o prêmio foi resgatado." }
+        "nome": { "type": "string", "description": "Nome do prêmio (ex: 'Corte Grátis')." },
+        "tipo": { "type": "string", "description": "Categoria do prêmio (ex: 'servico', 'desconto')." },
+        "validadeDias": { "type": "number", "description": "Número de dias que o prêmio é válido após ser ganho." }
       },
-      "required": ["id", "userId", "name", "type", "status", "expiresAt", "createdAt"]
-    },
-    "Spin": {
-      "title": "Spin",
-      "type": "object",
-      "description": "Log de um giro realizado na roleta.",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "prizeWon": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "userId", "prizeWon", "createdAt"]
-    },
-     "Log": {
-      "title": "Log",
-      "type": "object",
-      "description": "Registra ações importantes no sistema para auditoria.",
-      "properties": {
-        "id": { "type": "string" },
-        "action": { "type": "string", "description": "Ação realizada (ex: 'confirm-cut', 'redeem-prize')." },
-        "userId": { "type": "string" },
-        "barberId": { "type": "string" },
-        "details": { "type": "object" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "action", "userId", "barberId", "createdAt"]
+      "required": ["nome", "tipo", "validadeDias"]
     }
   },
   "auth": {
@@ -92,24 +50,12 @@
         "definition": { "schema": { "$ref": "#/entities/User" } }
       },
       {
-        "path": "/barbers/{barberId}",
-        "definition": { "schema": { "$ref": "#/entities/Barber" } }
+        "path": "/rules/{ruleId}",
+        "definition": { "schema": { "$ref": "#/entities/Rule" } }
       },
       {
-        "path": "/cuts/{cutId}",
-        "definition": { "schema": { "$ref": "#/entities/Cut" } }
-      },
-      {
-        "path": "/prizes/{prizeId}",
+        "path": "/rewards/{rewardId}",
         "definition": { "schema": { "$ref": "#/entities/Prize" } }
-      },
-      {
-        "path": "/spins/{spinId}",
-        "definition": { "schema": { "$ref": "#/entities/Spin" } }
-      },
-       {
-        "path": "/logs/{logId}",
-        "definition": { "schema": { "$ref": "#/entities/Log" } }
       }
     ]
   }

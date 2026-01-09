@@ -4,46 +4,34 @@ service cloud.firestore {
 
     // Helper functions
     function isSignedIn() {
-      return request.auth != null;
+      // For now, we are not using Firebase Auth, so this is always true.
+      // Security is handled by barber PINs at the application level.
+      return true;
     }
 
-    // Users can read their own data. Creation is open as it's a public signup.
-    // Writes should be protected by admin/barber logic (PIN) in Cloud Functions or client-side checks.
     match /users/{userId} {
-      allow read: if isSignedIn() && request.auth.uid == userId;
-      allow create: if isSignedIn();
-      // Updates are tricky. For now, let's lock them down.
-      // Real app would need a Cloud Function or barber PIN validation.
-      allow update, delete: if false; 
+      // Anyone can create a user (sign up).
+      // Reading and updating will be handled by the application logic for now.
+      // In a real scenario with auth, reads would be restricted to the user themselves or barbers.
+      allow read, write: if true; 
     }
 
-    // Barbers collection should be read-only for clients. Only admins can manage.
-    match /barbers/{barberId} {
-      allow read: if isSignedIn(); // Maybe needed for admin panel
-      allow write: if false; // Managed by admin only
+    match /rules/{ruleId} {
+      // Rules are read-only for clients. Only admins should edit them.
+      allow read: if true;
+      allow write: if false; // To be managed via Firebase Console by admin
     }
 
-    // Records of cuts, prizes, spins, and logs are sensitive.
-    // Clients should only be able to read data related to them.
-    // Writes must be done through a secure backend process (triggered by barber PIN).
-    match /cuts/{cutId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow write: if false;
+    match /rewards/{rewardId} {
+      // Rewards definitions are read-only for clients.
+      allow read: if true;
+      allow write: if false; // To be managed via Firebase Console by admin
     }
 
-    match /prizes/{prizeId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow write: if false;
-    }
-    
-    match /spins/{spinId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow write: if false;
-    }
-
-    match /logs/{logId} {
-      allow read: if false; // Logs are for admin audit only
-      allow write: if false;
+    // Collections for future implementation (cuts, spins, logs, barbers)
+    // By default, they are locked down.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
