@@ -8,6 +8,17 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
+// TODO: Replace with Firebase implementation
+const findOrCreateUser = async (phone: string, name: string) => {
+  console.log(`Finding or creating user with phone: ${phone} and name: ${name}`);
+  // Simulate a network request
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  // In a real scenario, this would interact with Firestore
+  // For now, we just return mock data
+  return { id: phone, phone, name };
+};
+
+
 export default function EntrarPage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -28,12 +39,11 @@ export default function EntrarPage() {
     
     setLoading(true);
 
-    // In a real application, you would use Firestore here.
-    // For now, we simulate success and save to localStorage to create the session.
     try {
-      console.log(`Creating user with phone: ${phone} and name: ${name}`);
-      // TODO: Add Firestore logic to find or create user.
+      // This will be replaced with Firestore logic
+      await findOrCreateUser(phone, name);
       
+      // Create session in browser
       localStorage.setItem('spin-hills-user-phone', phone);
       localStorage.setItem('spin-hills-user-name', name);
       
@@ -55,8 +65,8 @@ export default function EntrarPage() {
   return (
     <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
       <div className="w-full max-w-sm animate-fade-in-up">
-        <h1 className="font-headline text-5xl text-gold uppercase tracking-widest mb-2">
-          SPIN HILLS
+         <h1 className="font-headline text-5xl text-gold uppercase tracking-widest mb-2">
+            SPIN HILLS
         </h1>
         <h2 className="font-body text-xl font-bold text-ice-white">Antes de começar...</h2>
         <p className="text-muted-foreground mt-2 mb-6">

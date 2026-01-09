@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, LogOut, Gift, Star, Users } from 'lucide-react';
+import { Loader2, LogOut, Gift, Star, Users, FerrisWheel } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -63,7 +63,8 @@ export default function DashboardPage() {
         {/* Spin Hills Card */}
         <Card className="bg-dark-gray border-gold/20 text-center shadow-lg shadow-gold/5">
           <CardHeader>
-            <CardTitle className="font-headline text-4xl text-gold uppercase tracking-wider">
+            <CardTitle className="font-headline text-4xl text-gold uppercase tracking-wider flex items-center justify-center gap-3">
+              <FerrisWheel className="h-10 w-10 animate-spin [animation-duration:10s]" />
               Spin Hills
             </CardTitle>
             <CardDescription>Giros disponíveis: 
@@ -103,3 +104,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

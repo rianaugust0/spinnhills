@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { Bebas_Neue, Poppins } from 'next/font/google';
 import './globals.css';
@@ -16,7 +17,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: 'Club Hills - HillsCut Barbearia',
+  title: 'SPIN HILLS - HillsCut Barbearia',
   description: 'Clube de fidelidade e roleta de prêmios da Hillscut Barbearia.',
   icons: {
     icon: 'https://i.imgur.com/2U2l5aD.png',

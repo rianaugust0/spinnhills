@@ -20,6 +20,9 @@ export default function WelcomePage() {
   return (
     <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
       <div className="w-full max-w-md animate-fade-in-up space-y-4">
+        <h2 className="font-headline text-2xl text-ice-white/70 uppercase tracking-widest">
+            HILLSCUT
+        </h2>
         <h1 className="font-headline text-6xl text-gold uppercase tracking-widest">
           SPIN HILLS
         </h1>
@@ -32,7 +35,7 @@ export default function WelcomePage() {
           size="lg"
         >
           <Sparkles className="mr-2 h-5 w-5" />
-          Entrar no Clube
+          Entrar
         </Button>
       </div>
     </div>
