@@ -1,40 +1,50 @@
+
 'use client';
 
-import { useState } from 'react';
-import { Loader2, LogOut, Star, Scissors, RotateCw, Gift } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Loader2, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 
-// Mock data for demonstration
-const clientData = {
-  name: "João",
-  points: 30,
-  cuts: 8,
-  spins: 1,
-  progressCuts: 3,
+// Mock data for demonstration - will be replaced with Firestore data
+const mockClientData = {
+  name: "Cliente",
+  points: 0,
+  cuts: 0,
+  progressCuts: 0,
 };
-
-const activePrizes = [
-  { id: '1', name: 'Corte Grátis', type: 'Corte', expires: 5 },
-  { id: '2', name: 'Hidratação', type: 'Serviço', expires: 12 },
-];
 
 export default function DashboardPage() {
   const router = useRouter();
+  const [clientData, setClientData] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!clientData) {
+
+  useEffect(() => {
+    const userPhone = localStorage.getItem('hills-user-phone');
+    if (!userPhone) {
+      router.replace('/entrar');
+    } else {
+      // Here you would fetch data from Firestore using the user's phone
+      // For now, we'll use mock data
+      setClientData(mockClientData);
+      setLoading(false);
+    }
+  }, [router]);
+
+  const handleLogout = () => {
+      localStorage.removeItem('hills-user-phone');
+      router.push('/');
+  }
+
+  if (loading || !clientData) {
      return (
       <div className="flex min-h-screen items-center justify-center bg-deep-black">
         <Loader2 className="h-16 w-16 animate-spin text-gold" />
       </div>
     );
-  }
-
-  const handleLogout = () => {
-      // In a real app, this would clear the session/local storage
-      router.push('/');
   }
 
   const progressPercentage = (clientData.progressCuts / 5) * 100;
@@ -45,7 +55,6 @@ export default function DashboardPage() {
         <div>
            <h1 className="font-headline text-2xl text-gold uppercase">Club Hills Basic</h1>
            <p className="text-sm text-muted-foreground mt-1">👋 Bem-vindo ao Club Hills, {clientData.name}!</p>
-           <p className="text-sm text-muted-foreground">Cada corte te aproxima de recompensas exclusivas.</p>
         </div>
         <Button variant="ghost" size="icon" onClick={handleLogout}>
           <LogOut className="h-5 w-5 text-gold/80 hover:text-gold" />
@@ -54,10 +63,10 @@ export default function DashboardPage() {
 
       <main className="flex-1 container mx-auto px-4 py-8 space-y-8">
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <Card className="bg-dark-gray border-gold/20 text-center">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Pontos</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Pontos Atuais</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-ice-white">{clientData.points}</div>
@@ -69,14 +78,6 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-ice-white">{clientData.cuts}</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-dark-gray border-gold/20 text-center col-span-2 sm:col-span-1">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Giros Disponíveis</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold text-ice-white">{clientData.spins}</div>
             </CardContent>
           </Card>
         </div>
@@ -95,47 +96,13 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-        {/* Spin Hills Roleta */}
-        <Card className="bg-dark-gray border-gold/20 text-center">
-            <CardHeader>
-              <CardTitle className="font-headline text-3xl text-gold uppercase">SPIN HILLS</CardTitle>
-              <CardDescription>Você tem <span className="font-bold text-gold">{clientData.spins}</span> giro(s) disponível(is). Gire e ganhe!</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button size="lg" className="bg-gold text-deep-black hover:bg-gold/90 w-full font-bold text-lg" disabled={clientData.spins === 0}>
-                    <RotateCw className="mr-2"/> Girar a Roleta
-                </Button>
-                 <p className="text-xs text-muted-foreground mt-4">Ganhe mais giros indicando amigos ou avaliando a barbearia!</p>
-            </CardContent>
-        </Card>
-
         {/* Active Prizes */}
         <div>
-          <h2 className="font-headline text-3xl text-ice-white uppercase mb-4">Meus Prêmios Ativos</h2>
-          <div className="space-y-4">
-            {activePrizes.length > 0 ? (
-                activePrizes.map((prize) => (
-                  <Card key={prize.id} className="bg-zinc-800 border-gold/20 flex items-center justify-between p-4">
-                    <div className="flex items-center gap-4">
-                        <Gift className="h-6 w-6 text-gold" />
-                        <div>
-                          <p className="font-bold text-ice-white">{prize.name}</p>
-                          <p className="text-sm text-muted-foreground">Válido para o próximo atendimento</p>
-                        </div>
-                    </div>
-                    <div className="text-right">
-                        <p className="font-semibold text-gold">Expira em {prize.expires} dias</p>
-                        <p className="text-xs text-muted-foreground">Apresente no caixa</p>
-                    </div>
-                  </Card>
-                ))
-            ) : (
-                 <Card className="bg-dark-gray border-dashed border-gold/30 text-center p-8">
-                    <CardTitle className="text-muted-foreground">Nenhum prêmio ativo</CardTitle>
-                    <CardDescription className="mt-2">Gire a roleta para ganhar prêmios!</CardDescription>
-                </Card>
-            )}
-          </div>
+          <h2 className="font-headline text-3xl text-ice-white uppercase mb-4">Minhas Recompensas</h2>
+          <Card className="bg-dark-gray border-dashed border-gold/30 text-center p-8">
+              <CardTitle className="text-muted-foreground">Nenhuma recompensa disponível no momento.</CardTitle>
+              <CardDescription className="mt-2">Continue cortando para desbloquear prêmios!</CardDescription>
+          </Card>
         </div>
       </main>
     </div>
