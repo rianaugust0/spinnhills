@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -25,7 +26,7 @@ const radiusLineColor = '#D4AF37';
 const radiusLineWidth = 2;
 const fontFamily = 'Bebas Neue';
 const fontSize = 16;
-const textDistance = 70;
+const textDistance = 75;
 
 export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, onPrizeDefined }: RouletteProps) {
   const [prizeNumber, setPrizeNumber] = useState(0);
@@ -69,6 +70,7 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
           radiusLineColor={radiusLineColor}
           radiusLineWidth={radiusLineWidth}
           textDistance={textDistance}
+          prizesWithText={true}
         />
       </div>
      
@@ -82,3 +84,4 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
     </div>
   );
 }
+
