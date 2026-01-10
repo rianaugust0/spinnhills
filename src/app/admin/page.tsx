@@ -7,6 +7,7 @@ import { Scissors, LayoutDashboard, UserPlus } from 'lucide-react';
 
 export default function AdminPage() {
   const router = useRouter();
+  console.log('Admin page loaded'); // Adicionado para forçar a recompilação
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-deep-black p-4 text-ice-white">
