@@ -30,10 +30,10 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
   const [prizeNumber, setPrizeNumber] = useState(0);
 
   const data = prizeOptions.map((option, index) => ({
-    option: option.title.toUpperCase(),
+    image: { uri: option.imageUrl, sizeMultiplier: 0.6 },
     style: { 
       backgroundColor: backgroundColors[index % backgroundColors.length],
-      textColor: index % 2 === 0 ? '#F2F2F2' : '#0A0A0A'
+      textColor: '#ffffff00' // Make default text transparent
     }
   }));
 
@@ -56,6 +56,7 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
             onPrizeDefined(prizeOptions[prizeNumber]);
             onStopSpinning();
           }}
+          prizesWithText={true}
           backgroundColors={backgroundColors}
           fontFamily={fontFamily}
           fontSize={fontSize}
