@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { prizeOptions, PrizeOption } from '@/lib/prizes';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2 } from 'lucide-react';
@@ -24,8 +23,9 @@ const innerBorderWidth = 12;
 const innerRadius = 20;
 const radiusLineColor = '#222';
 const radiusLineWidth = 2;
-const fontSize = 16;
-const textDistance = 75;
+const fontFamily = 'Bebas Neue';
+const fontSize = 18;
+const textDistance = 85;
 
 export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, onPrizeDefined }: RouletteProps) {
   const [prizeNumber, setPrizeNumber] = useState(0);
@@ -59,6 +59,7 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
           }}
           backgroundColors={backgroundColors}
           textColors={textColors}
+          fontFamily={fontFamily}
           fontSize={fontSize}
           outerBorderColor={outerBorderColor}
           outerBorderWidth={outerBorderWidth}
