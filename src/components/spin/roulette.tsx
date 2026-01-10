@@ -70,6 +70,7 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
           radiusLineColor={radiusLineColor}
           radiusLineWidth={radiusLineWidth}
           textDistance={textDistance}
+          prizesWithText={true}
         />
       </div>
      
