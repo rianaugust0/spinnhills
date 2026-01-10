@@ -81,5 +81,3 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
     </div>
   );
 }
-
-    

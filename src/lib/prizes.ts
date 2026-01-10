@@ -51,5 +51,3 @@ export const prizeOptions: PrizeOption[] = [
     validityDays: 0,
   },
 ];
-
-    

@@ -185,5 +185,3 @@ export default function SpinPage() {
     </div>
   );
 }
-
-    
