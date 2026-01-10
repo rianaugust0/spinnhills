@@ -24,8 +24,8 @@ const innerRadius = 20;
 const radiusLineColor = '#222';
 const radiusLineWidth = 2;
 const fontFamily = 'Bebas Neue';
-const fontSize = 18;
-const textDistance = 85;
+const fontSize = 16;
+const textDistance = 60;
 
 export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, onPrizeDefined }: RouletteProps) {
   const [prizeNumber, setPrizeNumber] = useState(0);
