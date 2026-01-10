@@ -1,0 +1,1 @@
+Implementação do sistema de fidelidade com confirmação de corte por PIN do barbeiro. Criação das páginas de administração, atualização da estrutura de dados no Firestore e da lógica para contagem de cortes e liberação de giros.

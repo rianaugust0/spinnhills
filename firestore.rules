@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -16,8 +17,7 @@ service cloud.firestore {
       allow read, write: if true; 
 
       match /prizes/{prizeId} {
-        // Allow reading prizes for a specific user.
-        // Writes will be handled by transactions in backend logic for security.
+        // Allow reading and writing prizes for a specific user.
         allow read, write: if true; 
       }
     }

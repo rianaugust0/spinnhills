@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -5,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, User, Scissors, KeyRound, CheckCircle } from 'lucide-react';
+import { Loader2, ArrowLeft, User, Scissors, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
 import {
@@ -87,12 +88,11 @@ export default function ConfirmarCortePage() {
         if (barberSnapshot.empty) {
             throw new Error('PIN do barbeiro inválido ou inativo.');
         }
-        const barberId = barberSnapshot.docs[0].id;
 
         // 2. Run transaction to update user cuts
         const userDocRef = doc(firestore, 'users', client.id);
 
-        await runTransaction(firestore, async (transaction) => {
+        const { newSpins } = await runTransaction(firestore, async (transaction) => {
             const userDoc = await transaction.get(userDocRef);
             if (!userDoc.exists()) {
                 throw new Error('Usuário não encontrado.');
@@ -101,12 +101,10 @@ export default function ConfirmarCortePage() {
             const currentData = userDoc.data();
             let cortesAtuais = (currentData.cortesAtuais || 0) + 1;
             let girosDisponiveis = currentData.girosDisponiveis || 0;
-            let showConfetti = false;
-
+            
             if (cortesAtuais >= 5) {
                 cortesAtuais = 0;
                 girosDisponiveis += 1;
-                showConfetti = true;
             }
 
             transaction.update(userDocRef, {
@@ -116,7 +114,7 @@ export default function ConfirmarCortePage() {
                 updatedAt: serverTimestamp(),
             });
 
-            return { showConfetti, newSpins: girosDisponiveis };
+            return { newSpins: girosDisponiveis };
         });
 
         setStep('success');
@@ -124,6 +122,14 @@ export default function ConfirmarCortePage() {
             title: 'Corte confirmado!',
             description: `O progresso de ${client.name.split(' ')[0]} foi atualizado.`,
         });
+
+        if (newSpins > client.girosDisponiveis) {
+             toast({
+                title: 'Parabéns!',
+                description: `${client.name.split(' ')[0]} ganhou +1 giro na roleta!`,
+                duration: 5000,
+            });
+        }
 
 
     } catch (error: any) {
