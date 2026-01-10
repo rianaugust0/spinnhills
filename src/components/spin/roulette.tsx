@@ -14,18 +14,18 @@ interface RouletteProps {
   onPrizeDefined: (prize: PrizeOption) => void;
 }
 
-const backgroundColors = ['#D4AF37', '#121212'];
-const textColors = ['#0A0A0A', '#F2F2F2'];
-const outerBorderColor = '#222';
-const outerBorderWidth = 10;
-const innerBorderColor = '#0A0A0A';
-const innerBorderWidth = 12;
-const innerRadius = 20;
-const radiusLineColor = '#222';
+const backgroundColors = ['#121212', '#D4AF37'];
+const textColors = ['#F2F2F2', '#0A0A0A'];
+const outerBorderColor = '#D4AF37';
+const outerBorderWidth = 5;
+const innerBorderColor = '#D4AF37';
+const innerBorderWidth = 6;
+const innerRadius = 0;
+const radiusLineColor = '#D4AF37';
 const radiusLineWidth = 2;
 const fontFamily = 'Bebas Neue';
 const fontSize = 16;
-const textDistance = 75;
+const textDistance = 70;
 
 export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, onPrizeDefined }: RouletteProps) {
   const [prizeNumber, setPrizeNumber] = useState(0);
