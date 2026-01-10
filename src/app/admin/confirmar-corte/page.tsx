@@ -6,9 +6,10 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, User, Scissors, CheckCircle } from 'lucide-react';
+import { Loader2, ArrowLeft, User, Scissors, CheckCircle, FerrisWheel, Gift } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
+import { GrantSpinModal } from '@/components/admin/GrantSpinModal';
 import {
   doc,
   getDoc,
@@ -18,6 +19,7 @@ import {
   where,
   getDocs,
   serverTimestamp,
+  addDoc,
 } from 'firebase/firestore';
 
 const { firestore } = initializeFirebase();
@@ -38,6 +40,7 @@ export default function ConfirmarCortePage() {
   const [loading, setLoading] = useState(false);
   const [client, setClient] = useState<ClientData | null>(null);
   const [step, setStep] = useState<'findClient' | 'confirmCut' | 'success'>('findClient');
+  const [isGrantSpinModalOpen, setIsGrantSpinModalOpen] = useState(false);
 
   const handleFindClient = async () => {
     const sanitizedPhone = phone.replace(/\D/g, '');
@@ -81,43 +84,69 @@ export default function ConfirmarCortePage() {
     setLoading(true);
 
     try {
-        // 1. Validate barber PIN
         const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pin));
         const barberSnapshot = await getDocs(barbersQuery);
 
         if (barberSnapshot.empty) {
             throw new Error('PIN do barbeiro inválido ou inativo.');
         }
+        const barberId = barberSnapshot.docs[0].id;
 
-        // 2. Run transaction to update user cuts
         const userDocRef = doc(firestore, 'users', client.id);
 
-        const { newSpins } = await runTransaction(firestore, async (transaction) => {
+        const { newSpins, cortesAtuais } = await runTransaction(firestore, async (transaction) => {
             const userDoc = await transaction.get(userDocRef);
             if (!userDoc.exists()) {
                 throw new Error('Usuário não encontrado.');
             }
 
             const currentData = userDoc.data();
-            let cortesAtuais = (currentData.cortesAtuais || 0) + 1;
-            let girosDisponiveis = currentData.girosDisponiveis || 0;
-            
-            if (cortesAtuais >= 5) {
-                cortesAtuais = 0;
-                girosDisponiveis += 1;
+            let newCortesAtuais = (currentData.cortesAtuais || 0) + 1;
+            let newGirosDisponiveis = currentData.girosDisponiveis || 0;
+            let spinGranted = false;
+
+            if (newCortesAtuais >= 5) {
+                newCortesAtuais = 0;
+                newGirosDisponiveis += 1;
+                spinGranted = true;
             }
 
             transaction.update(userDocRef, {
-                cortesAtuais: cortesAtuais,
+                cortesAtuais: newCortesAtuais,
                 totalCortes: (currentData.totalCortes || 0) + 1,
-                girosDisponiveis: girosDisponiveis,
+                girosDisponiveis: newGirosDisponiveis,
                 updatedAt: serverTimestamp(),
             });
 
-            return { newSpins: girosDisponiveis };
+            // Register the cut
+            const cutRef = doc(collection(firestore, "cuts"));
+            transaction.set(cutRef, {
+                userId: client.id,
+                barberId: barberId,
+                pinUsed: pin,
+                confirmed: true,
+                date: serverTimestamp()
+            });
+            
+            // Register the spin if granted
+            if (spinGranted) {
+                const spinRef = doc(collection(firestore, "spins"));
+                transaction.set(spinRef, {
+                    userId: client.id,
+                    origin: 'fidelidade_5_cortes',
+                    manual: false,
+                    releasedBy: null,
+                    notes: null,
+                    createdAt: serverTimestamp()
+                });
+            }
+
+            return { newSpins: newGirosDisponiveis, cortesAtuais: newCortesAtuais };
         });
 
         setStep('success');
+        setClient(prev => prev ? {...prev, cortesAtuais, girosDisponiveis: newSpins } : null);
+
         toast({
             title: 'Corte confirmado!',
             description: `O progresso de ${client.name.split(' ')[0]} foi atualizado.`,
@@ -143,6 +172,12 @@ export default function ConfirmarCortePage() {
         setLoading(false);
     }
   }
+
+  const handleManualSpinGranted = (newSpinCount: number) => {
+    if (client) {
+      setClient({ ...client, girosDisponiveis: newSpinCount });
+    }
+  };
   
   if (step === 'success') {
        return (
@@ -151,6 +186,10 @@ export default function ConfirmarCortePage() {
                 <CheckCircle className="h-24 w-24 text-green-500 mx-auto animate-pulse" />
                 <h1 className="font-headline text-4xl text-gold uppercase tracking-widest mt-4">Corte Confirmado!</h1>
                 <p className='text-ice-white text-lg mt-2'>O progresso de {client?.name.split(' ')[0]} foi atualizado.</p>
+                 <div className='mt-4 text-ice-white/80'>
+                    <p>Novo Progresso: <span className='font-bold text-gold'>{client?.cortesAtuais}/5</span></p>
+                    <p>Giros Disponíveis: <span className='font-bold text-gold'>{client?.girosDisponiveis}</span></p>
+                 </div>
                 <Button onClick={() => {
                     setStep('findClient');
                     setClient(null);
@@ -165,11 +204,17 @@ export default function ConfirmarCortePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
+      {client && <GrantSpinModal 
+        isOpen={isGrantSpinModalOpen}
+        onClose={() => setIsGrantSpinModalOpen(false)}
+        client={client}
+        onSpinGranted={handleManualSpinGranted}
+      />}
       <header className="p-4 flex justify-between items-center">
         <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="Voltar">
           <ArrowLeft className="h-5 w-5 text-gold" />
         </Button>
-         <h1 className="font-headline text-xl text-ice-white uppercase">Confirmar Corte</h1>
+         <h1 className="font-headline text-xl text-ice-white uppercase">Ações do Cliente</h1>
          <div></div>
       </header>
       <main className="flex-1 flex flex-col items-center justify-center container mx-auto px-4 pb-8">
@@ -201,15 +246,22 @@ export default function ConfirmarCortePage() {
              <Card className="w-full max-w-sm bg-dark-gray border-gold/20 text-center animate-fade-in-up">
                 <CardHeader>
                      <Scissors className='h-12 w-12 mx-auto text-gold/50'/>
-                    <CardTitle className="font-headline text-3xl text-gold uppercase">Confirmar Corte</CardTitle>
-                    <CardDescription>Valide o corte para <strong className='text-gold'>{client.name}</strong>.</CardDescription>
+                    <CardTitle className="font-headline text-3xl text-gold uppercase">Ações para <strong className='text-gold'>{client.name.split(' ')[0]}</strong></CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div className='p-4 bg-deep-black rounded-lg border border-gold/10'>
-                        <p className='text-muted-foreground'>Progresso Atual</p>
-                        <p className='text-xl font-bold text-ice-white'>{client.cortesAtuais} / 5</p>
+                    <div className='grid grid-cols-2 gap-4'>
+                        <div className='p-2 bg-deep-black rounded-lg border border-gold/10'>
+                            <p className='text-xs text-muted-foreground'>Progresso</p>
+                            <p className='text-lg font-bold text-ice-white'>{client.cortesAtuais} / 5</p>
+                        </div>
+                        <div className='p-2 bg-deep-black rounded-lg border border-gold/10'>
+                            <p className='text-xs text-muted-foreground'>Giros</p>
+                            <p className='text-lg font-bold text-ice-white'>{client.girosDisponiveis}</p>
+                        </div>
                     </div>
-                    <div className="space-y-2">
+                    
+                    <div className="space-y-2 p-4 border border-dashed border-gold/20 rounded-lg">
+                        <h3 className='font-bold text-ice-white mb-2'>CONFIRMAR CORTE</h3>
                         <Input
                             type="password"
                             inputMode='numeric'
@@ -226,12 +278,26 @@ export default function ConfirmarCortePage() {
                         >
                             {loading ? <Loader2 className="animate-spin" /> : 'Confirmar e Contabilizar'}
                         </Button>
-                         <Button variant="link" onClick={() => {
-                             setClient(null);
-                             setPhone('');
-                             setStep('findClient');
-                         }} className='text-gold/80'>Buscar outro cliente</Button>
                     </div>
+
+                    <div className="space-y-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsGrantSpinModalOpen(true)}
+                        disabled={loading}
+                        className="w-full text-gold border-gold/50 hover:bg-gold/10 hover:text-gold"
+                      >
+                        <Gift className="mr-2 h-4 w-4" />
+                        Liberar Giro Manual
+                      </Button>
+                    </div>
+
+                     <Button variant="link" onClick={() => {
+                         setClient(null);
+                         setPhone('');
+                         setPin('');
+                         setStep('findClient');
+                     }} className='text-gold/80'>Buscar outro cliente</Button>
                 </CardContent>
             </Card>
         )}

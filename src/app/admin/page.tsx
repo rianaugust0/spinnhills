@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Scissors, LayoutDashboard } from 'lucide-react';
+import { Scissors, LayoutDashboard, UserPlus } from 'lucide-react';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function AdminPage() {
               className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base"
             >
               <Scissors className="mr-2" />
-              Confirmar Corte de Cliente
+              Confirmar Corte / Liberar Giro
             </Button>
              <Button
               onClick={() => router.push('/admin/dashboard')}
@@ -32,8 +32,21 @@ export default function AdminPage() {
               <LayoutDashboard className="mr-2" />
               Painel de Prêmios
             </Button>
+            <Button
+              onClick={() => router.push('/entrar')}
+              variant="secondary"
+              className="w-full h-12 text-base uppercase tracking-wider font-bold"
+            >
+              <UserPlus className="mr-2" />
+              Cadastrar Novo Cliente
+            </Button>
           </CardContent>
         </Card>
+        <div className="text-center mt-4">
+          <Button variant="link" onClick={() => router.push('/')} className="text-gold/70">
+            Sair da área do barbeiro
+          </Button>
+        </div>
       </div>
     </div>
   );

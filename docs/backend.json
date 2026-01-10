@@ -49,11 +49,13 @@
       "description": "Registra um giro ganho por um usuário e sua origem.",
       "properties": {
         "userId": { "type": "string", "description": "ID do usuário que ganhou o giro." },
-        "origin": { "type": "string", "enum": ["indicacao", "instagram_avaliacao", "fidelidade_5_cortes"], "description": "A razão pela qual o giro foi concedido." },
-        "status": { "type": "string", "enum": ["disponivel", "usado"], "description": "Status do giro." },
+        "origin": { "type": "string", "enum": ["fidelidade_5_cortes", "indicacao", "instagram_avaliacao"], "description": "A razão pela qual o giro foi concedido." },
+        "manual": { "type": "boolean", "description": "Indica se o giro foi concedido manualmente por um barbeiro." },
+        "releasedBy": { "type": "string", "description": "ID do barbeiro que liberou o giro manualmente." },
+        "notes": { "type": "string", "description": "Observações sobre a liberação manual do giro." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o giro foi concedido." }
       },
-      "required": ["userId", "origin", "status", "createdAt"]
+      "required": ["userId", "origin", "manual", "createdAt"]
     },
     "Cut": {
       "title": "Cut",
