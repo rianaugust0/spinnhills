@@ -1,6 +1,6 @@
 
 export interface PrizeOption {
-  type: 'corte_gratis' | 'hidratacao' | 'esfoliacao' | 'sobrancelha' | 'try_again';
+  type: 'corte_gratis' | 'hidratacao' | 'esfoliacao' | 'sobrancelha';
   title: string;
   description: string;
   imageUrl: string;
@@ -15,18 +15,18 @@ export const prizeOptions: PrizeOption[] = [
     imageUrl: '/prizes/corte.png',
     validityDays: 10,
   },
+    {
+    type: 'esfoliacao',
+    title: 'Esfoliação',
+    description: 'Renove sua pele com uma esfoliação facial.',
+    imageUrl: '/prizes/esfoliacao.png',
+    validityDays: 15,
+  },
   {
     type: 'hidratacao',
     title: 'Hidratação',
     description: 'Uma hidratação para deixar seu cabelo impecável.',
     imageUrl: '/prizes/hidratacao.png',
-    validityDays: 15,
-  },
-  {
-    type: 'esfoliacao',
-    title: 'Esfoliação',
-    description: 'Renove sua pele com uma esfoliação facial.',
-    imageUrl: '/prizes/esfoliacao.png',
     validityDays: 15,
   },
   {

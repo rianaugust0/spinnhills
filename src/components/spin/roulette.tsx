@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -25,15 +26,16 @@ const radiusLineWidth = 2;
 const fontFamily = 'Bebas Neue';
 const fontSize = 18;
 const textDistance = 68;
+const textColors = ['#FFFFFF'];
 
 export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, onPrizeDefined }: RouletteProps) {
   const [prizeNumber, setPrizeNumber] = useState(0);
 
   const data = prizeOptions.map((option, index) => ({
-    option: option.title,
+    option: option.title.toUpperCase(),
     style: { 
       backgroundColor: backgroundColors[index % backgroundColors.length],
-      textColor: '#ffffff00' // Make default text transparent
+      textColor: '#ffffff'
     }
   }));
 
@@ -47,7 +49,7 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
 
   return (
     <div className="relative flex flex-col items-center justify-center space-y-8">
-      <div className="relative">
+      <div className="relative pointer-events-none">
         <Wheel
           mustStartSpinning={mustSpin}
           prizeNumber={prizeNumber}
@@ -56,8 +58,8 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
             onPrizeDefined(prizeOptions[prizeNumber]);
             onStopSpinning();
           }}
-          prizesWithText={true}
           backgroundColors={backgroundColors}
+          textColors={textColors}
           fontFamily={fontFamily}
           fontSize={fontSize}
           outerBorderColor={outerBorderColor}
