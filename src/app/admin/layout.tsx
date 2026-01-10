@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -97,11 +98,11 @@ export default function AdminLayout({
             <Input
               type="password"
               inputMode="numeric"
-              placeholder="Seu PIN de 4 dígitos"
+              placeholder="Digite o PIN do barbeiro"
               maxLength={4}
               value={pin}
               onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
-              className="bg-deep-black border-gold/30 focus:ring-gold focus:border-gold text-center text-2xl h-14 tracking-[1em]"
+              className="bg-deep-black border-gold/30 focus:ring-gold focus:border-gold text-center text-lg h-12 placeholder:text-muted-foreground/50"
             />
             <Button
               onClick={handleLogin}
@@ -118,3 +119,5 @@ export default function AdminLayout({
 
   return <>{children}</>;
 }
+
+    

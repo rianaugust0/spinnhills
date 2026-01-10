@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -142,11 +143,11 @@ export default function ResgatarPremioPage() {
                         <Input
                             type="password"
                             inputMode='numeric'
-                            placeholder="PIN do Barbeiro"
+                            placeholder="Digite o PIN do barbeiro"
                             maxLength={4}
                             value={pin}
                             onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
-                            className="bg-deep-black border-gold/30 focus:ring-gold focus:border-gold text-center text-2xl h-14 tracking-[1em]"
+                            className="bg-deep-black border-gold/30 focus:ring-gold focus:border-gold text-center text-lg h-12 placeholder:text-muted-foreground/50"
                         />
                         <Button
                             onClick={handleRedeem}
@@ -162,3 +163,5 @@ export default function ResgatarPremioPage() {
     </div>
   );
 }
+
+    
