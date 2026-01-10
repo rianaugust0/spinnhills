@@ -30,24 +30,10 @@ export const prizeOptions: PrizeOption[] = [
     validityDays: 15,
   },
   {
-    type: 'try_again',
-    title: 'Não foi dessa vez',
-    description: 'Mais sorte na próxima!',
-    imageUrl: '',
-    validityDays: 0,
-  },
-  {
     type: 'sobrancelha',
     title: 'Sobrancelha',
     description: 'Um design de sobrancelha profissional.',
     imageUrl: '/prizes/sobrancelha.png',
     validityDays: 15,
-  },
-  {
-    type: 'try_again',
-    title: 'Tente de Novo',
-    description: 'Quase lá, não desista!',
-    imageUrl: '',
-    validityDays: 0,
   },
 ];
