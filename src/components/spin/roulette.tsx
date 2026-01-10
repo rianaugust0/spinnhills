@@ -31,7 +31,7 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
   const [prizeNumber, setPrizeNumber] = useState(0);
 
   const data = prizeOptions.map(option => ({
-    option: '', // Deixa o texto principal vazio para não renderizar
+    option: option.title.toUpperCase(),
     style: { 
       backgroundColor: backgroundColors[prizeOptions.indexOf(option) % backgroundColors.length],
       textColor: textColors[prizeOptions.indexOf(option) % textColors.length] 
@@ -69,7 +69,6 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
           radiusLineColor={radiusLineColor}
           radiusLineWidth={radiusLineWidth}
           textDistance={textDistance}
-          prizesWithText={prizeOptions.map(p => p.title.toUpperCase())}
         />
       </div>
      
