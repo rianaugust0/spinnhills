@@ -33,35 +33,23 @@ export default function AdminDashboardPage() {
     const fetchActivePrizes = async () => {
       setLoading(true);
       try {
-        const usersSnapshot = await getDocs(collection(firestore, 'users'));
-        let prizes: any[] = [];
         const today = startOfDay(new Date());
+        
+        const prizesQuery = query(
+          collection(firestore, 'prizes'),
+          where('status', '==', 'active')
+        );
+        const prizesSnapshot = await getDocs(prizesQuery);
 
-        for (const userDoc of usersSnapshot.docs) {
-          const userId = userDoc.id;
-          const userData = userDoc.data();
-          const prizesQuery = query(
-            collection(firestore, 'users', userId, 'prizes'),
-            where('status', '==', 'active')
-          );
-          const prizesSnapshot = await getDocs(prizesQuery);
-
-          if (!prizesSnapshot.empty) {
-            const userPrizes = prizesSnapshot.docs.map((prizeDoc) => {
-                 const prizeData = prizeDoc.data();
-                 const expiresAtDate = (prizeData.expiresAt as Timestamp).toDate();
-                 return {
-                     id: prizeDoc.id,
-                     ...prizeData,
-                     expiresAt: expiresAtDate,
-                     userName: userData.name,
-                     userPhone: userData.phone
-                 }
-            }).filter(p => p.expiresAt >= today); // Filter out already expired prizes
-            
-            prizes.push(...userPrizes);
-          }
-        }
+        let prizes = prizesSnapshot.docs.map((doc) => {
+            const prizeData = doc.data();
+            const expiresAtDate = (prizeData.expiresAt as Timestamp).toDate();
+            return {
+                id: doc.id,
+                ...prizeData,
+                expiresAt: expiresAtDate,
+            }
+        }).filter(p => p.expiresAt >= today); // Filter out already expired prizes
         
         // Sort all prizes by expiration date
         prizes.sort((a, b) => a.expiresAt.getTime() - b.expiresAt.getTime());

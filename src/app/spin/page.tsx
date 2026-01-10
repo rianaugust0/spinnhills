@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { initializeFirebase, useDoc } from '@/firebase';
-import { doc, runTransaction, serverTimestamp, collection, addDoc } from 'firebase/firestore';
-import { PrizeOption } from '@/lib/prizes';
+import { doc, runTransaction, serverTimestamp, collection } from 'firebase/firestore';
+import { PrizeOption, prizeOptions } from '@/lib/prizes';
 import { useWindowSize } from 'react-use';
 import dynamic from 'next/dynamic';
 
@@ -65,7 +65,7 @@ export default function SpinPage() {
   }
 
   const handleSpinFinish = async (prize: PrizeOption) => {
-    if (!userDocRef || !clientPhone) return;
+    if (!userDocRef || !clientPhone || !clientData) return;
 
     try {
         await runTransaction(firestore, async (transaction) => {
@@ -82,14 +82,16 @@ export default function SpinPage() {
             
             // 2. Add prize if it's not "try again"
             if (prize.type !== 'try_again') {
-                const prizeSubcollectionRef = collection(firestore, 'users', clientPhone, 'prizes');
+                const prizeCollectionRef = collection(firestore, 'prizes');
                 const expirationDate = new Date();
                 expirationDate.setDate(expirationDate.getDate() + prize.validityDays);
 
-                // Use addDoc within transaction context
-                const newPrizeRef = doc(prizeSubcollectionRef);
+                // Use addDoc with a transaction
+                const newPrizeRef = doc(prizeCollectionRef);
                 transaction.set(newPrizeRef, {
                     userId: clientPhone,
+                    userName: clientData.name, // Add user name
+                    userPhone: clientData.phone, // Add user phone
                     type: prize.type,
                     title: prize.title,
                     description: prize.description,

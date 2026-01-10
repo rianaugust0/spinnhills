@@ -17,7 +17,6 @@ export default function ResgatarPremioPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const prizeId = searchParams.get('prizeId');
-  const userId = searchParams.get('userId');
   const { toast } = useToast();
 
   const [pin, setPin] = useState('');
@@ -25,18 +24,19 @@ export default function ResgatarPremioPage() {
   const [success, setSuccess] = useState(false);
 
   const prizeDocRef = useMemo(() => {
-    if (!prizeId || !userId) return null;
-    return doc(firestore, 'users', userId, 'prizes', prizeId);
-  }, [prizeId, userId]);
+    if (!prizeId) return null;
+    // Prizes are now in a root collection
+    return doc(firestore, 'prizes', prizeId);
+  }, [prizeId]);
 
   const { data: prizeData, isLoading: isPrizeLoading } = useDoc(prizeDocRef);
 
   useEffect(() => {
-    if (!prizeId || !userId) {
-      toast({ variant: 'destructive', title: 'URL inválida', description: "O prêmio ou usuário não foi especificado." });
+    if (!prizeId) {
+      toast({ variant: 'destructive', title: 'URL inválida', description: "O prêmio não foi especificado." });
       router.push('/dashboard');
     }
-  }, [prizeId, userId, router, toast]);
+  }, [prizeId, router, toast]);
 
   const handleRedeem = async () => {
     if (pin.length < 4) {
@@ -163,5 +163,3 @@ export default function ResgatarPremioPage() {
     </div>
   );
 }
-
-    

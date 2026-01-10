@@ -18,7 +18,8 @@ const PrizeCard = ({ prize }: { prize: any }) => {
   const validityLeft = differenceInDays(prize.expiresAt.toDate(), new Date());
 
   const handleRedeemClick = () => {
-    router.push(`/resgatar-premio?userId=${prize.userId}&prizeId=${prize.id}`);
+    // We now pass the prizeId directly, since it's a root collection
+    router.push(`/resgatar-premio?prizeId=${prize.id}`);
   };
 
   return (
@@ -34,11 +35,11 @@ const PrizeCard = ({ prize }: { prize: any }) => {
           <CardDescription className="text-sm text-muted-foreground mt-2">{prize.description}</CardDescription>
         </div>
         <div className="mt-4">
-            {validityLeft > 0 ? (
+            {validityLeft >= 0 ? (
                  <div className='flex justify-between items-center'>
                     <Badge variant="outline" className='border-green-500/50 text-green-400'>
                         <Calendar className="h-3 w-3 mr-1.5" />
-                        Válido por mais {validityLeft} dia{validityLeft > 1 ? 's' : ''}
+                         Válido por mais {validityLeft} dia{validityLeft !== 1 ? 's' : ''}
                     </Badge>
                     <Button size="sm" onClick={handleRedeemClick}>Resgatar</Button>
                  </div>
@@ -76,8 +77,10 @@ export default function DashboardPage() {
 
   const prizesQuery = useMemo(() => {
     if (!clientPhone) return null;
+    // Query the root 'prizes' collection for this user's active prizes
     return query(
-      collection(firestore, 'users', clientPhone, 'prizes'),
+      collection(firestore, 'prizes'),
+      where('userId', '==', clientPhone),
       where('status', '==', 'active')
     );
   }, [clientPhone]);
@@ -170,5 +173,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

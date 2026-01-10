@@ -13,13 +13,14 @@ service cloud.firestore {
     match /users/{userId} {
       // Anyone can create a user (sign up).
       // Reading and updating will be handled by the application logic for now.
-      // In a real scenario with auth, reads would be restricted to the user themselves or barbers.
       allow read, write: if true; 
+    }
 
-      match /prizes/{prizeId} {
-        // Allow reading and writing prizes for a specific user.
-        allow read, write: if true; 
-      }
+    match /prizes/{prizeId} {
+      // Allow reading and writing prizes.
+      // In a real app with auth, read would be restricted to the prize owner or barbers.
+      // Write would be restricted (e.g., only can write 'status' field).
+      allow read, write: if true;
     }
 
     match /rules/{ruleId} {

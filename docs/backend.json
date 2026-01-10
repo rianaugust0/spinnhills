@@ -20,6 +20,9 @@
       "type": "object",
       "description": "Representa um prêmio ganho por um usuário.",
       "properties": {
+        "userId": { "type": "string", "description": "ID do usuário que ganhou o prêmio." },
+        "userName": { "type": "string", "description": "Nome do usuário que ganhou o prêmio." },
+        "userPhone": { "type": "string", "description": "Telefone do usuário que ganhou o prêmio." },
         "type": { "type": "string", "enum": ["corte_gratis", "hidratacao", "esfoliacao", "sobrancelha"], "description": "Tipo do prêmio ganho." },
         "title": { "type": "string", "description": "Nome do prêmio (ex: 'Corte Grátis')." },
         "description": { "type": "string", "description": "Descrição do prêmio." },
@@ -31,7 +34,7 @@
         "usedAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o prêmio foi utilizado." },
         "usedByBarberId": { "type": "string", "description": "ID do barbeiro que validou o uso do prêmio." }
       },
-      "required": ["type", "title", "status", "validityDays", "createdAt", "expiresAt"]
+      "required": ["userId", "userName", "userPhone", "type", "title", "status", "validityDays", "createdAt", "expiresAt"]
     },
     "Barber": {
         "title": "Barber",
@@ -81,10 +84,10 @@
         "definition": { "schema": { "$ref": "#/entities/User" } }
       },
       {
-        "path": "/users/{userId}/prizes/{prizeId}",
+        "path": "/prizes/{prizeId}",
         "definition": {
           "schema": { "$ref": "#/entities/Prize" },
-          "description": "Subcoleção de prêmios pertencentes a um usuário específico."
+          "description": "Coleção raiz para todos os prêmios de todos os usuários."
         }
       },
       {

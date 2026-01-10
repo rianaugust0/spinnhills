@@ -8,6 +8,10 @@ import { differenceInDays, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const getUrgencyStyles = (daysLeft: number) => {
+  if (daysLeft < 0) {
+    // Already expired, but shouldn't be in the list. Still handle it.
+    return 'border-muted-foreground/30 bg-muted/10 opacity-70';
+  }
   if (daysLeft <= 0) {
     // Red for today
     return 'border-red-500/60 bg-red-900/30 text-red-300 shadow-lg shadow-red-900/20';
@@ -64,7 +68,7 @@ export function PrizesList({ prizes }: { prizes: any[] }) {
                         </div>
                         <div className={`flex items-center gap-1 font-bold text-sm ${urgencyIconColor}`}>
                             <AlertCircle className="h-4 w-4" />
-                            <span>{daysLeft < 0 ? 'Expirado' : daysLeft === 0 ? 'Hoje' : `${daysLeft}d`}</span>
+                            <span>{daysLeft < 0 ? 'Expirou' : daysLeft === 0 ? 'Hoje' : `${daysLeft}d`}</span>
                         </div>
                     </div>
                 </CardHeader>
