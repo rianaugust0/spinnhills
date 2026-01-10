@@ -34,11 +34,5 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false; // To be managed via Firebase Console by admin
     }
-
-    // Collections for future implementation (cuts, spins, logs)
-    // By default, they are locked down.
-    match /{document=**} {
-      allow read, write: if false;
-    }
   }
 }
