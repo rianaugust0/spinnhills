@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,12 +9,15 @@ import { ptBR } from 'date-fns/locale';
 
 const getUrgencyStyles = (daysLeft: number) => {
   if (daysLeft <= 0) {
-    return 'border-red-500/50 bg-red-500/10 text-red-400 shadow-lg shadow-red-500/10';
+    // Red for today
+    return 'border-red-500/60 bg-red-900/30 text-red-300 shadow-lg shadow-red-900/20';
   }
   if (daysLeft <= 3) {
-    return 'border-yellow-500/50 bg-yellow-500/10 text-yellow-400';
+    // Yellow for up to 3 days
+    return 'border-yellow-500/60 bg-yellow-900/30 text-yellow-300';
   }
-  return 'border-gold/20 bg-dark-gray';
+  // Default (Greenish/Gold)
+  return 'border-green-500/30 bg-green-900/20';
 };
 
 const openWhatsApp = (phone: string, userName: string, prizeName: string, daysLeft: number) => {
@@ -47,49 +51,37 @@ export function PrizesList({ prizes }: { prizes: any[] }) {
       {prizes.map((prize) => {
         const daysLeft = differenceInDays(prize.expiresAt, new Date());
         const urgencyStyles = getUrgencyStyles(daysLeft);
+        const urgencyIconColor = daysLeft <= 0 ? 'text-red-400' : daysLeft <= 3 ? 'text-yellow-400' : 'text-green-400';
         
         return (
           <Card key={prize.id} className={`overflow-hidden transition-all flex flex-col justify-between ${urgencyStyles}`}>
             <div>
-                <CardHeader className="p-4 border-b border-[inherit]">
-                <div className="flex items-center gap-3">
-                    <div className="bg-gold/10 p-2 rounded-md">
-                    <Gift className="h-6 w-6 text-gold" />
+                <CardHeader className="p-4">
+                    <div className='flex justify-between items-start'>
+                        <div>
+                             <CardTitle className="text-ice-white text-lg font-bold">{prize.userName}</CardTitle>
+                             <CardDescription className='text-muted-foreground'>{prize.title}</CardDescription>
+                        </div>
+                        <div className={`flex items-center gap-1 font-bold text-sm ${urgencyIconColor}`}>
+                            <AlertCircle className="h-4 w-4" />
+                            <span>{daysLeft < 0 ? 'Expirado' : daysLeft === 0 ? 'Hoje' : `${daysLeft}d`}</span>
+                        </div>
                     </div>
-                    <CardTitle className="text-ice-white text-lg font-bold">{prize.title}</CardTitle>
-                </div>
                 </CardHeader>
-                <CardContent className="p-4 space-y-3 text-sm">
-                    <div className='flex items-center gap-2 text-muted-foreground'>
-                        <User className="h-4 w-4 text-gold/70" />
-                        <span>{prize.userName}</span>
-                    </div>
-                    <div className='flex items-center gap-2 text-muted-foreground'>
-                        <Phone className="h-4 w-4 text-gold/70" />
-                        <span>{prize.userPhone}</span>
-                    </div>
-                    <div className={`flex items-center gap-2 font-medium ${daysLeft <= 3 ? 'text-inherit' : 'text-muted-foreground'}`}>
+                <CardContent className="p-4 pt-0">
+                   <div className={`flex items-center gap-2 text-sm font-medium text-muted-foreground`}>
                         <Calendar className="h-4 w-4 text-gold/70" />
                         <span>Expira em: {format(prize.expiresAt, 'dd/MM/yyyy')}</span>
                     </div>
-                    {daysLeft <= 3 && (
-                        <div className="flex items-center gap-2 text-inherit font-bold p-2 bg-current/10 rounded-md">
-                            <AlertCircle className="h-4 w-4" />
-                            <span>
-                                {daysLeft < 0 ? 'Expirado' : daysLeft === 0 ? 'Expira hoje!' : `Expira em ${daysLeft} dia${daysLeft > 1 ? 's' : ''}!`}
-                            </span>
-                        </div>
-                    )}
                 </CardContent>
             </div>
             <div className="p-4 pt-0">
                 <Button 
-                    variant="outline" 
-                    className="w-full"
+                    className="w-full h-11 bg-green-600/80 hover:bg-green-600 text-white font-bold"
                     onClick={() => openWhatsApp(prize.userPhone, prize.userName, prize.title, daysLeft)}
                 >
                     <BotMessageSquare className='mr-2' />
-                    Chamar no WhatsApp
+                    CHAMAR NO WHATSAPP
                 </Button>
             </div>
           </Card>

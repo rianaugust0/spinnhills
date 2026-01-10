@@ -1,27 +1,41 @@
+
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { initializeFirebase } from '@/firebase';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
-import { Loader2, ArrowLeft, BotMessageSquare } from 'lucide-react';
+import { Loader2, ArrowLeft, BotMessageSquare, AlertTriangle, CalendarCheck, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { UserWithPrizes } from '@/lib/types';
 import { PrizesList } from '@/components/admin/PrizesList';
+import { isSameDay, isWithinInterval, addDays, startOfDay } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const { firestore } = initializeFirebase();
+
+interface PrizeSummary {
+  expiringToday: number;
+  expiringIn3Days: number;
+  totalActive: number;
+}
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [usersWithPrizes, setUsersWithPrizes] = useState<any[]>([]);
+  const [allPrizes, setAllPrizes] = useState<any[]>([]);
+  const [summary, setSummary] = useState<PrizeSummary>({
+    expiringToday: 0,
+    expiringIn3Days: 0,
+    totalActive: 0,
+  });
 
   useEffect(() => {
     const fetchActivePrizes = async () => {
       setLoading(true);
       try {
         const usersSnapshot = await getDocs(collection(firestore, 'users'));
-        let allPrizes: any[] = [];
+        let prizes: any[] = [];
+        const today = startOfDay(new Date());
 
         for (const userDoc of usersSnapshot.docs) {
           const userId = userDoc.id;
@@ -33,25 +47,38 @@ export default function AdminDashboardPage() {
           const prizesSnapshot = await getDocs(prizesQuery);
 
           if (!prizesSnapshot.empty) {
-            const prizes = prizesSnapshot.docs.map((prizeDoc) => {
+            const userPrizes = prizesSnapshot.docs.map((prizeDoc) => {
                  const prizeData = prizeDoc.data();
+                 const expiresAtDate = (prizeData.expiresAt as Timestamp).toDate();
                  return {
                      id: prizeDoc.id,
                      ...prizeData,
-                     // Ensure expiresAt is a Date object for sorting
-                     expiresAt: (prizeData.expiresAt as Timestamp).toDate(),
+                     expiresAt: expiresAtDate,
                      userName: userData.name,
                      userPhone: userData.phone
                  }
-            });
-            allPrizes.push(...prizes);
+            }).filter(p => p.expiresAt >= today); // Filter out already expired prizes
+            
+            prizes.push(...userPrizes);
           }
         }
         
         // Sort all prizes by expiration date
-        allPrizes.sort((a, b) => a.expiresAt.getTime() - b.expiresAt.getTime());
+        prizes.sort((a, b) => a.expiresAt.getTime() - b.expiresAt.getTime());
 
-        setUsersWithPrizes(allPrizes);
+        // Calculate summary
+        const expiringToday = prizes.filter(p => isSameDay(p.expiresAt, today)).length;
+        const expiringIn3Days = prizes.filter(p => 
+            !isSameDay(p.expiresAt, today) && 
+            isWithinInterval(p.expiresAt, { start: addDays(today, 1), end: addDays(today, 3) })
+        ).length;
+
+        setSummary({
+            expiringToday,
+            expiringIn3Days,
+            totalActive: prizes.length
+        });
+        setAllPrizes(prizes);
         
       } catch (error) {
         console.error("Failed to fetch active prizes:", error);
@@ -78,13 +105,39 @@ export default function AdminDashboardPage() {
           <ArrowLeft className="h-5 w-5 text-gold" />
         </Button>
         <h1 className="font-headline text-xl text-ice-white uppercase">Painel de Prêmios</h1>
-        <Button variant="outline" size="sm" disabled>
-            <BotMessageSquare className='mr-2'/>
-            Disparos em Breve
-        </Button>
+        <div></div>
       </header>
       <main className="flex-1 container mx-auto px-4 py-8">
-        <PrizesList prizes={usersWithPrizes} />
+
+        {/* Summary Cards */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 animate-fade-in-up">
+            <Card className="bg-red-900/40 border-red-500/50 text-center">
+                <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-4xl font-bold text-red-300">{summary.expiringToday}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                    <p className="text-sm font-medium text-red-300/80">Vencem Hoje</p>
+                </CardContent>
+            </Card>
+            <Card className="bg-yellow-900/40 border-yellow-500/50 text-center">
+                <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-4xl font-bold text-yellow-300">{summary.expiringIn3Days}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                    <p className="text-sm font-medium text-yellow-300/80">Vencem em até 3 dias</p>
+                </CardContent>
+            </Card>
+             <Card className="bg-dark-gray border-gold/20 text-center">
+                <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-4xl font-bold text-ice-white">{summary.totalActive}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                    <p className="text-sm font-medium text-muted-foreground">Total de Prêmios Ativos</p>
+                </CardContent>
+            </Card>
+        </section>
+
+        <PrizesList prizes={allPrizes} />
       </main>
     </div>
   );
