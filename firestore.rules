@@ -14,6 +14,12 @@ service cloud.firestore {
       // Reading and updating will be handled by the application logic for now.
       // In a real scenario with auth, reads would be restricted to the user themselves or barbers.
       allow read, write: if true; 
+
+      match /prizes/{prizeId} {
+        // Allow reading prizes for a specific user.
+        // Writes will be handled by transactions in backend logic for security.
+        allow read, write: if true; 
+      }
     }
 
     match /rules/{ruleId} {
@@ -22,13 +28,14 @@ service cloud.firestore {
       allow write: if false; // To be managed via Firebase Console by admin
     }
 
-    match /rewards/{rewardId} {
-      // Rewards definitions are read-only for clients.
+    match /barbers/{barberId} {
+      // Barbers info can be read by the app to validate PINs.
+      // Only admins should edit them.
       allow read: if true;
       allow write: if false; // To be managed via Firebase Console by admin
     }
 
-    // Collections for future implementation (cuts, spins, logs, barbers)
+    // Collections for future implementation (cuts, spins, logs)
     // By default, they are locked down.
     match /{document=**} {
       allow read, write: if false;
