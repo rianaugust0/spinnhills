@@ -1,12 +1,13 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AlertCircle, Calendar, Clock, Gift, User, Phone } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, Calendar, Clock, Gift, User, Phone, BotMessageSquare } from 'lucide-react';
 import { differenceInDays, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const getUrgencyStyles = (daysLeft: number) => {
-  if (daysLeft <= 1) {
+  if (daysLeft <= 0) {
     return 'border-red-500/50 bg-red-500/10 text-red-400 shadow-lg shadow-red-500/10';
   }
   if (daysLeft <= 3) {
@@ -14,6 +15,22 @@ const getUrgencyStyles = (daysLeft: number) => {
   }
   return 'border-gold/20 bg-dark-gray';
 };
+
+const openWhatsApp = (phone: string, userName: string, prizeName: string, daysLeft: number) => {
+    const userFirstName = userName.split(' ')[0];
+    let message: string;
+
+    if (daysLeft > 1) {
+        message = `E aí, ${userFirstName}! Tudo certo? Só pra lembrar que você tem um prêmio de *${prizeName}* aqui na Hillscut que expira em ${daysLeft} dias. Bora aproveitar? 😉`;
+    } else if (daysLeft === 1) {
+        message = `Corre aqui, ${userFirstName}! Seu prêmio de *${prizeName}* expira AMANHÃ. Não vai deixar passar, né? Te esperamos!`;
+    } else {
+        message = `ÚLTIMA CHANCE, ${userFirstName}! Seu prêmio de *${prizeName}* expira HOJE. Passa aqui na Hillscut pra não perder!`;
+    }
+
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=55${phone.replace(/\D/g, '')}&text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
 
 export function PrizesList({ prizes }: { prizes: any[] }) {
   if (!prizes || prizes.length === 0) {
@@ -32,37 +49,49 @@ export function PrizesList({ prizes }: { prizes: any[] }) {
         const urgencyStyles = getUrgencyStyles(daysLeft);
         
         return (
-          <Card key={prize.id} className={`overflow-hidden transition-all ${urgencyStyles}`}>
-            <CardHeader className="p-4 border-b border-[inherit]">
-              <div className="flex items-center gap-3">
-                <div className="bg-gold/10 p-2 rounded-md">
-                  <Gift className="h-6 w-6 text-gold" />
-                </div>
-                <CardTitle className="text-ice-white text-lg font-bold">{prize.title}</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4 space-y-3 text-sm">
-                <div className='flex items-center gap-2 text-muted-foreground'>
-                    <User className="h-4 w-4 text-gold/70" />
-                    <span>{prize.userName}</span>
-                </div>
-                 <div className='flex items-center gap-2 text-muted-foreground'>
-                    <Phone className="h-4 w-4 text-gold/70" />
-                    <span>{prize.userPhone}</span>
-                </div>
-                 <div className={`flex items-center gap-2 font-medium ${daysLeft <= 3 ? 'text-inherit' : 'text-muted-foreground'}`}>
-                    <Calendar className="h-4 w-4 text-gold/70" />
-                    <span>Expira em: {format(prize.expiresAt, 'dd/MM/yyyy')}</span>
-                </div>
-                {daysLeft <= 3 && (
-                    <div className="flex items-center gap-2 text-inherit font-bold p-2 bg-current/10 rounded-md">
-                        <AlertCircle className="h-4 w-4" />
-                        <span>
-                            {daysLeft < 0 ? 'Expirado' : daysLeft === 0 ? 'Expira hoje!' : `Expira em ${daysLeft} dia${daysLeft > 1 ? 's' : ''}!`}
-                        </span>
+          <Card key={prize.id} className={`overflow-hidden transition-all flex flex-col justify-between ${urgencyStyles}`}>
+            <div>
+                <CardHeader className="p-4 border-b border-[inherit]">
+                <div className="flex items-center gap-3">
+                    <div className="bg-gold/10 p-2 rounded-md">
+                    <Gift className="h-6 w-6 text-gold" />
                     </div>
-                )}
-            </CardContent>
+                    <CardTitle className="text-ice-white text-lg font-bold">{prize.title}</CardTitle>
+                </div>
+                </CardHeader>
+                <CardContent className="p-4 space-y-3 text-sm">
+                    <div className='flex items-center gap-2 text-muted-foreground'>
+                        <User className="h-4 w-4 text-gold/70" />
+                        <span>{prize.userName}</span>
+                    </div>
+                    <div className='flex items-center gap-2 text-muted-foreground'>
+                        <Phone className="h-4 w-4 text-gold/70" />
+                        <span>{prize.userPhone}</span>
+                    </div>
+                    <div className={`flex items-center gap-2 font-medium ${daysLeft <= 3 ? 'text-inherit' : 'text-muted-foreground'}`}>
+                        <Calendar className="h-4 w-4 text-gold/70" />
+                        <span>Expira em: {format(prize.expiresAt, 'dd/MM/yyyy')}</span>
+                    </div>
+                    {daysLeft <= 3 && (
+                        <div className="flex items-center gap-2 text-inherit font-bold p-2 bg-current/10 rounded-md">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>
+                                {daysLeft < 0 ? 'Expirado' : daysLeft === 0 ? 'Expira hoje!' : `Expira em ${daysLeft} dia${daysLeft > 1 ? 's' : ''}!`}
+                            </span>
+                        </div>
+                    )}
+                </CardContent>
+            </div>
+            <div className="p-4 pt-0">
+                <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => openWhatsApp(prize.userPhone, prize.userName, prize.title, daysLeft)}
+                >
+                    <BotMessageSquare className='mr-2' />
+                    Chamar no WhatsApp
+                </Button>
+            </div>
           </Card>
         );
       })}

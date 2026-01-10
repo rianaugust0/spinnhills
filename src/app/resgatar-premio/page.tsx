@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -58,17 +57,23 @@ export default function ResgatarPremioPage() {
         if (!prizeDocRef) throw new Error("Referência do prêmio não encontrada.");
         
         const prizeDoc = await transaction.get(prizeDocRef);
-        if (!prizeDoc.exists() || prizeDoc.data().status !== 'active') {
-          throw new Error('Este prêmio não está mais ativo ou já foi utilizado.');
+        if (!prizeDoc.exists()) {
+          throw new Error('Prêmio não encontrado.');
         }
 
-        // Check for expiry
+        const currentPrizeData = prizeDoc.data();
+        
+        // Check for expiry server-side
         const now = new Date();
-        const expiresAt = prizeDoc.data().expiresAt.toDate();
+        const expiresAt = currentPrizeData.expiresAt.toDate();
         if (now > expiresAt) {
-            // Update status to expired in transaction
+            // Update status to expired in transaction even if it's already expired client-side
             transaction.update(prizeDocRef, { status: 'expired' });
             throw new Error('Este prêmio expirou e não pode mais ser resgatado.');
+        }
+
+        if (currentPrizeData.status !== 'active') {
+             throw new Error('Este prêmio não está mais ativo ou já foi utilizado.');
         }
 
         transaction.update(prizeDocRef, {
@@ -157,5 +162,3 @@ export default function ResgatarPremioPage() {
     </div>
   );
 }
-
-    

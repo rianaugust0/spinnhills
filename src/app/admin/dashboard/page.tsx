@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { initializeFirebase } from '@/firebase';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, BotMessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { UserWithPrizes } from '@/lib/types';
@@ -14,14 +14,14 @@ const { firestore } = initializeFirebase();
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [usersWithPrizes, setUsersWithPrizes] = useState<UserWithPrizes[]>([]);
+  const [usersWithPrizes, setUsersWithPrizes] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchActivePrizes = async () => {
       setLoading(true);
       try {
         const usersSnapshot = await getDocs(collection(firestore, 'users'));
-        const allUsersPrizes: UserWithPrizes[] = [];
+        let allPrizes: any[] = [];
 
         for (const userDoc of usersSnapshot.docs) {
           const userId = userDoc.id;
@@ -40,28 +40,18 @@ export default function AdminDashboardPage() {
                      ...prizeData,
                      // Ensure expiresAt is a Date object for sorting
                      expiresAt: (prizeData.expiresAt as Timestamp).toDate(),
+                     userName: userData.name,
+                     userPhone: userData.phone
                  }
             });
-            allUsersPrizes.push({
-              userId,
-              userName: userData.name,
-              userPhone: userData.phone,
-              prizes,
-            });
+            allPrizes.push(...prizes);
           }
         }
         
-        // Flatten and sort prizes
-        const flatPrizes = allUsersPrizes.flatMap(user => 
-            user.prizes.map(prize => ({
-                ...prize,
-                userName: user.userName,
-                userPhone: user.userPhone
-            }))
-        ).sort((a, b) => a.expiresAt.getTime() - b.expiresAt.getTime());
+        // Sort all prizes by expiration date
+        allPrizes.sort((a, b) => a.expiresAt.getTime() - b.expiresAt.getTime());
 
-
-        setUsersWithPrizes(flatPrizes as any); // Use a flattened structure for the component
+        setUsersWithPrizes(allPrizes);
         
       } catch (error) {
         console.error("Failed to fetch active prizes:", error);
@@ -88,7 +78,10 @@ export default function AdminDashboardPage() {
           <ArrowLeft className="h-5 w-5 text-gold" />
         </Button>
         <h1 className="font-headline text-xl text-ice-white uppercase">Painel de Prêmios</h1>
-        <div></div>
+        <Button variant="outline" size="sm" disabled>
+            <BotMessageSquare className='mr-2'/>
+            Disparos em Breve
+        </Button>
       </header>
       <main className="flex-1 container mx-auto px-4 py-8">
         <PrizesList prizes={usersWithPrizes} />
