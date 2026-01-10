@@ -125,8 +125,8 @@ export default function ConfirmarCortePage() {
 
         if (newSpins > client.girosDisponiveis) {
              toast({
-                title: 'Parabéns!',
-                description: `${client.name.split(' ')[0]} ganhou +1 giro na roleta!`,
+                title: 'Parabéns! 🎡',
+                description: `${client.name.split(' ')[0]} ganhou +1 giro no SPIN HILLS!`,
                 duration: 5000,
             });
         }

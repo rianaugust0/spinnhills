@@ -46,11 +46,10 @@ export default function EntrarPage() {
           totalCortes: 0,
           cortesAtuais: 0,
           girosDisponiveis: 0,
-          premiosAtivos: [],
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
-        toast({ title: `Bem-vindo, ${name.split(' ')[0]}!`, description: 'Sua jornada no Spin Hills começou.' });
+        toast({ title: `Bem-vindo, ${name.split(' ')[0]}!`, description: 'Sua jornada no SPIN HILLS começou.' });
       } else {
         // User already exists, just log them in
         toast({ title: `Bem-vindo de volta, ${userDoc.data().name.split(' ')[0]}!` });
@@ -80,9 +79,9 @@ export default function EntrarPage() {
          <h1 className="font-headline text-5xl text-gold uppercase tracking-widest mb-2">
             SPIN HILLS
         </h1>
-        <h2 className="font-body text-xl font-bold text-ice-white">Antes de começar...</h2>
+        <h2 className="font-body text-xl font-bold text-ice-white">Seja bem-vindo!</h2>
         <p className="text-muted-foreground mt-2 mb-6">
-          Só precisamos te identificar para registrar seus giros e prêmios. 😉
+          Use seu nome e telefone para acessar seu painel de prêmios.
         </p>
         <div className="space-y-4">
           <Input
@@ -104,7 +103,7 @@ export default function EntrarPage() {
             disabled={loading}
             className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base"
           >
-            {loading ? <Loader2 className="animate-spin" /> : 'Entrar no Clube'}
+            {loading ? <Loader2 className="animate-spin" /> : 'Acessar meu painel'}
           </Button>
         </div>
       </div>

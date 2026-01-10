@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "User": {
@@ -15,18 +14,6 @@
         "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp da última atualização do documento." }
       },
       "required": ["name", "phone", "totalCortes", "cortesAtuais", "girosDisponiveis", "createdAt", "updatedAt"]
-    },
-    "Rule": {
-      "title": "Rule",
-      "type": "object",
-      "description": "Define as regras para ganhar giros na roleta.",
-      "properties": {
-        "tipo": { "type": "string", "enum": ["indicacao", "instagram", "fidelidade"], "description": "Tipo da regra." },
-        "descricao": { "type": "string", "description": "Descrição da regra para o cliente." },
-        "ativo": { "type": "boolean", "description": "Se a regra está ativa ou não." },
-        "limitePorUsuario": { "type": "number", "description": "Quantas vezes um usuário pode completar essa regra (ex: 1 para instagram)." }
-      },
-      "required": ["tipo", "descricao", "ativo"]
     },
     "Prize": {
       "title": "Prize",
@@ -55,6 +42,31 @@
             "pin": { "type": "string", "description": "PIN numérico para validação." }
         },
         "required": ["name", "pin"]
+    },
+    "Spin": {
+      "title": "Spin",
+      "type": "object",
+      "description": "Registra um giro ganho por um usuário e sua origem.",
+      "properties": {
+        "userId": { "type": "string", "description": "ID do usuário que ganhou o giro." },
+        "origin": { "type": "string", "enum": ["indicacao", "instagram_avaliacao", "fidelidade_5_cortes"], "description": "A razão pela qual o giro foi concedido." },
+        "status": { "type": "string", "enum": ["disponivel", "usado"], "description": "Status do giro." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o giro foi concedido." }
+      },
+      "required": ["userId", "origin", "status", "createdAt"]
+    },
+    "Cut": {
+      "title": "Cut",
+      "type": "object",
+      "description": "Registra a confirmação de um corte de cabelo.",
+      "properties": {
+        "userId": { "type": "string", "description": "ID do cliente que recebeu o corte." },
+        "barberId": { "type": "string", "description": "ID do barbeiro que confirmou o corte." },
+        "pinUsed": { "type": "string", "description": "PIN utilizado para a confirmação." },
+        "confirmed": { "type": "boolean", "description": "Status da confirmação." },
+        "date": { "type": "string", "format": "date-time", "description": "Timestamp de quando o corte foi confirmado." }
+      },
+      "required": ["userId", "barberId", "pinUsed", "confirmed", "date"]
     }
   },
   "auth": {
@@ -74,12 +86,16 @@
         }
       },
       {
-        "path": "/rules/{ruleId}",
-        "definition": { "schema": { "$ref": "#/entities/Rule" } }
-      },
-      {
         "path": "/barbers/{barberId}",
         "definition": { "schema": { "$ref": "#/entities/Barber" } }
+      },
+      {
+        "path": "/spins/{spinId}",
+        "definition": { "schema": { "$ref": "#/entities/Spin" } }
+      },
+      {
+        "path": "/cuts/{cutId}",
+        "definition": { "schema": { "$ref": "#/entities/Cut" } }
       }
     ]
   }
