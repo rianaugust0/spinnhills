@@ -34,5 +34,15 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false; // To be managed via Firebase Console by admin
     }
+
+    match /cuts/{cutId} {
+      // Allow the app to create documents when a barber confirms a cut.
+      allow read, write: if true;
+    }
+
+    match /spins/{spinId} {
+      // Allow the app to create documents when a spin is granted.
+      allow read, write: if true;
+    }
   }
 }
