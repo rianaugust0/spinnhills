@@ -7,12 +7,19 @@ import { ArrowLeft, Loader2, PartyPopper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Roulette } from '@/components/spin/roulette';
 import { initializeFirebase, useDoc } from '@/firebase';
 import { doc, runTransaction, serverTimestamp, collection, addDoc } from 'firebase/firestore';
 import { PrizeOption } from '@/lib/prizes';
-import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
+import dynamic from 'next/dynamic';
+
+// Dynamically import heavy components
+const Roulette = dynamic(() => import('@/components/spin/roulette').then(mod => mod.Roulette), {
+  loading: () => <div className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] flex items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-gold" /></div>,
+  ssr: false
+});
+
+const Confetti = dynamic(() => import('react-confetti'), { ssr: false });
 
 
 // Initialize Firebase
@@ -160,7 +167,7 @@ export default function SpinPage() {
                          <>
                             <CardTitle className='text-3xl'>Quase!</CardTitle>
                             <CardDescription className='text-xl mt-2'>Não foi dessa vez, mas o próximo giro pode ser o da sorte!</CardDescription>
-                        </>
+                         </>
                     )}
                 </CardHeader>
                 <CardContent>
