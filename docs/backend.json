@@ -11,7 +11,6 @@
         "totalCortes": { "type": "number", "description": "Total de cortes já realizados na barbearia." },
         "cortesAtuais": { "type": "number", "description": "Contador de cortes para o próximo giro (0 a 5)." },
         "girosDisponiveis": { "type": "number", "description": "Quantidade de giros disponíveis na roleta SPIN HILLS." },
-        "premiosAtivos": { "type": "array", "description": "Lista de prêmios que o cliente ganhou e ainda estão ativos.", "items": { "$ref": "#/entities/Prize" } },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o cliente foi cadastrado." },
         "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp da última atualização do documento." }
       },
@@ -32,13 +31,30 @@
     "Prize": {
       "title": "Prize",
       "type": "object",
-      "description": "Representa um prêmio que pode ser ganho na roleta.",
+      "description": "Representa um prêmio ganho por um usuário.",
       "properties": {
-        "nome": { "type": "string", "description": "Nome do prêmio (ex: 'Corte Grátis')." },
-        "tipo": { "type": "string", "description": "Categoria do prêmio (ex: 'servico', 'desconto')." },
-        "validadeDias": { "type": "number", "description": "Número de dias que o prêmio é válido após ser ganho." }
+        "type": { "type": "string", "enum": ["corte_gratis", "hidratacao", "esfoliacao", "sobrancelha"], "description": "Tipo do prêmio ganho." },
+        "title": { "type": "string", "description": "Nome do prêmio (ex: 'Corte Grátis')." },
+        "description": { "type": "string", "description": "Descrição do prêmio." },
+        "imageUrl": { "type": "string", "description": "URL de uma imagem para o prêmio." },
+        "status": { "type": "string", "enum": ["active", "used", "expired"], "description": "Status atual do prêmio." },
+        "validityDays": { "type": "number", "description": "Número de dias que o prêmio é válido após ser ganho." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o prêmio foi ganho." },
+        "expiresAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o prêmio expira." },
+        "usedAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o prêmio foi utilizado." },
+        "usedByBarberId": { "type": "string", "description": "ID do barbeiro que validou o uso do prêmio." }
       },
-      "required": ["nome", "tipo", "validadeDias"]
+      "required": ["type", "title", "status", "validityDays", "createdAt", "expiresAt"]
+    },
+    "Barber": {
+        "title": "Barber",
+        "type": "object",
+        "description": "Representa um barbeiro que pode validar ações.",
+        "properties": {
+            "name": { "type": "string", "description": "Nome do barbeiro." },
+            "pin": { "type": "string", "description": "PIN numérico para validação." }
+        },
+        "required": ["name", "pin"]
     }
   },
   "auth": {
@@ -51,13 +67,22 @@
         "definition": { "schema": { "$ref": "#/entities/User" } }
       },
       {
+        "path": "/users/{userId}/prizes/{prizeId}",
+        "definition": {
+          "schema": { "$ref": "#/entities/Prize" },
+          "description": "Subcoleção de prêmios pertencentes a um usuário específico."
+        }
+      },
+      {
         "path": "/rules/{ruleId}",
         "definition": { "schema": { "$ref": "#/entities/Rule" } }
       },
       {
-        "path": "/rewards/{rewardId}",
-        "definition": { "schema": { "$ref": "#/entities/Prize" } }
+        "path": "/barbers/{barberId}",
+        "definition": { "schema": { "$ref": "#/entities/Barber" } }
       }
     ]
   }
 }
+
+    

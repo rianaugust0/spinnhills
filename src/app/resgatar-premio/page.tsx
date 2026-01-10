@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { initializeFirebase, useDoc } from '@/firebase';
-import { doc, runTransaction, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, runTransaction, serverTimestamp, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 const { firestore } = initializeFirebase();
@@ -16,7 +16,8 @@ const { firestore } = initializeFirebase();
 export default function ResgatarPremioPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const prizeId = searchParams.get('id');
+  const prizeId = searchParams.get('prizeId');
+  const userId = searchParams.get('userId');
   const { toast } = useToast();
 
   const [pin, setPin] = useState('');
@@ -24,18 +25,18 @@ export default function ResgatarPremioPage() {
   const [success, setSuccess] = useState(false);
 
   const prizeDocRef = useMemo(() => {
-    if (!prizeId) return null;
-    return doc(firestore, 'prizes', prizeId);
-  }, [prizeId]);
+    if (!prizeId || !userId) return null;
+    return doc(firestore, 'users', userId, 'prizes', prizeId);
+  }, [prizeId, userId]);
 
   const { data: prizeData, isLoading: isPrizeLoading } = useDoc(prizeDocRef);
 
   useEffect(() => {
-    if (!prizeId) {
-      toast({ variant: 'destructive', title: 'Prêmio não encontrado' });
+    if (!prizeId || !userId) {
+      toast({ variant: 'destructive', title: 'URL inválida', description: "O prêmio ou usuário não foi especificado." });
       router.push('/dashboard');
     }
-  }, [prizeId, router, toast]);
+  }, [prizeId, userId, router, toast]);
 
   const handleRedeem = async () => {
     if (pin.length < 4) {
@@ -45,33 +46,40 @@ export default function ResgatarPremioPage() {
     setLoading(true);
 
     try {
-      // 1. Validate Barber PIN
       const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pin));
       const barberSnapshot = await getDocs(barbersQuery);
 
       if (barberSnapshot.empty) {
         throw new Error('PIN do barbeiro inválido.');
       }
-      const barber = barberSnapshot.docs[0].data();
+      const barber = barberSnapshot.docs[0];
 
-      // 2. Run transaction to redeem prize
       await runTransaction(firestore, async (transaction) => {
         if (!prizeDocRef) throw new Error("Referência do prêmio não encontrada.");
         
         const prizeDoc = await transaction.get(prizeDocRef);
-        if (!prizeDoc.exists() || prizeDoc.data().status !== 'ativo') {
+        if (!prizeDoc.exists() || prizeDoc.data().status !== 'active') {
           throw new Error('Este prêmio não está mais ativo ou já foi utilizado.');
         }
 
+        // Check for expiry
+        const now = new Date();
+        const expiresAt = prizeDoc.data().expiresAt.toDate();
+        if (now > expiresAt) {
+            // Update status to expired in transaction
+            transaction.update(prizeDocRef, { status: 'expired' });
+            throw new Error('Este prêmio expirou e não pode mais ser resgatado.');
+        }
+
         transaction.update(prizeDocRef, {
-          status: 'utilizado',
-          updatedAt: serverTimestamp(),
-          resgatadoPor: barber.name, // Log which barber redeemed it
+          status: 'used',
+          usedAt: serverTimestamp(),
+          usedByBarberId: barber.id,
         });
       });
       
       setSuccess(true);
-      toast({ title: 'Prêmio resgatado com sucesso!', description: `${prizeData?.nome} foi validado.` });
+      toast({ title: 'Prêmio resgatado com sucesso!', description: `${prizeData?.title} foi validado.` });
 
     } catch (error: any) {
       console.error("Redemption failed:", error);
@@ -99,7 +107,7 @@ export default function ResgatarPremioPage() {
             <div className='animate-fade-in-up'>
                 <CheckCircle className="h-24 w-24 text-green-500 mx-auto animate-pulse" />
                 <h1 className="font-headline text-4xl text-gold uppercase tracking-widest mt-4">Prêmio Resgatado!</h1>
-                <p className='text-ice-white text-lg mt-2'>"{prizeData?.nome}" foi aplicado com sucesso.</p>
+                <p className='text-ice-white text-lg mt-2'>"{prizeData?.title}" foi aplicado com sucesso.</p>
                 <Button onClick={() => router.push('/dashboard')} className='mt-8 w-full max-w-sm'>Voltar ao Início</Button>
             </div>
         </div>
@@ -109,7 +117,7 @@ export default function ResgatarPremioPage() {
   return (
     <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
         <header className="p-4 flex justify-between items-center">
-            <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')} aria-label="Voltar">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="Voltar">
             <ArrowLeft className="h-5 w-5 text-gold" />
             </Button>
         </header>
@@ -123,11 +131,12 @@ export default function ResgatarPremioPage() {
                 <CardContent className="space-y-6">
                     <div className='p-4 bg-deep-black rounded-lg border border-gold/10'>
                         <p className='text-muted-foreground'>Prêmio:</p>
-                        <p className='text-xl font-bold text-ice-white'>{prizeData?.nome}</p>
+                        <p className='text-xl font-bold text-ice-white'>{prizeData?.title}</p>
                     </div>
                     <div className="space-y-2">
                         <Input
                             type="password"
+                            inputMode='numeric'
                             placeholder="PIN do Barbeiro"
                             maxLength={4}
                             value={pin}
@@ -136,7 +145,7 @@ export default function ResgatarPremioPage() {
                         />
                         <Button
                             onClick={handleRedeem}
-                            disabled={loading}
+                            disabled={loading || !pin}
                             className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base"
                         >
                             {loading ? <Loader2 className="animate-spin" /> : 'Confirmar Resgate'}
@@ -148,3 +157,5 @@ export default function ResgatarPremioPage() {
     </div>
   );
 }
+
+    
