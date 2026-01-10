@@ -25,14 +25,14 @@ const innerRadius = 0;
 const radiusLineColor = '#D4AF37';
 const radiusLineWidth = 2;
 const fontFamily = 'Bebas Neue';
-const fontSize = 16;
-const textDistance = 75;
+const fontSize = 18;
+const textDistance = 80;
 
 export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, onPrizeDefined }: RouletteProps) {
   const [prizeNumber, setPrizeNumber] = useState(0);
 
   const data = prizeOptions.map(option => ({
-    option: option.title,
+    option: option.title.toUpperCase(),
     style: { 
       backgroundColor: backgroundColors[prizeOptions.indexOf(option) % backgroundColors.length],
       textColor: textColors[prizeOptions.indexOf(option) % textColors.length] 
@@ -49,7 +49,7 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
 
   return (
     <div className="relative flex flex-col items-center justify-center space-y-8">
-      <div className="relative pointer-events-none">
+      <div className="relative">
         <Wheel
           mustStartSpinning={mustSpin}
           prizeNumber={prizeNumber}
@@ -70,7 +70,6 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
           radiusLineColor={radiusLineColor}
           radiusLineWidth={radiusLineWidth}
           textDistance={textDistance}
-          prizesWithText={true}
         />
       </div>
      
@@ -84,4 +83,3 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
     </div>
   );
 }
-
