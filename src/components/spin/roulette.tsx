@@ -15,7 +15,6 @@ interface RouletteProps {
 }
 
 const backgroundColors = ['#121212', '#D4AF37'];
-const textColors = ['#F2F2F2', '#0A0A0A'];
 const outerBorderColor = '#D4AF37';
 const outerBorderWidth = 5;
 const innerBorderColor = '#D4AF37';
@@ -30,11 +29,11 @@ const textDistance = 68;
 export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, onPrizeDefined }: RouletteProps) {
   const [prizeNumber, setPrizeNumber] = useState(0);
 
-  const data = prizeOptions.map(option => ({
+  const data = prizeOptions.map((option, index) => ({
     option: option.title.toUpperCase(),
     style: { 
-      backgroundColor: backgroundColors[prizeOptions.indexOf(option) % backgroundColors.length],
-      textColor: textColors[prizeOptions.indexOf(option) % textColors.length] 
+      backgroundColor: backgroundColors[index % backgroundColors.length],
+      textColor: index % 2 === 0 ? '#F2F2F2' : '#0A0A0A'
     }
   }));
 
@@ -58,7 +57,6 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
             onStopSpinning();
           }}
           backgroundColors={backgroundColors}
-          textColors={textColors}
           fontFamily={fontFamily}
           fontSize={fontSize}
           outerBorderColor={outerBorderColor}
