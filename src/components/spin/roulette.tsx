@@ -30,7 +30,7 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
   const [prizeNumber, setPrizeNumber] = useState(0);
 
   const data = prizeOptions.map((option, index) => ({
-    image: { uri: option.imageUrl, sizeMultiplier: 0.6 },
+    option: option.title,
     style: { 
       backgroundColor: backgroundColors[index % backgroundColors.length],
       textColor: '#ffffff00' // Make default text transparent
