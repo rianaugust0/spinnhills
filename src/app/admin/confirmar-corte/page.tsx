@@ -248,7 +248,7 @@ export default function ConfirmarCortePage() {
          <h1 className="font-headline text-xl text-ice-white uppercase">Ações do Cliente</h1>
          <div></div>
       </header>
-      <main className="flex-1 flex flex-col items-center justify-center container mx-auto px-4 pb-8">
+      <main className="flex-1 flex flex-col items-center container mx-auto px-4 py-8">
         {step === 'findClient' ? (
             <Card className="w-full max-w-sm bg-dark-gray border-gold/20 text-center animate-fade-in-up">
                 <CardHeader>
@@ -336,3 +336,5 @@ export default function ConfirmarCortePage() {
     </div>
   );
 }
+
+    
