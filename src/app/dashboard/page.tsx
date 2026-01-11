@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { Loader2, LogOut, FerrisWheel, Sparkles, Gift, Target } from 'lucide-react';
+import { LogOut, FerrisWheel, Sparkles, Gift, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,12 +12,70 @@ import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
 import { isAfter, differenceInDays } from 'date-fns';
 import { UserDashboardTabs } from '@/components/dashboard/UserDashboardTabs';
 import { WhatsappIcon } from '@/components/ui/WhatsappIcon';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 const { firestore } = initializeFirebase();
+
+const DashboardSkeleton = () => (
+    <div className="flex-1 container mx-auto px-4 py-8 space-y-6 md:space-y-8 animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <Card className="bg-dark-gray/50 border-gold/10 text-center shadow-lg">
+                <CardHeader>
+                    <Skeleton className="h-10 w-3/5 mx-auto" />
+                    <Skeleton className="h-4 w-2/5 mx-auto mt-2" />
+                    <Skeleton className="h-12 w-1/4 mx-auto mt-2" />
+                </CardHeader>
+                <CardContent>
+                    <Skeleton className="h-12 w-full" />
+                </CardContent>
+            </Card>
+
+            <Card className="bg-dark-gray/50 border-gold/10">
+                <CardHeader className="pb-4">
+                    <Skeleton className="h-6 w-4/5" />
+                </CardHeader>
+                <CardContent>
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-4 w-1/2 mx-auto mt-3" />
+                </CardContent>
+            </Card>
+        </div>
+
+        <Card className="bg-dark-gray/50 border-gold/10">
+            <CardHeader className="text-center">
+                 <Skeleton className="h-6 w-1/2 mx-auto" />
+                 <Skeleton className="h-4 w-4/5 mx-auto mt-2" />
+            </CardHeader>
+            <CardContent>
+                 <Skeleton className="h-12 w-full" />
+            </CardContent>
+        </Card>
+
+        {/* Tabs Skeleton */}
+        <div className="w-full">
+            <div className="flex h-12 items-center justify-center rounded-md bg-muted p-1">
+                <Skeleton className="h-10 w-1/3" />
+                <Skeleton className="h-10 w-1/3" />
+                <Skeleton className="h-10 w-1/3" />
+            </div>
+            <div className="mt-6">
+                <Card className="bg-dark-gray/50 border-dashed border-gold/10 text-center p-8">
+                    <Skeleton className="h-10 w-10 mx-auto mb-4 rounded-full"/>
+                    <Skeleton className="h-5 w-3/4 mx-auto"/>
+                    <Skeleton className="h-4 w-1/2 mx-auto mt-2"/>
+                </Card>
+            </div>
+        </div>
+    </div>
+);
+
 
 export default function DashboardPage() {
   const router = useRouter();
   const [clientPhone, setClientPhone] = useState<string | null>(null);
+  
+  // Render skeleton until clientPhone is confirmed from localStorage
   const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
@@ -26,14 +84,15 @@ export default function DashboardPage() {
       router.replace('/entrar');
     } else {
       setClientPhone(phoneFromStorage);
-      setInitialLoading(false);
+      // Wait a tick to show skeleton smoothly before data fetching starts
+      setTimeout(() => setInitialLoading(false), 0);
     }
   }, [router]);
 
   const userDocRef = useMemo(() => {
     if (!firestore || !clientPhone) return null;
     return doc(firestore, 'users', clientPhone);
-  }, [clientPhone, firestore]);
+  }, [clientPhone]);
 
   const { data: clientData, isLoading: isClientLoading } = useDoc(userDocRef);
 
@@ -44,7 +103,7 @@ export default function DashboardPage() {
       where('userId', '==', clientPhone),
       where('status', '==', 'active')
     );
-  }, [clientPhone, firestore]);
+  }, [clientPhone]);
   
   const { data: activePrizesData, isLoading: isPrizesLoading } = useCollection(prizesQuery);
 
@@ -68,7 +127,7 @@ export default function DashboardPage() {
           where('userId', '==', clientPhone),
           where('status', '==', 'active')
       );
-  }, [clientPhone, firestore]);
+  }, [clientPhone]);
 
   const { data: limitedSpinsData, isLoading: isLimitedSpinsLoading } = useCollection(limitedSpinsQuery);
   
@@ -90,98 +149,94 @@ export default function DashboardPage() {
 
   const isLoading = initialLoading || isClientLoading || isPrizesLoading || isLimitedSpinsLoading;
 
-  if (isLoading || !clientData) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-deep-black">
-        <Loader2 className="h-16 w-16 animate-spin text-gold" />
-      </div>
-    );
-  }
-
-  const progressPercentage = (clientData.cortesAtuais / 5) * 100;
-
   return (
     <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
       <header className="p-4 flex justify-between items-center border-b border-gold/20">
         <div>
-          <h1 className="font-headline text-xl text-ice-white uppercase">Fala, {clientData.name?.split(' ')[0]} 👋</h1>
+          {isLoading || !clientData ? (
+             <Skeleton className='h-7 w-48'/>
+          ) : (
+             <h1 className="font-headline text-xl text-ice-white uppercase">Fala, {clientData.name?.split(' ')[0]} 👋</h1>
+          )}
         </div>
         <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Sair">
           <LogOut className="h-5 w-5 text-gold/80 hover:text-gold" />
         </Button>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 py-8 space-y-6 md:space-y-8 animate-fade-in-up">
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            <Card className="bg-dark-gray border-gold/20 text-center shadow-lg shadow-gold-glow">
-            <CardHeader>
-                <CardTitle className="font-headline text-4xl text-gold uppercase tracking-wider flex items-center justify-center gap-3">
-                <FerrisWheel className="h-10 w-10 animate-spin [animation-duration:10s]" />
-                Spin Hills
-                </CardTitle>
-                <CardDescription>
-                Giros disponíveis:
-                <span className="text-5xl font-bold text-ice-white block mt-2">{clientData.girosDisponiveis}</span>
-                </CardDescription>
+      {isLoading ? <DashboardSkeleton /> : (
+        <main className="flex-1 container mx-auto px-4 py-8 space-y-6 md:space-y-8 animate-fade-in-up">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              <Card className="bg-dark-gray border-gold/20 text-center shadow-lg shadow-gold-glow">
+              <CardHeader>
+                  <CardTitle className="font-headline text-4xl text-gold uppercase tracking-wider flex items-center justify-center gap-3">
+                  <FerrisWheel className="h-10 w-10 animate-spin [animation-duration:10s]" />
+                  Spin Hills
+                  </CardTitle>
+                  <CardDescription>
+                  Giros disponíveis:
+                  <span className="text-5xl font-bold text-ice-white block mt-2">{clientData.girosDisponiveis}</span>
+                  </CardDescription>
+              </CardHeader>
+              <CardContent>
+                  {clientData.girosDisponiveis > 0 ? (
+                  <Button onClick={() => router.push('/spin')} className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base">
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Girar agora!
+                  </Button>
+                  ) : (
+                  <Button disabled className="w-full bg-muted text-muted-foreground h-12 text-base">
+                      Complete ações para liberar giros
+                  </Button>
+                  )}
+              </CardContent>
+              </Card>
+
+              <Card className="bg-dark-gray border-gold/20">
+                  <CardHeader className="pb-4">
+                      <CardTitle className="text-ice-white text-lg">✂️ Progresso para o próximo giro</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <Progress value={(clientData.cortesAtuais / 5) * 100} className="bg-deep-black h-3 [&>div]:bg-gold" />
+                      <p className="text-center text-muted-foreground text-sm mt-3">
+                      <span className="font-bold text-gold">{clientData.cortesAtuais} / 5</span> cortes confirmados
+                      </p>
+                      <p className="text-center text-xs text-muted-foreground/50 mt-2">Complete 5 cortes e ganhe 1 giro.</p>
+                  </CardContent>
+              </Card>
+          </div>
+
+
+          <Card className="bg-dark-gray border-gold/20">
+            <CardHeader className="text-center">
+              <CardTitle className="text-ice-white text-lg flex items-center justify-center gap-2">
+                  <WhatsappIcon className='h-6 w-6' />
+                  Entre no Grupo Oficial
+              </CardTitle>
+              <CardDescription className='text-sm text-muted-foreground mt-1'>Fique por dentro de avisos, novidades, prêmios e benefícios exclusivos.</CardDescription>
             </CardHeader>
             <CardContent>
-                {clientData.girosDisponiveis > 0 ? (
-                <Button onClick={() => router.push('/spin')} className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base">
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Girar agora!
-                </Button>
-                ) : (
-                <Button disabled className="w-full bg-muted text-muted-foreground h-12 text-base">
-                    Complete ações para liberar giros
-                </Button>
-                )}
+              <a 
+                  href="https://chat.whatsapp.com/GReZCTJDQbx1KxM9YrZji3" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className='w-full'
+              >
+                  <Button className="w-full bg-whatsapp text-white font-bold uppercase tracking-wider hover:bg-whatsapp/90 h-12 text-base">
+                      <WhatsappIcon className='h-5 w-5 mr-2' />
+                      Entrar no Grupo
+                  </Button>
+              </a>
             </CardContent>
-            </Card>
+          </Card>
 
-            <Card className="bg-dark-gray border-gold/20">
-                <CardHeader className="pb-4">
-                    <CardTitle className="text-ice-white text-lg">✂️ Progresso para o próximo giro</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Progress value={progressPercentage} className="bg-deep-black h-3 [&>div]:bg-gold" />
-                    <p className="text-center text-muted-foreground text-sm mt-3">
-                    <span className="font-bold text-gold">{clientData.cortesAtuais} / 5</span> cortes confirmados
-                    </p>
-                    <p className="text-center text-xs text-muted-foreground/50 mt-2">Complete 5 cortes e ganhe 1 giro.</p>
-                </CardContent>
-            </Card>
-        </div>
-
-
-        <Card className="bg-dark-gray border-gold/20">
-          <CardHeader className="text-center">
-            <CardTitle className="text-ice-white text-lg flex items-center justify-center gap-2">
-                <WhatsappIcon className='h-6 w-6' />
-                Entre no Grupo Oficial
-            </CardTitle>
-            <CardDescription className='text-sm text-muted-foreground mt-1'>Fique por dentro de avisos, novidades, prêmios e benefícios exclusivos.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <a 
-                href="https://chat.whatsapp.com/GReZCTJDQbx1KxM9YrZji3" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className='w-full'
-            >
-                <Button className="w-full bg-whatsapp text-white font-bold uppercase tracking-wider hover:bg-whatsapp/90 h-12 text-base">
-                    <WhatsappIcon className='h-5 w-5 mr-2' />
-                    Entrar no Grupo
-                </Button>
-            </a>
-          </CardContent>
-        </Card>
-
-        <UserDashboardTabs 
-            activePrizes={activePrizes}
-            activeLimitedSpin={activeLimitedSpin}
-        />
-      </main>
+          <UserDashboardTabs 
+              activePrizes={activePrizes}
+              activeLimitedSpin={activeLimitedSpin}
+          />
+        </main>
+      )}
     </div>
   );
 }

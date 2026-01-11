@@ -18,26 +18,22 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Assume authenticated by default if session exists, validate in background
+  const [isAuthenticated, setIsAuthenticated] = useState(!!sessionStorage.getItem('barber-pin'));
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
-  const [checkingSession, setCheckingSession] = useState(true);
-
+  // Remove checkingSession state, render UI instantly based on sessionStorage
+  
   useEffect(() => {
-    // Check for session storage on mount
+    // Validate session in the background without blocking UI
     const sessionPin = sessionStorage.getItem('barber-pin');
     if (sessionPin) {
-      // Re-validate the pin to ensure it's still active
       validatePin(sessionPin, false).then((isValid) => {
-        if (isValid) {
-          setIsAuthenticated(true);
-        } else {
+        if (!isValid) {
           sessionStorage.removeItem('barber-pin');
+          setIsAuthenticated(false); // Log out if PIN becomes invalid
         }
-        setCheckingSession(false);
       });
-    } else {
-      setCheckingSession(false);
     }
   }, []);
 
@@ -76,14 +72,6 @@ export default function AdminLayout({
       setIsAuthenticated(true);
     }
   };
-  
-  if (checkingSession) {
-      return (
-         <div className="flex min-h-screen items-center justify-center bg-deep-black">
-            <Loader2 className="h-16 w-16 animate-spin text-gold" />
-         </div>
-      )
-  }
 
   if (!isAuthenticated) {
     return (
@@ -119,5 +107,3 @@ export default function AdminLayout({
 
   return <>{children}</>;
 }
-
-    
