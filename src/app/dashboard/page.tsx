@@ -176,11 +176,11 @@ export default function DashboardPage() {
                   </CardTitle>
                   <CardDescription>
                   Giros disponíveis:
-                  <span className="text-5xl font-bold text-ice-white block mt-2">{clientData.girosDisponiveis}</span>
+                  <span className="text-5xl font-bold text-ice-white block mt-2">{clientData?.girosDisponiveis ?? 0}</span>
                   </CardDescription>
               </CardHeader>
               <CardContent>
-                  {clientData.girosDisponiveis > 0 ? (
+                  {(clientData?.girosDisponiveis ?? 0) > 0 ? (
                   <Button onClick={() => router.push('/spin')} className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base">
                       <Sparkles className="mr-2 h-5 w-5" />
                       Girar agora!
@@ -198,9 +198,9 @@ export default function DashboardPage() {
                       <CardTitle className="text-ice-white text-lg">✂️ Progresso para o próximo giro</CardTitle>
                   </CardHeader>
                   <CardContent>
-                      <Progress value={(clientData.cortesAtuais / 5) * 100} className="bg-deep-black h-3 [&>div]:bg-gold" />
+                      <Progress value={((clientData?.cortesAtuais ?? 0) / 5) * 100} className="bg-deep-black h-3 [&>div]:bg-gold" />
                       <p className="text-center text-muted-foreground text-sm mt-3">
-                      <span className="font-bold text-gold">{clientData.cortesAtuais} / 5</span> cortes confirmados
+                      <span className="font-bold text-gold">{clientData?.cortesAtuais ?? 0} / 5</span> cortes confirmados
                       </p>
                       <p className="text-center text-xs text-muted-foreground/50 mt-2">Complete 5 cortes e ganhe 1 giro.</p>
                   </CardContent>
