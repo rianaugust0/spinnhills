@@ -1,16 +1,16 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, User, Scissors, CheckCircle, Gift } from 'lucide-react';
+import { Loader2, ArrowLeft, User, Scissors, CheckCircle, Gift, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
 import { GrantPrizeOrSpinModal } from '@/components/admin/GrantPrizeOrSpinModal';
-import { doc, getDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, serverTimestamp, Timestamp, writeBatch } from 'firebase/firestore';
 import { updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const { firestore } = initializeFirebase();
@@ -33,6 +33,7 @@ export default function ConfirmarCortePage() {
   const [client, setClient] = useState<ClientData | null>(null);
   const [step, setStep] = useState<'findClient' | 'confirmCut' | 'success'>('findClient');
   const [isGrantModalOpen, setIsGrantModalOpen] = useState(false);
+  const [extraSpinConverted, setExtraSpinConverted] = useState(false);
 
   const handleFindClient = async () => {
     const sanitizedPhone = phone.replace(/\D/g, '');
@@ -75,6 +76,7 @@ export default function ConfirmarCortePage() {
     if (!client) return;
 
     setLoading(true);
+    setExtraSpinConverted(false); // Reset on new confirmation
 
     try {
         const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pin));
@@ -84,23 +86,49 @@ export default function ConfirmarCortePage() {
             throw new Error('PIN do barbeiro inválido ou inativo.');
         }
         const barberId = barberSnapshot.docs[0].id;
+        
+        // --- Start Batch Write ---
+        const batch = writeBatch(firestore);
+
         const userDocRef = doc(firestore, 'users', client.id);
 
         let newCortesAtuais = (client.cortesAtuais + 1);
         let newGirosDisponiveis = client.girosDisponiveis;
-        let spinGranted = false;
+        let spinGrantedFromFidelity = false;
 
         if (newCortesAtuais >= 5) {
             newCortesAtuais = 0;
             newGirosDisponiveis += 1;
-            spinGranted = true;
+            spinGrantedFromFidelity = true;
+        }
+
+        // --- Limited Spin Logic ---
+        const limitedSpinsQuery = query(
+          collection(firestore, "limitedSpins"),
+          where('userId', '==', client.id),
+          where('status', '==', 'active'),
+          where('expiresAt', '>=', Timestamp.now())
+        );
+        const limitedSpinsSnapshot = await getDocs(limitedSpinsQuery);
+        let convertedLimitedSpin = false;
+        if (!limitedSpinsSnapshot.empty) {
+            const limitedSpinDoc = limitedSpinsSnapshot.docs[0]; // Assuming only one active at a time
+            batch.update(limitedSpinDoc.ref, {
+                status: 'used',
+                usedAt: serverTimestamp(),
+                usedByBarberId: barberId,
+            });
+            newGirosDisponiveis += 1;
+            convertedLimitedSpin = true;
+            setExtraSpinConverted(true);
         }
         
         // Optimistic UI updates
         const updatedClientData = {
           ...client,
           cortesAtuais: newCortesAtuais,
-          girosDisponiveis: newGirosDisponiveis
+          girosDisponiveis: newGirosDisponiveis,
+          totalCortes: client.totalCortes + 1,
         };
         setClient(updatedClientData);
         setStep('success');
@@ -110,23 +138,31 @@ export default function ConfirmarCortePage() {
             description: `O progresso de ${client.name.split(' ')[0]} foi atualizado.`,
         });
 
-        if (spinGranted) {
+        if (spinGrantedFromFidelity) {
              toast({
                 title: 'Parabéns! 🎡',
-                description: `${client.name.split(' ')[0]} ganhou +1 giro no SPIN HILLS!`,
+                description: `${client.name.split(' ')[0]} ganhou +1 giro por fidelidade!`,
+                duration: 5000,
+            });
+        }
+        if (convertedLimitedSpin) {
+            toast({
+                title: 'Giro Extra Ativado! 🎯',
+                description: `${client.name.split(' ')[0]} usou o giro extra e ganhou +1 giro!`,
                 duration: 5000,
             });
         }
 
-        // Non-blocking Firestore updates
-        updateDocumentNonBlocking(userDocRef, {
+        // --- Prepare batch operations ---
+        batch.update(userDocRef, {
             cortesAtuais: newCortesAtuais,
             totalCortes: client.totalCortes + 1,
             girosDisponiveis: newGirosDisponiveis,
             updatedAt: serverTimestamp(),
         });
 
-        addDocumentNonBlocking(collection(firestore, "cuts"), {
+        const cutsCollectionRef = collection(firestore, "cuts");
+        batch.set(doc(cutsCollectionRef), {
             userId: client.id,
             barberId: barberId,
             pinUsed: pin,
@@ -134,8 +170,9 @@ export default function ConfirmarCortePage() {
             date: serverTimestamp()
         });
         
-        if (spinGranted) {
-            addDocumentNonBlocking(collection(firestore, "spins"), {
+        if (spinGrantedFromFidelity) {
+            const spinsCollectionRef = collection(firestore, "spins");
+            batch.set(doc(spinsCollectionRef), {
                 userId: client.id,
                 origin: 'fidelidade_5_cortes',
                 manual: false,
@@ -144,6 +181,9 @@ export default function ConfirmarCortePage() {
                 createdAt: serverTimestamp()
             });
         }
+        
+        // --- Commit Batch Write ---
+        await batch.commit();
 
     } catch (error: any) {
         console.error(error);
@@ -171,7 +211,13 @@ export default function ConfirmarCortePage() {
                 <CheckCircle className="h-24 w-24 text-green-500 mx-auto animate-pulse" />
                 <h1 className="font-headline text-4xl text-gold uppercase tracking-widest mt-4">Corte Confirmado!</h1>
                 <p className='text-ice-white text-lg mt-2'>O progresso de {client?.name.split(' ')[0]} foi atualizado.</p>
-                 <div className='mt-4 text-ice-white/80'>
+                 <div className='mt-4 text-ice-white/80 space-y-1'>
+                    {extraSpinConverted && (
+                        <div className="flex items-center justify-center gap-2 text-green-400">
+                           <Sparkles className="h-5 w-5" />
+                           <span>Giro Extra convertido em +1 giro!</span>
+                        </div>
+                    )}
                     <p>Novo Progresso: <span className='font-bold text-gold'>{client?.cortesAtuais}/5</span></p>
                     <p>Giros Disponíveis: <span className='font-bold text-gold'>{client?.girosDisponiveis}</span></p>
                  </div>
@@ -273,7 +319,7 @@ export default function ConfirmarCortePage() {
                         className="w-full text-gold border-gold/50 hover:bg-gold/10 hover:text-gold"
                       >
                         <Gift className="mr-2 h-4 w-4" />
-                        Liberar Giro ou Prêmio
+                        Adicionar Benefício
                       </Button>
                     </div>
 

@@ -48,7 +48,7 @@ export default function SpinPage() {
   const userDocRef = useMemo(() => {
     if (!clientPhone || !firestore) return null;
     return doc(firestore, 'users', clientPhone);
-  }, [clientPhone, firestore]);
+  }, [clientPhone]);
 
   const { data: clientData, isLoading: isClientLoading, setData: setClientData } = useDoc(userDocRef);
 
@@ -81,15 +81,25 @@ export default function SpinPage() {
       updatedAt: serverTimestamp(),
     });
     
-    if (prize.type !== 'try_again') {
-        const prizeCollectionRef = collection(firestore, 'prizes');
-        const expirationDate = new Date();
-        expirationDate.setDate(expirationDate.getDate() + prize.validityDays);
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + prize.validityDays);
 
+    if (prize.type === 'giro_extra') {
+      addDocumentNonBlocking(collection(firestore, 'limitedSpins'), {
+          userId: clientPhone,
+          type: 'extra_spin',
+          status: 'active',
+          condition: 'valid_only_with_haircut',
+          createdAt: serverTimestamp(),
+          expiresAt: expirationDate,
+          origin: 'roleta_digital',
+      });
+    } else if (prize.type !== 'try_again') {
+        const prizeCollectionRef = collection(firestore, 'prizes');
         const newPrizeData = {
             userId: clientPhone,
             userName: clientData.name,
-            userPhone: clientData.id, // Assuming phone is ID
+            userPhone: clientPhone,
             type: prize.type,
             title: prize.title,
             description: prize.description,
@@ -146,6 +156,7 @@ export default function SpinPage() {
                             <CardTitle className='text-3xl text-gold mt-4'>Parabéns!</CardTitle>
                             <CardDescription className='text-xl text-ice-white mt-2'>Você ganhou</CardDescription>
                             <p className='text-4xl font-bold text-gold font-headline tracking-wider'>{prizeWon.title}</p>
+                             {prizeWon.type === 'giro_extra' && <p className='text-muted-foreground mt-2'>{prizeWon.description}</p>}
                         </>
                     ) : (
                          <>
@@ -178,3 +189,5 @@ export default function SpinPage() {
     </div>
   );
 }
+
+    

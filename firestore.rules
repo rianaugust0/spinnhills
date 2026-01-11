@@ -23,6 +23,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    match /limitedSpins/{spinId} {
+      // Allow app to manage limited spins
+      allow read, write: if true;
+    }
+
     match /rules/{ruleId} {
       // Rules are read-only for clients. Only admins should edit them.
       allow read: if true;
@@ -47,3 +52,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

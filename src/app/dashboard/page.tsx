@@ -2,58 +2,17 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { Loader2, LogOut, Gift, FerrisWheel, Sparkles, Calendar, Badge, Ticket } from 'lucide-react';
+import { Loader2, LogOut, FerrisWheel, Sparkles, Gift, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { initializeFirebase, useDoc, useCollection } from '@/firebase';
 import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
-import { differenceInDays, isAfter } from 'date-fns';
+import { isAfter, differenceInDays } from 'date-fns';
+import { UserDashboardTabs } from '@/components/dashboard/UserDashboardTabs';
 
 const { firestore } = initializeFirebase();
-
-const PrizeCard = ({ prize }: { prize: any }) => {
-  const router = useRouter();
-  // Ensure expiresAt is a Date object
-  const expiresAtDate = prize.expiresAt instanceof Timestamp ? prize.expiresAt.toDate() : prize.expiresAt;
-  const validityLeft = differenceInDays(expiresAtDate, new Date());
-
-  const handleRedeemClick = () => {
-    // We now pass the prizeId directly, since it's a root collection
-    router.push(`/resgatar-premio?prizeId=${prize.id}`);
-  };
-
-  return (
-    <Card className="bg-dark-gray border-gold/20 overflow-hidden">
-      <CardContent className="p-4 flex flex-col justify-between h-full">
-        <div>
-          <div className="flex items-center gap-3">
-             <div className="bg-gold/10 p-2 rounded-md">
-                <Ticket className="h-6 w-6 text-gold" />
-             </div>
-             <CardTitle className="text-ice-white text-lg font-bold">{prize.title}</CardTitle>
-          </div>
-          <CardDescription className="text-sm text-muted-foreground mt-2">{prize.description}</CardDescription>
-        </div>
-        <div className="mt-4">
-            {validityLeft >= 0 ? (
-                 <div className='flex justify-between items-center'>
-                    <Badge variant="outline" className='border-green-500/50 text-green-400'>
-                        <Calendar className="h-3 w-3 mr-1.5" />
-                         Válido por mais {validityLeft} dia{validityLeft !== 1 ? 's' : ''}
-                    </Badge>
-                    <Button size="sm" onClick={handleRedeemClick}>Resgatar</Button>
-                 </div>
-            ) : (
-                 <Badge variant="destructive">Expirado</Badge>
-            )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -71,20 +30,20 @@ export default function DashboardPage() {
   }, [router]);
 
   const userDocRef = useMemo(() => {
-    if (!clientPhone || !firestore) return null;
+    if (!clientPhone) return null;
     return doc(firestore, 'users', clientPhone);
-  }, [clientPhone, firestore]);
+  }, [clientPhone]);
 
   const { data: clientData, isLoading: isClientLoading } = useDoc(userDocRef);
 
   const prizesQuery = useMemo(() => {
-    if (!clientPhone || !firestore) return null;
+    if (!clientPhone) return null;
     return query(
       collection(firestore, 'prizes'),
       where('userId', '==', clientPhone),
       where('status', '==', 'active')
     );
-  }, [clientPhone, firestore]);
+  }, [clientPhone]);
   
   const { data: activePrizesData, isLoading: isPrizesLoading } = useCollection(prizesQuery);
 
@@ -100,13 +59,35 @@ export default function DashboardPage() {
         return dateA.getTime() - dateB.getTime();
     });
   }, [activePrizesData]);
+  
+  const limitedSpinsQuery = useMemo(() => {
+      if (!clientPhone) return null;
+      return query(
+          collection(firestore, 'limitedSpins'),
+          where('userId', '==', clientPhone),
+          where('status', '==', 'active')
+      );
+  }, [clientPhone]);
+
+  const { data: limitedSpinsData, isLoading: isLimitedSpinsLoading } = useCollection(limitedSpinsQuery);
+  
+  const activeLimitedSpin = useMemo(() => {
+      if (!limitedSpinsData || limitedSpinsData.length === 0) return null;
+      const today = new Date();
+      const activeSpin = limitedSpinsData.find(spin => {
+        const expiresAtDate = spin.expiresAt instanceof Timestamp ? spin.expiresAt.toDate() : spin.expiresAt;
+        return isAfter(expiresAtDate, today) || differenceInDays(expiresAtDate, today) >= 0;
+      });
+      return activeSpin || null;
+  }, [limitedSpinsData]);
+
 
   const handleLogout = () => {
     localStorage.removeItem('spin-hills-user-phone');
     router.push('/');
   };
 
-  const isLoading = initialLoading || isClientLoading || isPrizesLoading;
+  const isLoading = initialLoading || isClientLoading || isPrizesLoading || isLimitedSpinsLoading;
 
   if (isLoading || !clientData) {
     return (
@@ -168,22 +149,13 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <div>
-          <h2 className="font-headline text-2xl text-ice-white uppercase mb-4">Seus Prêmios</h2>
-          {activePrizes && activePrizes.length > 0 ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {activePrizes.map((prize) => (
-                    <PrizeCard key={prize.id} prize={prize} />
-                ))}
-             </div>
-          ) : (
-            <Card className="bg-dark-gray border-dashed border-gold/30 text-center p-8">
-                <CardTitle className="text-muted-foreground font-normal">Você ainda não possui prêmios ativos.</CardTitle>
-                <CardDescription className="mt-2 text-sm">Gire a roleta para ganhar!</CardDescription>
-            </Card>
-          )}
-        </div>
+        <UserDashboardTabs 
+            activePrizes={activePrizes}
+            activeLimitedSpin={activeLimitedSpin}
+        />
       </main>
     </div>
   );
 }
+
+    

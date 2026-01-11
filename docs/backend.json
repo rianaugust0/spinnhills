@@ -23,7 +23,7 @@
         "userId": { "type": "string", "description": "ID do usuário que ganhou o prêmio." },
         "userName": { "type": "string", "description": "Nome do usuário que ganhou o prêmio." },
         "userPhone": { "type": "string", "description": "Telefone do usuário que ganhou o prêmio." },
-        "type": { "type": "string", "enum": ["corte_gratis", "hidratacao", "esfoliacao", "sobrancelha"], "description": "Tipo do prêmio ganho." },
+        "type": { "type": "string", "enum": ["corte_gratis", "hidratacao", "esfoliacao", "sobrancelha", "desconto_10", "brinde"], "description": "Tipo do prêmio ganho." },
         "title": { "type": "string", "description": "Nome do prêmio (ex: 'Corte Grátis')." },
         "description": { "type": "string", "description": "Descrição do prêmio." },
         "imageUrl": { "type": "string", "description": "URL de uma imagem para o prêmio." },
@@ -72,36 +72,53 @@
         "date": { "type": "string", "format": "date-time", "description": "Timestamp de quando o corte foi confirmado." }
       },
       "required": ["userId", "barberId", "pinUsed", "confirmed", "date"]
+    },
+    "LimitedSpin": {
+      "title": "LimitedSpin",
+      "type": "object",
+      "description": "Representa um giro condicional que requer uma ação para ser liberado.",
+      "properties": {
+        "userId": { "type": "string", "description": "ID do usuário que possui o giro." },
+        "type": { "type": "string", "enum": ["extra_spin"], "description": "Tipo do giro limitado." },
+        "status": { "type": "string", "enum": ["active", "used", "expired"], "description": "Status do giro limitado." },
+        "condition": { "type": "string", "description": "Condição para uso, ex: 'valid_only_with_haircut'." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o giro foi concedido." },
+        "expiresAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o giro expira." },
+        "usedAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o giro foi utilizado." },
+        "usedByBarberId": { "type": "string", "description": "ID do barbeiro que validou o uso do giro." }
+      },
+      "required": ["userId", "type", "status", "condition", "createdAt", "expiresAt"]
     }
   },
   "auth": {
     "providers": []
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": { "schema": { "$ref": "#/entities/User" } }
-      },
-      {
-        "path": "/prizes/{prizeId}",
-        "definition": {
-          "schema": { "$ref": "#/entities/Prize" },
-          "description": "Coleção raiz para todos os prêmios de todos os usuários."
-        }
-      },
-      {
-        "path": "/barbers/{barberId}",
-        "definition": { "schema": { "$ref": "#/entities/Barber" } }
-      },
-      {
-        "path": "/spins/{spinId}",
-        "definition": { "schema": { "$ref": "#/entities/Spin" } }
-      },
-      {
-        "path": "/cuts/{cutId}",
-        "definition": { "schema": { "$ref": "#/entities/Cut" } }
-      }
-    ]
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Documento de um único usuário."
+    },
+    "/prizes/{prizeId}": {
+      "schema": { "$ref": "#/entities/Prize" },
+      "description": "Coleção raiz para todos os prêmios de todos os usuários."
+    },
+    "/barbers/{barberId}": {
+      "schema": { "$ref": "#/entities/Barber" },
+      "description": "Documento de um barbeiro autorizado."
+    },
+    "/spins/{spinId}": {
+      "schema": { "$ref": "#/entities/Spin" },
+      "description": "Coleção para registrar o histórico de giros concedidos."
+    },
+    "/cuts/{cutId}": {
+      "schema": { "$ref": "#/entities/Cut" },
+      "description": "Coleção para registrar o histórico de cortes confirmados."
+    },
+    "/limitedSpins/{limitedSpinId}": {
+        "schema": { "$ref": "#/entities/LimitedSpin" },
+        "description": "Coleção para giros condicionais que requerem uma ação para serem ativados."
+    }
   }
 }
+
+    
