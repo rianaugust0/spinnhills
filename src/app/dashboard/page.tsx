@@ -111,31 +111,48 @@ export default function DashboardPage() {
         </Button>
       </header>
 
-      <main className="flex-1 container mx-auto px-4 py-8 space-y-8 animate-fade-in-up">
-        <Card className="bg-dark-gray border-gold/20 text-center shadow-lg shadow-gold-glow">
-          <CardHeader>
-            <CardTitle className="font-headline text-4xl text-gold uppercase tracking-wider flex items-center justify-center gap-3">
-              <FerrisWheel className="h-10 w-10 animate-spin [animation-duration:10s]" />
-              Spin Hills
-            </CardTitle>
-            <CardDescription>
-              Giros disponíveis:
-              <span className="text-5xl font-bold text-ice-white block mt-2">{clientData.girosDisponiveis}</span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {clientData.girosDisponiveis > 0 ? (
-              <Button onClick={() => router.push('/spin')} className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base">
-                <Sparkles className="mr-2 h-5 w-5" />
-                Girar agora!
-              </Button>
-            ) : (
-              <Button disabled className="w-full bg-muted text-muted-foreground">
-                Complete ações para liberar giros
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+      <main className="flex-1 container mx-auto px-4 py-8 space-y-6 md:space-y-8 animate-fade-in-up">
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <Card className="bg-dark-gray border-gold/20 text-center shadow-lg shadow-gold-glow">
+            <CardHeader>
+                <CardTitle className="font-headline text-4xl text-gold uppercase tracking-wider flex items-center justify-center gap-3">
+                <FerrisWheel className="h-10 w-10 animate-spin [animation-duration:10s]" />
+                Spin Hills
+                </CardTitle>
+                <CardDescription>
+                Giros disponíveis:
+                <span className="text-5xl font-bold text-ice-white block mt-2">{clientData.girosDisponiveis}</span>
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {clientData.girosDisponiveis > 0 ? (
+                <Button onClick={() => router.push('/spin')} className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base">
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    Girar agora!
+                </Button>
+                ) : (
+                <Button disabled className="w-full bg-muted text-muted-foreground h-12 text-base">
+                    Complete ações para liberar giros
+                </Button>
+                )}
+            </CardContent>
+            </Card>
+
+            <Card className="bg-dark-gray border-gold/20">
+                <CardHeader className="pb-4">
+                    <CardTitle className="text-ice-white text-lg">✂️ Progresso para o próximo giro</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Progress value={progressPercentage} className="bg-deep-black h-3 [&>div]:bg-gold" />
+                    <p className="text-center text-muted-foreground text-sm mt-3">
+                    <span className="font-bold text-gold">{clientData.cortesAtuais} / 5</span> cortes confirmados
+                    </p>
+                    <p className="text-center text-xs text-muted-foreground/50 mt-2">Complete 5 cortes e ganhe 1 giro.</p>
+                </CardContent>
+            </Card>
+        </div>
+
 
         <Card className="bg-dark-gray border-gold/20">
           <CardHeader className="text-center">
@@ -157,19 +174,6 @@ export default function DashboardPage() {
                     Entrar no Grupo
                 </Button>
             </a>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-dark-gray border-gold/20">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-ice-white text-lg">✂️ Progresso para o próximo giro</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Progress value={progressPercentage} className="bg-deep-black h-3 [&>div]:bg-gold" />
-            <p className="text-center text-muted-foreground text-sm mt-3">
-              <span className="font-bold text-gold">{clientData.cortesAtuais} / 5</span> cortes confirmados
-            </p>
-            <p className="text-center text-xs text-muted-foreground/50 mt-2">Complete 5 cortes e ganhe 1 giro.</p>
           </CardContent>
         </Card>
 

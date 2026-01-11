@@ -207,7 +207,7 @@ export default function ConfirmarCortePage() {
   if (step === 'success') {
        return (
         <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
-            <div className='animate-fade-in-up'>
+            <div className='animate-fade-in-up w-full max-w-sm'>
                 <CheckCircle className="h-24 w-24 text-green-500 mx-auto animate-pulse" />
                 <h1 className="font-headline text-4xl text-gold uppercase tracking-widest mt-4">Corte Confirmado!</h1>
                 <p className='text-ice-white text-lg mt-2'>O progresso de {client?.name.split(' ')[0]} foi atualizado.</p>
@@ -226,7 +226,7 @@ export default function ConfirmarCortePage() {
                     setClient(null);
                     setPhone('');
                     setPin('');
-                }} className='mt-8 w-full max-w-sm'>Confirmar Outro Corte</Button>
+                }} className='mt-8 w-full h-12 text-base'>Confirmar Outro Corte</Button>
                  <Button variant="ghost" onClick={() => router.push('/admin')} className='mt-2 w-full max-w-sm'>Voltar para o Menu</Button>
             </div>
         </div>
@@ -279,7 +279,7 @@ export default function ConfirmarCortePage() {
                      <Scissors className='h-12 w-12 mx-auto text-gold/50'/>
                     <CardTitle className="font-headline text-3xl text-gold uppercase">Ações para <strong className='text-gold'>{client.name.split(' ')[0]}</strong></CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4">
                     <div className='grid grid-cols-2 gap-4'>
                         <div className='p-2 bg-deep-black rounded-lg border border-gold/10'>
                             <p className='text-xs text-muted-foreground'>Progresso</p>
@@ -311,12 +311,12 @@ export default function ConfirmarCortePage() {
                         </Button>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 pt-2 border-t border-gold/10">
                       <Button
                         variant="outline"
                         onClick={() => setIsGrantModalOpen(true)}
                         disabled={loading}
-                        className="w-full text-gold border-gold/50 hover:bg-gold/10 hover:text-gold"
+                        className="w-full h-12 text-base text-gold border-gold/50 hover:bg-gold/10 hover:text-gold"
                       >
                         <Gift className="mr-2 h-4 w-4" />
                         Adicionar Benefício
@@ -336,5 +336,3 @@ export default function ConfirmarCortePage() {
     </div>
   );
 }
-
-    

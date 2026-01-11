@@ -127,7 +127,7 @@ export default function SpinPage() {
   if (clientData.girosDisponiveis <= 0 && !isSpinning && !prizeWon) {
     return(
          <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
-             <Card className="bg-dark-gray border-gold/20 p-8">
+             <Card className="bg-dark-gray border-gold/20 p-8 w-full max-w-sm">
                 <CardTitle className='text-2xl text-gold'>Você não tem giros!</CardTitle>
                 <CardDescription className='mt-2'>Complete tarefas no dashboard para ganhar mais giros.</CardDescription>
                 <Button onClick={() => router.push('/dashboard')} className='mt-6 w-full'>Voltar ao Dashboard</Button>
@@ -145,10 +145,10 @@ export default function SpinPage() {
         </Button>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center container mx-auto px-4 py-8 space-y-8 text-center">
+      <main className="flex-1 flex flex-col items-center justify-center container mx-auto px-4 pb-8 space-y-4 md:space-y-8 text-center">
         {prizeWon ? (
-           <div className='animate-fade-in-up'>
-              <Card className="bg-dark-gray border-gold/20 p-8 shadow-gold-glow">
+           <div className='animate-fade-in-up w-full max-w-sm'>
+              <Card className="bg-dark-gray border-gold/20 p-6 md:p-8 shadow-gold-glow">
                 <CardHeader>
                     {prizeWon.type !== 'try_again' ? (
                         <>
@@ -166,14 +166,16 @@ export default function SpinPage() {
                     )}
                 </CardHeader>
                 <CardContent>
-                     <Button onClick={() => router.push('/dashboard')} className='mt-6 w-full'>Voltar para o Início</Button>
+                     <Button onClick={() => router.push('/dashboard')} className='mt-6 w-full h-12 text-base'>Voltar para o Início</Button>
                 </CardContent>
              </Card>
            </div>
         ) : (
           <>
-            <h1 className="font-headline text-5xl text-gold uppercase tracking-wider">Gire a Roleta!</h1>
-            <p className="text-muted-foreground">Você tem <span className='font-bold text-ice-white'>{clientData.girosDisponiveis}</span> giro{clientData.girosDisponiveis !== 1 ? 's' : ''}. Boa sorte!</p>
+            <div className='w-full max-w-md'>
+                <h1 className="font-headline text-4xl md:text-5xl text-gold uppercase tracking-wider">Gire a Roleta!</h1>
+                <p className="text-muted-foreground mt-2">Você tem <span className='font-bold text-ice-white'>{clientData.girosDisponiveis}</span> giro{clientData.girosDisponiveis !== 1 ? 's' : ''}. Boa sorte!</p>
+            </div>
             <Roulette 
               mustSpin={mustSpin}
               onStopSpinning={() => {
@@ -189,5 +191,3 @@ export default function SpinPage() {
     </div>
   );
 }
-
-    

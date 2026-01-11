@@ -6,6 +6,7 @@ import { allOutcomes, PrizeOption } from '@/lib/prizes';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Wheel } from 'react-custom-roulette';
+import { useWindowSize } from 'react-use';
 
 interface RouletteProps {
   mustSpin: boolean;
@@ -24,12 +25,12 @@ const innerRadius = 0;
 const radiusLineColor = '#D4AF37';
 const radiusLineWidth = 2;
 const fontFamily = 'Bebas Neue';
-const fontSize = 18;
-const textDistance = 68;
 const textColors = ['#FFFFFF'];
 
 export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, onPrizeDefined }: RouletteProps) {
   const [prizeNumber, setPrizeNumber] = useState(0);
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
 
   const data = allOutcomes.map((option, index) => ({
     option: option.title.toUpperCase(),
@@ -47,9 +48,14 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
     }
   };
 
+  const rouletteSize = isMobile ? 300 : 400;
+  const fontSize = isMobile ? 12 : 16;
+  const textDistance = isMobile ? 65 : 75;
+
+
   return (
-    <div className="relative flex flex-col items-center justify-center space-y-8">
-      <div className="relative pointer-events-none">
+    <div className="relative flex flex-col items-center justify-center space-y-6 md:space-y-8">
+      <div className="relative pointer-events-none" style={{width: `${rouletteSize}px`, height: `${rouletteSize}px`}}>
         <Wheel
           mustStartSpinning={mustSpin}
           prizeNumber={prizeNumber}
@@ -70,6 +76,7 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
           radiusLineColor={radiusLineColor}
           radiusLineWidth={radiusLineWidth}
           textDistance={textDistance}
+          perpendicularText={true}
         />
       </div>
      

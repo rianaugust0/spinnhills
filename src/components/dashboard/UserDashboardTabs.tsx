@@ -52,7 +52,7 @@ const PrizeCard = ({ prize }: { prize: any }) => {
                         <Calendar className="h-3 w-3 mr-1.5" />
                          Válido por mais {validityLeft} dia{validityLeft !== 1 ? 's' : ''}
                     </Badge>
-                    <Button size="sm" onClick={handleRedeemClick}>Resgatar</Button>
+                    <Button size="sm" onClick={handleRedeemClick} className="h-9">Resgatar</Button>
                  </div>
             ) : (
                  <Badge variant="destructive">Expirado</Badge>
@@ -142,7 +142,7 @@ export function UserDashboardTabs({ activePrizes, activeLimitedSpin }: UserDashb
 
       <TabsContent value="prizes" className="mt-6">
         {activePrizes && activePrizes.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {activePrizes.map((prize) => (
                     <PrizeCard key={prize.id} prize={prize} />
                 ))}
