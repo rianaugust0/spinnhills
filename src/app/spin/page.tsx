@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { initializeFirebase, useDoc } from '@/firebase';
-import { doc, runTransaction, serverTimestamp, collection, updateDoc, addDoc } from 'firebase/firestore';
-import { PrizeOption, prizeOptions } from '@/lib/prizes';
+import { doc, serverTimestamp, collection } from 'firebase/firestore';
+import { PrizeOption, allOutcomes } from '@/lib/prizes';
 import { useWindowSize } from 'react-use';
 import dynamic from 'next/dynamic';
 import { updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -54,8 +54,8 @@ export default function SpinPage() {
 
   const startSpin = () => {
     if (clientData?.girosDisponiveis > 0 && !isSpinning) {
-        setIsSpinning(true);
         setMustSpin(true);
+        setIsSpinning(true);
     } else {
         toast({
             variant: 'destructive',
@@ -88,7 +88,7 @@ export default function SpinPage() {
         const newPrizeData = {
             userId: clientPhone,
             userName: clientData.name,
-            userPhone: clientData.phone,
+            userPhone: clientData.id, // Assuming phone is ID
             type: prize.type,
             title: prize.title,
             description: prize.description,
@@ -97,8 +97,7 @@ export default function SpinPage() {
             validityDays: prize.validityDays,
             createdAt: serverTimestamp(),
             expiresAt: expirationDate,
-            usedAt: null,
-            usedByBarberId: null,
+            origin: 'roleta_digital',
         };
         addDocumentNonBlocking(prizeCollectionRef, newPrizeData);
     }
@@ -114,7 +113,6 @@ export default function SpinPage() {
     );
   }
 
-  // This check is now against the local state, which is updated optimistically
   if (clientData.girosDisponiveis <= 0 && !isSpinning && !prizeWon) {
     return(
          <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
@@ -166,7 +164,9 @@ export default function SpinPage() {
             <p className="text-muted-foreground">Você tem <span className='font-bold text-ice-white'>{clientData.girosDisponiveis}</span> giro{clientData.girosDisponiveis !== 1 ? 's' : ''}. Boa sorte!</p>
             <Roulette 
               mustSpin={mustSpin}
-              onStopSpinning={() => { /* Handled by onPrizeDefined now */ }}
+              onStopSpinning={() => {
+                 setIsSpinning(false);
+              }}
               onPrizeDefined={handleSpinFinish} 
               startSpinning={startSpin}
               isSpinning={isSpinning}
@@ -177,3 +177,5 @@ export default function SpinPage() {
     </div>
   );
 }
+
+    

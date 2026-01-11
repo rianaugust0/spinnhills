@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { prizeOptions, PrizeOption } from '@/lib/prizes';
+import { allOutcomes, PrizeOption } from '@/lib/prizes';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { Wheel } from 'react-custom-roulette';
@@ -31,7 +31,7 @@ const textColors = ['#FFFFFF'];
 export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, onPrizeDefined }: RouletteProps) {
   const [prizeNumber, setPrizeNumber] = useState(0);
 
-  const data = prizeOptions.map((option, index) => ({
+  const data = allOutcomes.map((option, index) => ({
     option: option.title.toUpperCase(),
     style: { 
       backgroundColor: backgroundColors[index % backgroundColors.length],
@@ -41,7 +41,7 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
 
   const handleSpinClick = () => {
     if (!mustSpin && !isSpinning) {
-      const newPrizeNumber = Math.floor(Math.random() * prizeOptions.length);
+      const newPrizeNumber = Math.floor(Math.random() * allOutcomes.length);
       setPrizeNumber(newPrizeNumber);
       startSpinning();
     }
@@ -55,7 +55,7 @@ export function Roulette({ mustSpin, isSpinning, startSpinning, onStopSpinning, 
           prizeNumber={prizeNumber}
           data={data}
           onStopSpinning={() => {
-            onPrizeDefined(prizeOptions[prizeNumber]);
+            onPrizeDefined(allOutcomes[prizeNumber]);
             onStopSpinning();
           }}
           backgroundColors={backgroundColors}

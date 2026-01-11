@@ -6,16 +6,16 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, User, Scissors, CheckCircle, FerrisWheel, Gift } from 'lucide-react';
+import { Loader2, ArrowLeft, User, Scissors, CheckCircle, Gift } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
-import { GrantSpinModal } from '@/components/admin/GrantSpinModal';
-import { doc, getDoc, runTransaction, collection, query, where, getDocs, serverTimestamp, addDoc, updateDoc } from 'firebase/firestore';
+import { GrantPrizeOrSpinModal } from '@/components/admin/GrantPrizeOrSpinModal';
+import { doc, getDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const { firestore } = initializeFirebase();
 
-type ClientData = {
+export type ClientData = {
     id: string;
     name: string;
     cortesAtuais: number;
@@ -32,7 +32,7 @@ export default function ConfirmarCortePage() {
   const [loading, setLoading] = useState(false);
   const [client, setClient] = useState<ClientData | null>(null);
   const [step, setStep] = useState<'findClient' | 'confirmCut' | 'success'>('findClient');
-  const [isGrantSpinModalOpen, setIsGrantSpinModalOpen] = useState(false);
+  const [isGrantModalOpen, setIsGrantModalOpen] = useState(false);
 
   const handleFindClient = async () => {
     const sanitizedPhone = phone.replace(/\D/g, '');
@@ -86,7 +86,6 @@ export default function ConfirmarCortePage() {
         const barberId = barberSnapshot.docs[0].id;
         const userDocRef = doc(firestore, 'users', client.id);
 
-        // Optimistic UI updates
         let newCortesAtuais = (client.cortesAtuais + 1);
         let newGirosDisponiveis = client.girosDisponiveis;
         let spinGranted = false;
@@ -97,6 +96,7 @@ export default function ConfirmarCortePage() {
             spinGranted = true;
         }
         
+        // Optimistic UI updates
         const updatedClientData = {
           ...client,
           cortesAtuais: newCortesAtuais,
@@ -126,8 +126,7 @@ export default function ConfirmarCortePage() {
             updatedAt: serverTimestamp(),
         });
 
-        const cutRef = collection(firestore, "cuts");
-        addDocumentNonBlocking(cutRef, {
+        addDocumentNonBlocking(collection(firestore, "cuts"), {
             userId: client.id,
             barberId: barberId,
             pinUsed: pin,
@@ -136,8 +135,7 @@ export default function ConfirmarCortePage() {
         });
         
         if (spinGranted) {
-            const spinRef = collection(firestore, "spins");
-            addDocumentNonBlocking(spinRef, {
+            addDocumentNonBlocking(collection(firestore, "spins"), {
                 userId: client.id,
                 origin: 'fidelidade_5_cortes',
                 manual: false,
@@ -149,7 +147,6 @@ export default function ConfirmarCortePage() {
 
     } catch (error: any) {
         console.error(error);
-        // Revert UI if sync operation (like PIN check) fails
         setStep('confirmCut'); 
         toast({
             variant: 'destructive',
@@ -161,9 +158,9 @@ export default function ConfirmarCortePage() {
     }
   }
 
-  const handleManualSpinGranted = (newSpinCount: number) => {
+  const handleClientUpdate = (updatedData: Partial<ClientData>) => {
     if (client) {
-      setClient({ ...client, girosDisponiveis: newSpinCount });
+      setClient({ ...client, ...updatedData });
     }
   };
   
@@ -192,14 +189,14 @@ export default function ConfirmarCortePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
-      {client && <GrantSpinModal 
-        isOpen={isGrantSpinModalOpen}
-        onClose={() => setIsGrantSpinModalOpen(false)}
+      {client && <GrantPrizeOrSpinModal 
+        isOpen={isGrantModalOpen}
+        onClose={() => setIsGrantModalOpen(false)}
         client={client}
-        onSpinGranted={handleManualSpinGranted}
+        onClientUpdate={handleClientUpdate}
       />}
       <header className="p-4 flex justify-between items-center">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="Voltar">
+        <Button variant="ghost" size="icon" onClick={() => step === 'confirmCut' ? setStep('findClient') : router.back()} aria-label="Voltar">
           <ArrowLeft className="h-5 w-5 text-gold" />
         </Button>
          <h1 className="font-headline text-xl text-ice-white uppercase">Ações do Cliente</h1>
@@ -253,7 +250,7 @@ export default function ConfirmarCortePage() {
                         <Input
                             type="password"
                             inputMode='numeric'
-                            placeholder="Digite o PIN do barbeiro"
+                            placeholder="PIN do barbeiro"
                             maxLength={4}
                             value={pin}
                             onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
@@ -271,12 +268,12 @@ export default function ConfirmarCortePage() {
                     <div className="space-y-2">
                       <Button
                         variant="outline"
-                        onClick={() => setIsGrantSpinModalOpen(true)}
+                        onClick={() => setIsGrantModalOpen(true)}
                         disabled={loading}
                         className="w-full text-gold border-gold/50 hover:bg-gold/10 hover:text-gold"
                       >
                         <Gift className="mr-2 h-4 w-4" />
-                        Liberar Giro Manual
+                        Liberar Giro ou Prêmio
                       </Button>
                     </div>
 
@@ -293,3 +290,5 @@ export default function ConfirmarCortePage() {
     </div>
   );
 }
+
+    
