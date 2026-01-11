@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
+  assetPrefix: './',
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -44,5 +45,4 @@ const nextConfig = {
   },
 };
 
-// Forcing a rebuild to clear potential cache issues.
 module.exports = nextConfig;
