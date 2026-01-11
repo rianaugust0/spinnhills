@@ -9,14 +9,23 @@ import { Ticket, Calendar, Gift, Target, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { differenceInDays, format, isValid } from "date-fns";
 import { Timestamp } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 const PrizeCard = ({ prize }: { prize: any }) => {
   const router = useRouter();
+  const [daysLeft, setDaysLeft] = useState<number | null>(null);
 
   // Safely convert expiresAt to a Date object
   const expiresAtDate = prize.expiresAt instanceof Timestamp 
     ? prize.expiresAt.toDate() 
     : new Date(prize.expiresAt);
+
+  useEffect(() => {
+    if (isValid(expiresAtDate)) {
+      setDaysLeft(differenceInDays(expiresAtDate, new Date()));
+    }
+  }, [expiresAtDate]);
+
 
   if (!isValid(expiresAtDate)) {
       return (
@@ -27,11 +36,13 @@ const PrizeCard = ({ prize }: { prize: any }) => {
       );
   }
 
-  const validityLeft = differenceInDays(expiresAtDate, new Date());
-
   const handleRedeemClick = () => {
     router.push(`/resgatar-premio?prizeId=${prize.id}`);
   };
+
+  if (daysLeft === null) {
+    return null; // or a loading skeleton for the card
+  }
 
   return (
     <Card className="bg-dark-gray border-gold/20 overflow-hidden">
@@ -46,11 +57,11 @@ const PrizeCard = ({ prize }: { prize: any }) => {
           <CardDescription className="text-sm text-muted-foreground mt-2">{prize.description}</CardDescription>
         </div>
         <div className="mt-4">
-            {validityLeft >= 0 ? (
+            {daysLeft >= 0 ? (
                  <div className='flex justify-between items-center'>
                     <Badge variant="outline" className='border-green-500/50 text-green-400'>
                         <Calendar className="h-3 w-3 mr-1.5" />
-                         Válido por mais {validityLeft} dia{validityLeft !== 1 ? 's' : ''}
+                         Válido por mais {daysLeft} dia{daysLeft !== 1 ? 's' : ''}
                     </Badge>
                     <Button size="sm" onClick={handleRedeemClick} className="h-9">Resgatar</Button>
                  </div>
@@ -65,9 +76,18 @@ const PrizeCard = ({ prize }: { prize: any }) => {
 
 
 const LimitedSpinCard = ({ limitedSpin }: { limitedSpin: any }) => {
+    const [daysLeft, setDaysLeft] = useState<number | null>(null);
+
     const expiresAtDate = limitedSpin.expiresAt instanceof Timestamp 
         ? limitedSpin.expiresAt.toDate() 
         : new Date(limitedSpin.expiresAt);
+    
+    useEffect(() => {
+        if(isValid(expiresAtDate)) {
+            setDaysLeft(differenceInDays(expiresAtDate, new Date()));
+        }
+    }, [expiresAtDate]);
+
 
     if (!isValid(expiresAtDate)) {
         return (
@@ -77,7 +97,9 @@ const LimitedSpinCard = ({ limitedSpin }: { limitedSpin: any }) => {
         )
     }
 
-    const daysLeft = differenceInDays(expiresAtDate, new Date());
+    if (daysLeft === null) {
+      return null; // Or a loading skeleton
+    }
 
     if (daysLeft < 0) {
         return (

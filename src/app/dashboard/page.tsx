@@ -74,18 +74,16 @@ const DashboardSkeleton = () => (
 export default function DashboardPage() {
   const router = useRouter();
   const [clientPhone, setClientPhone] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
   
-  // Render skeleton until clientPhone is confirmed from localStorage
-  const [initialLoading, setInitialLoading] = useState(true);
-
   useEffect(() => {
+    // This effect runs only on the client
+    setIsClient(true);
     const phoneFromStorage = localStorage.getItem('spin-hills-user-phone');
     if (!phoneFromStorage) {
       router.replace('/entrar');
     } else {
       setClientPhone(phoneFromStorage);
-      // Wait a tick to show skeleton smoothly before data fetching starts
-      setTimeout(() => setInitialLoading(false), 0);
     }
   }, [router]);
 
@@ -108,7 +106,7 @@ export default function DashboardPage() {
   const { data: activePrizesData, isLoading: isPrizesLoading } = useCollection(prizesQuery);
 
   const activePrizes = useMemo(() => {
-    if (!activePrizesData) return [];
+    if (!activePrizesData || !isClient) return [];
     const today = new Date();
     return activePrizesData.filter(prize => {
         const expiresAtDate = prize.expiresAt instanceof Timestamp ? prize.expiresAt.toDate() : prize.expiresAt;
@@ -118,7 +116,7 @@ export default function DashboardPage() {
         const dateB = b.expiresAt instanceof Timestamp ? b.expiresAt.toDate() : b.expiresAt;
         return dateA.getTime() - dateB.getTime();
     });
-  }, [activePrizesData]);
+  }, [activePrizesData, isClient]);
   
   const limitedSpinsQuery = useMemo(() => {
       if (!firestore || !clientPhone) return null;
@@ -132,14 +130,14 @@ export default function DashboardPage() {
   const { data: limitedSpinsData, isLoading: isLimitedSpinsLoading } = useCollection(limitedSpinsQuery);
   
   const activeLimitedSpin = useMemo(() => {
-      if (!limitedSpinsData || limitedSpinsData.length === 0) return null;
+      if (!limitedSpinsData || limitedSpinsData.length === 0 || !isClient) return null;
       const today = new Date();
       const activeSpin = limitedSpinsData.find(spin => {
         const expiresAtDate = spin.expiresAt instanceof Timestamp ? spin.expiresAt.toDate() : new Date(spin.expiresAt);
         return isAfter(expiresAtDate, today) || differenceInDays(expiresAtDate, today) >= 0;
       });
       return activeSpin || null;
-  }, [limitedSpinsData]);
+  }, [limitedSpinsData, isClient]);
 
 
   const handleLogout = () => {
@@ -147,7 +145,7 @@ export default function DashboardPage() {
     router.push('/');
   };
 
-  const isLoading = initialLoading || isClientLoading || isPrizesLoading || isLimitedSpinsLoading;
+  const isLoading = !isClient || isClientLoading || isPrizesLoading || isLimitedSpinsLoading;
 
   return (
     <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">

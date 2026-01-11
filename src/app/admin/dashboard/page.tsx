@@ -77,8 +77,15 @@ export default function AdminDashboardPage() {
     expiringIn3Days: 0,
     totalActive: 0,
   });
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
     const fetchActivePrizes = async () => {
       // No setLoading(true) here, skeleton handles initial state
       try {
@@ -125,7 +132,24 @@ export default function AdminDashboardPage() {
     };
 
     fetchActivePrizes();
-  }, []);
+  }, [isClient]);
+
+  if (!isClient || loading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
+        <header className="p-4 flex justify-between items-center border-b border-gold/20 sticky top-0 bg-deep-black/80 backdrop-blur-sm z-10">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/admin')} aria-label="Voltar">
+            <ArrowLeft className="h-5 w-5 text-gold" />
+          </Button>
+          <h1 className="font-headline text-xl text-ice-white uppercase">Painel de Prêmios</h1>
+          <div></div>
+        </header>
+        <main className="flex-1 container mx-auto px-4 py-8">
+          <DashboardSkeleton />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
