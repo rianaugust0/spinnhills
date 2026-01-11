@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,6 +10,7 @@ import { FirestorePermissionError } from '../errors';
 interface UseDoc<T> {
   data: T | null;
   isLoading: boolean;
+  setData: React.Dispatch<React.SetStateAction<T | null>>;
 }
 
 export function useDoc<T extends DocumentData>(
@@ -50,5 +52,5 @@ export function useDoc<T extends DocumentData>(
     return () => unsubscribe();
   }, [ref]);
 
-  return { data, isLoading };
+  return { data, isLoading, setData };
 }

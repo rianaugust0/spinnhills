@@ -9,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Gift } from 'lucide-react';
 import { initializeFirebase } from '@/firebase';
-import { doc, runTransaction, collection, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
+import { doc, runTransaction, collection, serverTimestamp, getDocs, query, where, updateDoc, addDoc } from 'firebase/firestore';
+import { updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const { firestore } = initializeFirebase();
 
@@ -51,44 +52,37 @@ export function GrantSpinModal({ isOpen, onClose, client, onSpinGranted }: Grant
         const barberId = barberSnapshot.docs[0].id;
         const userDocRef = doc(firestore, 'users', client.id);
 
-        const newSpinCount = await runTransaction(firestore, async (transaction) => {
-            const userDoc = await transaction.get(userDocRef);
-            if (!userDoc.exists()) {
-                throw new Error('Cliente não encontrado.');
-            }
+        const newSpinCount = client.girosDisponiveis + 1;
 
-            const newGiros = (userDoc.data().girosDisponiveis || 0) + 1;
-            
-            // Update user's spin count
-            transaction.update(userDocRef, {
-                girosDisponiveis: newGiros,
-                updatedAt: serverTimestamp()
-            });
-
-            // Register the manual spin
-            const spinRef = doc(collection(firestore, 'spins'));
-            transaction.set(spinRef, {
-                userId: client.id,
-                origin: origin,
-                manual: true,
-                releasedBy: barberId,
-                notes: notes,
-                createdAt: serverTimestamp()
-            });
-            
-            return newGiros;
-        });
-
+        // Optimistic UI Update
+        onSpinGranted(newSpinCount);
         toast({
             title: 'Giro liberado!',
             description: `${client.name} agora tem ${newSpinCount} giro(s) disponível(is).`
         });
-        
-        onSpinGranted(newSpinCount);
         handleClose();
+
+        // Non-blocking Firestore updates
+        updateDocumentNonBlocking(userDocRef, {
+            girosDisponiveis: newSpinCount,
+            updatedAt: serverTimestamp()
+        });
+
+        const spinRef = collection(firestore, 'spins');
+        addDocumentNonBlocking(spinRef, {
+            userId: client.id,
+            origin: origin,
+            manual: true,
+            releasedBy: barberId,
+            notes: notes,
+            createdAt: serverTimestamp()
+        });
+        
 
     } catch (error: any) {
         console.error(error);
+        // Revert UI if sync op fails
+        onSpinGranted(client.girosDisponiveis);
         toast({ variant: 'destructive', title: 'Erro ao liberar giro', description: error.message });
     } finally {
         setLoading(false);

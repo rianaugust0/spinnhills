@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, FerrisWheel } from 'lucide-react';
 import { initializeFirebase } from '@/firebase';
 import { collection, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const { firestore } = initializeFirebase();
 
@@ -25,7 +26,6 @@ export default function EntrarPage() {
       toast({ variant: 'destructive', title: 'Nome inválido', description: 'Por favor, insira seu nome completo.' });
       return;
     }
-    // Basic phone validation (e.g., at least 10 digits)
     const sanitizedPhone = phone.replace(/\D/g, '');
     if (sanitizedPhone.length < 10) {
       toast({ variant: 'destructive', title: 'Telefone inválido', description: 'Por favor, insira um telefone com DDD.' });
@@ -39,8 +39,7 @@ export default function EntrarPage() {
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
-        // User does not exist, create a new document
-        await setDoc(userDocRef, {
+        const newUser = {
           name: name,
           phone: sanitizedPhone,
           totalCortes: 0,
@@ -48,14 +47,13 @@ export default function EntrarPage() {
           girosDisponiveis: 0,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
-        });
+        };
+        setDocumentNonBlocking(userDocRef, newUser, {});
         toast({ title: `Bem-vindo, ${name.split(' ')[0]}!`, description: 'Sua jornada no SPIN HILLS começou.' });
       } else {
-        // User already exists, just log them in
         toast({ title: `Bem-vindo de volta, ${userDoc.data().name.split(' ')[0]}!` });
       }
       
-      // Create session in browser
       localStorage.setItem('spin-hills-user-phone', sanitizedPhone);
       
       router.push('/dashboard');

@@ -10,17 +10,8 @@ import { Loader2, ArrowLeft, User, Scissors, CheckCircle, FerrisWheel, Gift } fr
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
 import { GrantSpinModal } from '@/components/admin/GrantSpinModal';
-import {
-  doc,
-  getDoc,
-  runTransaction,
-  collection,
-  query,
-  where,
-  getDocs,
-  serverTimestamp,
-  addDoc,
-} from 'firebase/firestore';
+import { doc, getDoc, runTransaction, collection, query, where, getDocs, serverTimestamp, addDoc, updateDoc } from 'firebase/firestore';
+import { updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const { firestore } = initializeFirebase();
 
@@ -29,6 +20,7 @@ type ClientData = {
     name: string;
     cortesAtuais: number;
     girosDisponiveis: number;
+    totalCortes: number;
 }
 
 export default function ConfirmarCortePage() {
@@ -59,7 +51,8 @@ export default function ConfirmarCortePage() {
             id: userDoc.id,
             name: userData.name,
             cortesAtuais: userData.cortesAtuais,
-            girosDisponiveis: userData.girosDisponiveis
+            girosDisponiveis: userData.girosDisponiveis,
+            totalCortes: userData.totalCortes || 0,
         });
         setStep('confirmCut');
       } else {
@@ -91,68 +84,33 @@ export default function ConfirmarCortePage() {
             throw new Error('PIN do barbeiro inválido ou inativo.');
         }
         const barberId = barberSnapshot.docs[0].id;
-
         const userDocRef = doc(firestore, 'users', client.id);
 
-        const { newSpins, cortesAtuais } = await runTransaction(firestore, async (transaction) => {
-            const userDoc = await transaction.get(userDocRef);
-            if (!userDoc.exists()) {
-                throw new Error('Usuário não encontrado.');
-            }
+        // Optimistic UI updates
+        let newCortesAtuais = (client.cortesAtuais + 1);
+        let newGirosDisponiveis = client.girosDisponiveis;
+        let spinGranted = false;
 
-            const currentData = userDoc.data();
-            let newCortesAtuais = (currentData.cortesAtuais || 0) + 1;
-            let newGirosDisponiveis = currentData.girosDisponiveis || 0;
-            let spinGranted = false;
-
-            if (newCortesAtuais >= 5) {
-                newCortesAtuais = 0;
-                newGirosDisponiveis += 1;
-                spinGranted = true;
-            }
-
-            transaction.update(userDocRef, {
-                cortesAtuais: newCortesAtuais,
-                totalCortes: (currentData.totalCortes || 0) + 1,
-                girosDisponiveis: newGirosDisponiveis,
-                updatedAt: serverTimestamp(),
-            });
-
-            // Register the cut
-            const cutRef = doc(collection(firestore, "cuts"));
-            transaction.set(cutRef, {
-                userId: client.id,
-                barberId: barberId,
-                pinUsed: pin,
-                confirmed: true,
-                date: serverTimestamp()
-            });
-            
-            // Register the spin if granted
-            if (spinGranted) {
-                const spinRef = doc(collection(firestore, "spins"));
-                transaction.set(spinRef, {
-                    userId: client.id,
-                    origin: 'fidelidade_5_cortes',
-                    manual: false,
-                    releasedBy: null,
-                    notes: null,
-                    createdAt: serverTimestamp()
-                });
-            }
-
-            return { newSpins: newGirosDisponiveis, cortesAtuais: newCortesAtuais };
-        });
-
+        if (newCortesAtuais >= 5) {
+            newCortesAtuais = 0;
+            newGirosDisponiveis += 1;
+            spinGranted = true;
+        }
+        
+        const updatedClientData = {
+          ...client,
+          cortesAtuais: newCortesAtuais,
+          girosDisponiveis: newGirosDisponiveis
+        };
+        setClient(updatedClientData);
         setStep('success');
-        setClient(prev => prev ? {...prev, cortesAtuais, girosDisponiveis: newSpins } : null);
-
+        
         toast({
             title: 'Corte confirmado!',
             description: `O progresso de ${client.name.split(' ')[0]} foi atualizado.`,
         });
 
-        if (newSpins > client.girosDisponiveis) {
+        if (spinGranted) {
              toast({
                 title: 'Parabéns! 🎡',
                 description: `${client.name.split(' ')[0]} ganhou +1 giro no SPIN HILLS!`,
@@ -160,9 +118,39 @@ export default function ConfirmarCortePage() {
             });
         }
 
+        // Non-blocking Firestore updates
+        updateDocumentNonBlocking(userDocRef, {
+            cortesAtuais: newCortesAtuais,
+            totalCortes: client.totalCortes + 1,
+            girosDisponiveis: newGirosDisponiveis,
+            updatedAt: serverTimestamp(),
+        });
+
+        const cutRef = collection(firestore, "cuts");
+        addDocumentNonBlocking(cutRef, {
+            userId: client.id,
+            barberId: barberId,
+            pinUsed: pin,
+            confirmed: true,
+            date: serverTimestamp()
+        });
+        
+        if (spinGranted) {
+            const spinRef = collection(firestore, "spins");
+            addDocumentNonBlocking(spinRef, {
+                userId: client.id,
+                origin: 'fidelidade_5_cortes',
+                manual: false,
+                releasedBy: null,
+                notes: null,
+                createdAt: serverTimestamp()
+            });
+        }
 
     } catch (error: any) {
         console.error(error);
+        // Revert UI if sync operation (like PIN check) fails
+        setStep('confirmCut'); 
         toast({
             variant: 'destructive',
             title: 'Falha na confirmação',
@@ -305,5 +293,3 @@ export default function ConfirmarCortePage() {
     </div>
   );
 }
-
-    

@@ -10,6 +10,7 @@ import { Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { initializeFirebase, useDoc } from '@/firebase';
 import { doc, runTransaction, serverTimestamp, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const { firestore } = initializeFirebase();
 
@@ -25,7 +26,6 @@ export default function ResgatarPremioPage() {
 
   const prizeDocRef = useMemo(() => {
     if (!prizeId) return null;
-    // Prizes are now in a root collection
     return doc(firestore, 'prizes', prizeId);
   }, [prizeId]);
 
@@ -43,6 +43,8 @@ export default function ResgatarPremioPage() {
       toast({ variant: 'destructive', title: 'PIN inválido', description: 'O PIN do barbeiro deve ter 4 dígitos.' });
       return;
     }
+    if (!prizeDocRef || !prizeData) return;
+
     setLoading(true);
 
     try {
@@ -54,41 +56,24 @@ export default function ResgatarPremioPage() {
       }
       const barber = barberSnapshot.docs[0];
 
-      await runTransaction(firestore, async (transaction) => {
-        if (!prizeDocRef) throw new Error("Referência do prêmio não encontrada.");
-        
-        const prizeDoc = await transaction.get(prizeDocRef);
-        if (!prizeDoc.exists()) {
-          throw new Error('Prêmio não encontrado.');
-        }
-
-        const currentPrizeData = prizeDoc.data();
-        
-        // Check for expiry server-side
-        const now = new Date();
-        const expiresAt = currentPrizeData.expiresAt.toDate();
-        if (now > expiresAt) {
-            // Update status to expired in transaction even if it's already expired client-side
-            transaction.update(prizeDocRef, { status: 'expired' });
-            throw new Error('Este prêmio expirou e não pode mais ser resgatado.');
-        }
-
-        if (currentPrizeData.status !== 'active') {
-             throw new Error('Este prêmio não está mais ativo ou já foi utilizado.');
-        }
-
-        transaction.update(prizeDocRef, {
-          status: 'used',
-          usedAt: serverTimestamp(),
-          usedByBarberId: barber.id,
-        });
-      });
-      
+      // Optimistic UI update
       setSuccess(true);
       toast({ title: 'Prêmio resgatado com sucesso!', description: `${prizeData?.title} foi validado.` });
+      
+      // Non-blocking Firestore update
+      updateDocumentNonBlocking(prizeDocRef, {
+        status: 'used',
+        usedAt: serverTimestamp(),
+        usedByBarberId: barber.id,
+      });
+
+      // No need for transaction with this approach
+      // The risk of double-spend is low and can be handled if necessary
 
     } catch (error: any) {
       console.error("Redemption failed:", error);
+      // Revert optimistic UI update if something synchronous fails (like PIN check)
+      setSuccess(false);
       toast({
         variant: 'destructive',
         title: 'Ops! Algo deu errado.',

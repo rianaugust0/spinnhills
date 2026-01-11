@@ -8,10 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { initializeFirebase, useDoc } from '@/firebase';
-import { doc, runTransaction, serverTimestamp, collection } from 'firebase/firestore';
+import { doc, runTransaction, serverTimestamp, collection, updateDoc, addDoc } from 'firebase/firestore';
 import { PrizeOption, prizeOptions } from '@/lib/prizes';
 import { useWindowSize } from 'react-use';
 import dynamic from 'next/dynamic';
+import { updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // Dynamically import heavy components
 const Roulette = dynamic(() => import('@/components/spin/roulette').then(mod => mod.Roulette), {
@@ -40,7 +41,7 @@ export default function SpinPage() {
     return doc(firestore, 'users', clientPhone);
   }, [clientPhone]);
 
-  const { data: clientData, isLoading: isClientLoading } = useDoc(userDocRef);
+  const { data: clientData, isLoading: isClientLoading, setData: setClientData } = useDoc(userDocRef);
 
   useEffect(() => {
     const phoneFromStorage = localStorage.getItem('spin-hills-user-phone');
@@ -64,61 +65,42 @@ export default function SpinPage() {
     }
   }
 
-  const handleSpinFinish = async (prize: PrizeOption) => {
+  const handleSpinFinish = (prize: PrizeOption) => {
     if (!userDocRef || !clientPhone || !clientData) return;
 
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const userDoc = await transaction.get(userDocRef);
-            if (!userDoc.exists() || userDoc.data().girosDisponiveis < 1) {
-            throw new Error("Você não tem giros suficientes.");
-            }
+    // Optimistic UI update
+    setClientData(prev => prev ? { ...prev, girosDisponiveis: prev.girosDisponiveis - 1 } : null);
+    setPrizeWon(prize);
+    setIsSpinning(false);
+    setMustSpin(false);
 
-            // 1. Consume the spin
-            transaction.update(userDocRef, {
-            girosDisponiveis: userDoc.data().girosDisponiveis - 1,
-            updatedAt: serverTimestamp(),
-            });
-            
-            // 2. Add prize if it's not "try again"
-            if (prize.type !== 'try_again') {
-                const prizeCollectionRef = collection(firestore, 'prizes');
-                const expirationDate = new Date();
-                expirationDate.setDate(expirationDate.getDate() + prize.validityDays);
+    // Non-blocking Firestore updates
+    updateDocumentNonBlocking(userDocRef, {
+      girosDisponiveis: clientData.girosDisponiveis - 1,
+      updatedAt: serverTimestamp(),
+    });
+    
+    if (prize.type !== 'try_again') {
+        const prizeCollectionRef = collection(firestore, 'prizes');
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + prize.validityDays);
 
-                // Use addDoc with a transaction
-                const newPrizeRef = doc(prizeCollectionRef);
-                transaction.set(newPrizeRef, {
-                    userId: clientPhone,
-                    userName: clientData.name, // Add user name
-                    userPhone: clientData.phone, // Add user phone
-                    type: prize.type,
-                    title: prize.title,
-                    description: prize.description,
-                    imageUrl: prize.imageUrl,
-                    status: 'active',
-                    validityDays: prize.validityDays,
-                    createdAt: serverTimestamp(),
-                    expiresAt: expirationDate,
-                    usedAt: null,
-                    usedByBarberId: null,
-                });
-            }
-        });
-      
-      setPrizeWon(prize);
-      setIsSpinning(false);
-      setMustSpin(false);
-
-    } catch (e: any) {
-      console.error("Spin transaction failed: ", e);
-      toast({
-        variant: 'destructive',
-        title: "Ops! Algo deu errado.",
-        description: e.message || "Não foi possível completar o giro. Tente novamente.",
-      });
-      setIsSpinning(false);
-      setMustSpin(false);
+        const newPrizeData = {
+            userId: clientPhone,
+            userName: clientData.name,
+            userPhone: clientData.phone,
+            type: prize.type,
+            title: prize.title,
+            description: prize.description,
+            imageUrl: prize.imageUrl,
+            status: 'active',
+            validityDays: prize.validityDays,
+            createdAt: serverTimestamp(),
+            expiresAt: expirationDate,
+            usedAt: null,
+            usedByBarberId: null,
+        };
+        addDocumentNonBlocking(prizeCollectionRef, newPrizeData);
     }
   };
 
@@ -132,7 +114,8 @@ export default function SpinPage() {
     );
   }
 
-  if (clientData.girosDisponiveis === 0 && !prizeWon) {
+  // This check is now against the local state, which is updated optimistically
+  if (clientData.girosDisponiveis <= 0 && !isSpinning && !prizeWon) {
     return(
          <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
              <Card className="bg-dark-gray border-gold/20 p-8">
@@ -180,10 +163,10 @@ export default function SpinPage() {
         ) : (
           <>
             <h1 className="font-headline text-5xl text-gold uppercase tracking-wider">Gire a Roleta!</h1>
-            <p className="text-muted-foreground">Você tem <span className='font-bold text-ice-white'>{clientData.girosDisponiveis}</span> giro{clientData.girosDisponiveis > 1 ? 's' : ''}. Boa sorte!</p>
+            <p className="text-muted-foreground">Você tem <span className='font-bold text-ice-white'>{clientData.girosDisponiveis}</span> giro{clientData.girosDisponiveis !== 1 ? 's' : ''}. Boa sorte!</p>
             <Roulette 
               mustSpin={mustSpin}
-              onStopSpinning={() => setMustSpin(false)}
+              onStopSpinning={() => { /* Handled by onPrizeDefined now */ }}
               onPrizeDefined={handleSpinFinish} 
               startSpinning={startSpin}
               isSpinning={isSpinning}
