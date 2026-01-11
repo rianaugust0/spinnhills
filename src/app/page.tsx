@@ -10,7 +10,7 @@ export default function WelcomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for session on load and redirect if it exists
+    // Check for session on load and redirect if it exists, only on client-side
     const userPhone = localStorage.getItem('spin-hills-user-phone');
     if (userPhone) {
       router.replace('/dashboard');
