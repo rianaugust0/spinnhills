@@ -133,7 +133,10 @@ export function UserDashboardTabs({ activePrizes, activeLimitedSpin }: UserDashb
   return (
     <Tabs defaultValue="prizes" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="prizes">Seus Prêmios ({activePrizes.length})</TabsTrigger>
+        <TabsTrigger value="prizes" className="flex flex-wrap items-center justify-center gap-x-1">
+          <span>Seus Prêmios</span>
+          <span>({activePrizes.length})</span>
+        </TabsTrigger>
         <TabsTrigger value="extra_spin" disabled={!activeLimitedSpin}>
             Giro Extra {activeLimitedSpin ? <Target className="h-4 w-4 ml-2 text-blue-400"/> : ''}
         </TabsTrigger>
