@@ -7,13 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Ticket, Calendar, Gift, Target, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { differenceInDays, format } from "date-fns";
-import type { Timestamp } from "firebase/firestore";
+import { differenceInDays, format, isValid } from "date-fns";
+import { Timestamp } from "firebase/firestore";
 
 const PrizeCard = ({ prize }: { prize: any }) => {
   const router = useRouter();
-  // Ensure expiresAt is a Date object
-  const expiresAtDate = prize.expiresAt instanceof (global.Timestamp || Date) ? prize.expiresAt.toDate() : prize.expiresAt;
+
+  // Safely convert expiresAt to a Date object
+  const expiresAtDate = prize.expiresAt instanceof Timestamp 
+    ? prize.expiresAt.toDate() 
+    : new Date(prize.expiresAt);
+
+  if (!isValid(expiresAtDate)) {
+      return (
+        <Card className="bg-dark-gray border-dashed border-muted-foreground/30 text-center p-8 opacity-60">
+            <CardTitle className="text-muted-foreground font-normal">{prize.title}</CardTitle>
+            <CardDescription className="mt-2 text-sm text-red-500">Data de validade inválida.</CardDescription>
+        </Card>
+      );
+  }
 
   const validityLeft = differenceInDays(expiresAtDate, new Date());
 
@@ -53,7 +65,18 @@ const PrizeCard = ({ prize }: { prize: any }) => {
 
 
 const LimitedSpinCard = ({ limitedSpin }: { limitedSpin: any }) => {
-    const expiresAtDate = limitedSpin.expiresAt instanceof (global.Timestamp || Date) ? limitedSpin.expiresAt.toDate() : limitedSpin.expiresAt;
+    const expiresAtDate = limitedSpin.expiresAt instanceof Timestamp 
+        ? limitedSpin.expiresAt.toDate() 
+        : new Date(limitedSpin.expiresAt);
+
+    if (!isValid(expiresAtDate)) {
+        return (
+             <Card className="bg-dark-gray border-dashed border-muted-foreground/30 text-center p-8 opacity-60">
+                <CardTitle className="text-muted-foreground font-normal">Giro Extra com data inválida</CardTitle>
+            </Card>
+        )
+    }
+
     const daysLeft = differenceInDays(expiresAtDate, new Date());
 
     if (daysLeft < 0) {
@@ -149,5 +172,3 @@ export function UserDashboardTabs({ activePrizes, activeLimitedSpin }: UserDashb
     </Tabs>
   )
 }
-
-    
