@@ -35,14 +35,6 @@ export default function SpinPage() {
   const [prizeWon, setPrizeWon] = useState<PrizeOption | null>(null);
   const [mustSpin, setMustSpin] = useState(false);
 
-  // Firestore document reference
-  const userDocRef = useMemo(() => {
-    if (!clientPhone) return null;
-    return doc(firestore, 'users', clientPhone);
-  }, [clientPhone]);
-
-  const { data: clientData, isLoading: isClientLoading, setData: setClientData } = useDoc(userDocRef);
-
   useEffect(() => {
     const phoneFromStorage = localStorage.getItem('spin-hills-user-phone');
     if (!phoneFromStorage) {
@@ -51,6 +43,15 @@ export default function SpinPage() {
       setClientPhone(phoneFromStorage);
     }
   }, [router]);
+
+  // Firestore document reference
+  const userDocRef = useMemo(() => {
+    if (!clientPhone || !firestore) return null;
+    return doc(firestore, 'users', clientPhone);
+  }, [clientPhone, firestore]);
+
+  const { data: clientData, isLoading: isClientLoading, setData: setClientData } = useDoc(userDocRef);
+
 
   const startSpin = () => {
     if (clientData?.girosDisponiveis > 0 && !isSpinning) {
@@ -177,5 +178,3 @@ export default function SpinPage() {
     </div>
   );
 }
-
-    

@@ -8,14 +8,16 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { initializeFirebase, useDoc, useCollection } from '@/firebase';
-import { doc, collection, query, where } from 'firebase/firestore';
-import { differenceInDays } from 'date-fns';
+import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
+import { differenceInDays, isAfter } from 'date-fns';
 
 const { firestore } = initializeFirebase();
 
 const PrizeCard = ({ prize }: { prize: any }) => {
   const router = useRouter();
-  const validityLeft = differenceInDays(prize.expiresAt.toDate(), new Date());
+  // Ensure expiresAt is a Date object
+  const expiresAtDate = prize.expiresAt instanceof Timestamp ? prize.expiresAt.toDate() : prize.expiresAt;
+  const validityLeft = differenceInDays(expiresAtDate, new Date());
 
   const handleRedeemClick = () => {
     // We now pass the prizeId directly, since it's a root collection
@@ -69,23 +71,35 @@ export default function DashboardPage() {
   }, [router]);
 
   const userDocRef = useMemo(() => {
-    if (!clientPhone) return null;
+    if (!clientPhone || !firestore) return null;
     return doc(firestore, 'users', clientPhone);
-  }, [clientPhone]);
+  }, [clientPhone, firestore]);
 
   const { data: clientData, isLoading: isClientLoading } = useDoc(userDocRef);
 
   const prizesQuery = useMemo(() => {
-    if (!clientPhone) return null;
-    // Query the root 'prizes' collection for this user's active prizes
+    if (!clientPhone || !firestore) return null;
     return query(
       collection(firestore, 'prizes'),
       where('userId', '==', clientPhone),
       where('status', '==', 'active')
     );
-  }, [clientPhone]);
+  }, [clientPhone, firestore]);
   
-  const { data: activePrizes, isLoading: isPrizesLoading } = useCollection(prizesQuery);
+  const { data: activePrizesData, isLoading: isPrizesLoading } = useCollection(prizesQuery);
+
+  const activePrizes = useMemo(() => {
+    if (!activePrizesData) return [];
+    const today = new Date();
+    return activePrizesData.filter(prize => {
+        const expiresAtDate = prize.expiresAt instanceof Timestamp ? prize.expiresAt.toDate() : prize.expiresAt;
+        return isAfter(expiresAtDate, today) || differenceInDays(expiresAtDate, today) >= 0;
+    }).sort((a, b) => {
+        const dateA = a.expiresAt instanceof Timestamp ? a.expiresAt.toDate() : a.expiresAt;
+        const dateB = b.expiresAt instanceof Timestamp ? b.expiresAt.toDate() : b.expiresAt;
+        return dateA.getTime() - dateB.getTime();
+    });
+  }, [activePrizesData]);
 
   const handleLogout = () => {
     localStorage.removeItem('spin-hills-user-phone');
