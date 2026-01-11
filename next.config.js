@@ -29,7 +29,7 @@ const nextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
+        protocol: 'https'
         hostname: 'storage.googleapis.com',
         port: '',
         pathname: '/**',
@@ -44,4 +44,5 @@ const nextConfig = {
   },
 };
 
+// Forcing a rebuild to clear potential cache issues.
 module.exports = nextConfig;
