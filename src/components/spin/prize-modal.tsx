@@ -27,12 +27,12 @@ export function PrizeModal({ prize, isOpen, onClose }: PrizeModalProps) {
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="bg-dark-gray border-gold/20 text-center">
         <DialogHeader>
-          {prize.nome !== 'Não foi dessa vez' ? (
+          {prize.type !== 'try_again' ? (
             <>
               <PartyPopper className='h-16 w-16 text-gold mx-auto animate-bounce' />
               <DialogTitle className='text-3xl text-gold mt-4'>Parabéns!</DialogTitle>
               <DialogDescription className='text-xl text-ice-white mt-2'>Você ganhou</DialogDescription>
-              <p className='text-4xl font-bold text-gold font-headline tracking-wider'>{prize.nome}</p>
+              <p className='text-4xl font-bold text-gold font-headline tracking-wider'>{prize.title}</p>
             </>
           ) : (
             <>
@@ -42,4 +42,9 @@ export function PrizeModal({ prize, isOpen, onClose }: PrizeModalProps) {
           )}
         </DialogHeader>
         <Button onClick={handleClose} className='mt-6 w-full'>
-          {prize.nome !== 'Não foi dessa vez' ? 'Ir para
+          {prize.type !== 'try_again' ? 'Ir para Meus Prêmios' : 'Voltar ao Início'}
+        </Button>
+      </DialogContent>
+    </Dialog>
+  );
+}
