@@ -11,6 +11,7 @@ import { initializeFirebase, useDoc, useCollection } from '@/firebase';
 import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
 import { isAfter, differenceInDays } from 'date-fns';
 import { UserDashboardTabs } from '@/components/dashboard/UserDashboardTabs';
+import { WhatsappIcon } from '@/components/ui/WhatsappIcon';
 
 const { firestore } = initializeFirebase();
 
@@ -30,20 +31,20 @@ export default function DashboardPage() {
   }, [router]);
 
   const userDocRef = useMemo(() => {
-    if (!clientPhone) return null;
+    if (!firestore || !clientPhone) return null;
     return doc(firestore, 'users', clientPhone);
-  }, [clientPhone]);
+  }, [clientPhone, firestore]);
 
   const { data: clientData, isLoading: isClientLoading } = useDoc(userDocRef);
 
   const prizesQuery = useMemo(() => {
-    if (!clientPhone) return null;
+    if (!firestore || !clientPhone) return null;
     return query(
       collection(firestore, 'prizes'),
       where('userId', '==', clientPhone),
       where('status', '==', 'active')
     );
-  }, [clientPhone]);
+  }, [clientPhone, firestore]);
   
   const { data: activePrizesData, isLoading: isPrizesLoading } = useCollection(prizesQuery);
 
@@ -61,13 +62,13 @@ export default function DashboardPage() {
   }, [activePrizesData]);
   
   const limitedSpinsQuery = useMemo(() => {
-      if (!clientPhone) return null;
+      if (!firestore || !clientPhone) return null;
       return query(
           collection(firestore, 'limitedSpins'),
           where('userId', '==', clientPhone),
           where('status', '==', 'active')
       );
-  }, [clientPhone]);
+  }, [clientPhone, firestore]);
 
   const { data: limitedSpinsData, isLoading: isLimitedSpinsLoading } = useCollection(limitedSpinsQuery);
   
@@ -75,7 +76,7 @@ export default function DashboardPage() {
       if (!limitedSpinsData || limitedSpinsData.length === 0) return null;
       const today = new Date();
       const activeSpin = limitedSpinsData.find(spin => {
-        const expiresAtDate = spin.expiresAt instanceof Timestamp ? spin.expiresAt.toDate() : spin.expiresAt;
+        const expiresAtDate = spin.expiresAt instanceof Timestamp ? spin.expiresAt.toDate() : new Date(spin.expiresAt);
         return isAfter(expiresAtDate, today) || differenceInDays(expiresAtDate, today) >= 0;
       });
       return activeSpin || null;
@@ -137,6 +138,29 @@ export default function DashboardPage() {
         </Card>
 
         <Card className="bg-dark-gray border-gold/20">
+          <CardHeader className="text-center">
+            <CardTitle className="text-ice-white text-lg flex items-center justify-center gap-2">
+                <WhatsappIcon className='h-6 w-6' />
+                Entre no Grupo Oficial
+            </CardTitle>
+            <CardDescription className='text-sm text-muted-foreground mt-1'>Fique por dentro de avisos, novidades, prêmios e benefícios exclusivos.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <a 
+                href="https://chat.whatsapp.com/GReZCTJDQbx1KxM9YrZji3" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className='w-full'
+            >
+                <Button className="w-full bg-whatsapp text-white font-bold uppercase tracking-wider hover:bg-whatsapp/90 h-12 text-base">
+                    <WhatsappIcon className='h-5 w-5 mr-2' />
+                    Entrar no Grupo
+                </Button>
+            </a>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-dark-gray border-gold/20">
           <CardHeader className="pb-4">
             <CardTitle className="text-ice-white text-lg">✂️ Progresso para o próximo giro</CardTitle>
           </CardHeader>
@@ -157,5 +181,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

@@ -71,7 +71,8 @@ export default {
         },
         'ice-white': '#F2F2F2',
         'deep-black': '#0A0A0A',
-        'dark-gray': '#121212'
+        'dark-gray': '#121212',
+        'whatsapp': '#25D366'
       },
       borderRadius: {
         lg: 'var(--radius)',
