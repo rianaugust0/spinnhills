@@ -114,10 +114,10 @@ export default function ConfirmarCortePage() {
 
         const userDocRef = doc(firestore, 'users', client.id);
         const userDocSnap = await getDoc(userDocRef);
-        const currentClientData = userDocSnap.data() as ClientData;
+        const currentClientData = userDocSnap.data() as any;
 
 
-        let newCortesAtuais = (currentClientData.cortesAtuais + 1);
+        let newCortesAtuais = (currentClientData.cortesAtuais || 0) + 1;
         let spinGrantedFromFidelity = false;
 
         const updates: any = {
@@ -127,8 +127,8 @@ export default function ConfirmarCortePage() {
         };
 
         if (newCortesAtuais >= 5) {
-            newCortesAtuais = 0;
-            updates.girosDisponiveis = increment(1);
+            newCortesAtuais = 0; // Reset counter
+            updates.girosDisponiveis = increment(1); // Safely increment spins
             spinGrantedFromFidelity = true;
         }
         
