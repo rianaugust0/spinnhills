@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, User, Scissors, CheckCircle, Gift, Sparkles, FerrisWheel } from 'lucide-react';
+import { Loader2, ArrowLeft, User, Scissors, CheckCircle, Gift, Sparkles, FerrisWheel, Handshake } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
 import { GrantPrizeOrSpinModal } from '@/components/admin/GrantPrizeOrSpinModal';
@@ -23,6 +23,11 @@ export type ClientData = {
     totalCortes: number;
 }
 
+type ReferralInfo = {
+    referrerName: string;
+    status: 'Pendente' | 'Concluída';
+}
+
 export default function ConfirmarCortePage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -31,6 +36,7 @@ export default function ConfirmarCortePage() {
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [client, setClient] = useState<ClientData | null>(null);
+  const [referralInfo, setReferralInfo] = useState<ReferralInfo | null>(null);
   const [step, setStep] = useState<'findClient' | 'confirmCut' | 'success'>('findClient');
   const [isGrantModalOpen, setIsGrantModalOpen] = useState(false);
   const [extraSpinConverted, setExtraSpinConverted] = useState(false);
@@ -42,6 +48,7 @@ export default function ConfirmarCortePage() {
       return;
     }
     setLoading(true);
+    setReferralInfo(null);
     try {
       const userDocRef = doc(firestore, 'users', sanitizedPhone);
       const userDoc = await getDoc(userDocRef);
@@ -55,6 +62,20 @@ export default function ConfirmarCortePage() {
             girosDisponiveis: userData.girosDisponiveis,
             totalCortes: userData.totalCortes || 0,
         });
+
+        // Check for referral info
+        const referralQuery = query(collection(firestore, "referrals"), where("referredUserId", "==", sanitizedPhone));
+        const referralSnapshot = await getDocs(referralQuery);
+        if (!referralSnapshot.empty) {
+            const referralDoc = referralSnapshot.docs[0].data();
+            const referrerDoc = await getDoc(doc(firestore, "users", referralDoc.referrerUserId));
+            if(referrerDoc.exists()){
+                setReferralInfo({
+                    referrerName: referrerDoc.data().name,
+                    status: referralDoc.spinGranted ? 'Concluída' : 'Pendente',
+                });
+            }
+        }
         setStep('confirmCut');
       } else {
         toast({ variant: 'destructive', title: 'Cliente não encontrado' });
@@ -105,7 +126,8 @@ export default function ConfirmarCortePage() {
         // --- Limited Spin Logic ---
         const limitedSpinsQuery = query(
           collection(firestore, "limitedSpins"),
-          where('userId', '==', client.id)
+          where('userId', '==', client.id),
+          where('status', '==', 'active')
         );
         const limitedSpinsSnapshot = await getDocs(limitedSpinsQuery);
         let convertedLimitedSpin = false;
@@ -233,6 +255,14 @@ export default function ConfirmarCortePage() {
       setClient({ ...client, ...updatedData });
     }
   };
+
+  const resetState = () => {
+    setStep('findClient');
+    setClient(null);
+    setPhone('');
+    setPin('');
+    setReferralInfo(null);
+  };
   
   if (step === 'success') {
        return (
@@ -251,12 +281,7 @@ export default function ConfirmarCortePage() {
                     <p>Novo Progresso: <span className='font-bold text-gold'>{client?.cortesAtuais}/5</span></p>
                     <p>Giros Disponíveis: <span className='font-bold text-gold'>{client?.girosDisponiveis}</span></p>
                  </div>
-                <Button onClick={() => {
-                    setStep('findClient');
-                    setClient(null);
-                    setPhone('');
-                    setPin('');
-                }} className='mt-8 w-full h-12 text-base'>Confirmar Outro Corte</Button>
+                <Button onClick={resetState} className='mt-8 w-full h-12 text-base'>Confirmar Outro Corte</Button>
                  <Button variant="ghost" onClick={() => router.push('/admin')} className='mt-2 w-full max-w-sm'>Voltar para o Menu</Button>
             </div>
         </div>
@@ -272,7 +297,7 @@ export default function ConfirmarCortePage() {
         onClientUpdate={handleClientUpdate}
       />}
       <header className="p-4 flex justify-between items-center">
-        <Button variant="ghost" size="icon" onClick={() => step === 'confirmCut' ? setStep('findClient') : router.back()} aria-label="Voltar">
+        <Button variant="ghost" size="icon" onClick={() => step === 'confirmCut' ? resetState() : router.back()} aria-label="Voltar">
           <ArrowLeft className="h-5 w-5 text-gold" />
         </Button>
          <h1 className="font-headline text-xl text-ice-white uppercase">Ações do Cliente</h1>
@@ -310,6 +335,12 @@ export default function ConfirmarCortePage() {
                     <CardTitle className="font-headline text-3xl text-gold uppercase">Ações para <strong className='text-gold'>{client.name.split(' ')[0]}</strong></CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                    {referralInfo && (
+                        <div className={`p-3 rounded-lg border text-sm ${referralInfo.status === 'Pendente' ? 'bg-yellow-900/40 border-yellow-500/50' : 'bg-green-900/40 border-green-500/50'}`}>
+                            <p className='flex items-center justify-center gap-2'><Handshake className='h-4 w-4'/> Indicado por: <strong className='text-ice-white'>{referralInfo.referrerName.split(' ')[0]}</strong></p>
+                            <p className='text-xs mt-1'>Status: {referralInfo.status}</p>
+                        </div>
+                    )}
                     <div className='grid grid-cols-2 gap-4'>
                         <div className='p-2 bg-deep-black rounded-lg border border-gold/10'>
                             <p className='text-xs text-muted-foreground'>Progresso</p>
@@ -353,12 +384,7 @@ export default function ConfirmarCortePage() {
                       </Button>
                     </div>
 
-                     <Button variant="link" onClick={() => {
-                         setClient(null);
-                         setPhone('');
-                         setPin('');
-                         setStep('findClient');
-                     }} className='text-gold/80'>Buscar outro cliente</Button>
+                     <Button variant="link" onClick={resetState} className='text-gold/80'>Buscar outro cliente</Button>
                 </CardContent>
             </Card>
         )}

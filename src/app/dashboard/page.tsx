@@ -2,13 +2,13 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { LogOut, Handshake, Users, Info, Share2, Instagram, Star } from 'lucide-react';
+import { LogOut, Handshake, Users, Info, Share2, Instagram, Star, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { initializeFirebase, useDoc, useCollection } from '@/firebase';
-import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
+import { doc, collection, query, where, Timestamp, getDoc } from 'firebase/firestore';
 import { isAfter, differenceInDays } from 'date-fns';
 import { UserDashboardTabs } from '@/components/dashboard/UserDashboardTabs';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -76,6 +76,7 @@ export default function DashboardPage() {
   const [clientPhone, setClientPhone] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [referrerName, setReferrerName] = useState<string | null>(null);
   
   useEffect(() => {
     // This now safely runs only on the client
@@ -87,6 +88,26 @@ export default function DashboardPage() {
       setIsClient(true);
     }
   }, [router]);
+
+  useEffect(() => {
+    if (!clientPhone) return;
+
+    const fetchReferrerInfo = async () => {
+        const referralsQuery = query(collection(firestore, 'referrals'), where('referredUserId', '==', clientPhone));
+        const referralsSnapshot = await getDocs(referralsQuery);
+        if (!referralsSnapshot.empty) {
+            const referralDoc = referralsSnapshot.docs[0];
+            const referrerId = referralDoc.data().referrerUserId;
+            if (referrerId) {
+                const referrerUserDoc = await getDoc(doc(firestore, 'users', referrerId));
+                if (referrerUserDoc.exists()) {
+                    setReferrerName(referrerUserDoc.data().name);
+                }
+            }
+        }
+    };
+    fetchReferrerInfo();
+  }, [clientPhone]);
 
   const userDocRef = useMemo(() => {
     if (!firestore || !clientPhone) return null;
@@ -163,7 +184,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
-      <ShareReferralModal
+       <ShareReferralModal
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
           referralCode={clientData?.referralCode || ''}
@@ -183,7 +204,19 @@ export default function DashboardPage() {
 
       {isLoading ? <DashboardSkeleton /> : (
         <main className="flex-1 container mx-auto px-4 py-8 space-y-6 md:space-y-8 animate-fade-in-up">
-          
+            
+            {referrerName && (
+                <Card className="bg-green-900/40 border-green-500/50">
+                    <CardContent className="p-4 flex items-center gap-4">
+                        <Award className="h-8 w-8 text-green-300" />
+                        <div>
+                            <p className="font-bold text-green-200">Você foi indicado por {referrerName.split(' ')[0]}!</p>
+                            <p className="text-sm text-green-300/80">Faça seu primeiro corte para que ele(a) ganhe a recompensa.</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             <Card className="bg-dark-gray border-gold/20">
                 <CardHeader className="pb-4">
                     <CardTitle className="text-ice-white text-lg">✂️ Progresso para o próximo giro de fidelidade</CardTitle>
