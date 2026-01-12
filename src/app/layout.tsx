@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
+import { Bebas_Neue, Poppins } from 'next/font/google';
 
 export const metadata: Metadata = {
   title: 'SPIN HILLS - HillsCut Barbearia',
@@ -12,6 +13,18 @@ export const metadata: Metadata = {
   }
 };
 
+const bebasNeue = Bebas_Neue({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-bebas-neue',
+});
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  variable: '--font-poppins',
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -19,18 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="dark">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
-        <style>{`
-          :root {
-            --font-bebas-neue: 'Bebas Neue', sans-serif;
-            --font-poppins: 'Poppins', sans-serif;
-          }
-        `}</style>
-      </head>
-      <body className="bg-deep-black text-ice-white font-body">
+      <body className={`${bebasNeue.variable} ${poppins.variable} bg-deep-black text-ice-white font-body`}>
         <FirebaseClientProvider>
           {children}
           <FirebaseErrorListener />

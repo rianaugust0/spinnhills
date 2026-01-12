@@ -18,8 +18,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        headline: ['var(--font-bebas-neue)', 'sans-serif'],
-        body: ['var(--font-poppins)', 'sans-serif'],
+        headline: ['var(--font-bebas-neue)'],
+        body: ['var(--font-poppins)'],
       },
       colors: {
         background: 'hsl(var(--background))',
