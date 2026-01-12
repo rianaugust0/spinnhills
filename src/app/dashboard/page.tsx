@@ -19,28 +19,15 @@ const { firestore } = initializeFirebase();
 
 const DashboardSkeleton = () => (
     <div className="flex-1 container mx-auto px-4 py-8 space-y-6 md:space-y-8 animate-pulse">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            <Card className="bg-dark-gray/50 border-gold/10 text-center shadow-lg">
-                <CardHeader>
-                    <Skeleton className="h-10 w-3/5 mx-auto" />
-                    <Skeleton className="h-4 w-2/5 mx-auto mt-2" />
-                    <Skeleton className="h-12 w-1/4 mx-auto mt-2" />
-                </CardHeader>
-                <CardContent>
-                    <Skeleton className="h-12 w-full" />
-                </CardContent>
-            </Card>
-
-            <Card className="bg-dark-gray/50 border-gold/10">
-                <CardHeader className="pb-4">
-                    <Skeleton className="h-6 w-4/5" />
-                </CardHeader>
-                <CardContent>
-                    <Skeleton className="h-3 w-full" />
-                    <Skeleton className="h-4 w-1/2 mx-auto mt-3" />
-                </CardContent>
-            </Card>
-        </div>
+        <Card className="bg-dark-gray/50 border-gold/10">
+            <CardHeader className="pb-4">
+                <Skeleton className="h-6 w-4/5" />
+            </CardHeader>
+            <CardContent>
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-4 w-1/2 mx-auto mt-3" />
+            </CardContent>
+        </Card>
 
         <Card className="bg-dark-gray/50 border-gold/10">
             <CardHeader className="text-center">
@@ -77,6 +64,7 @@ export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
   
   useEffect(() => {
+    // This now safely runs only on the client
     const phoneFromStorage = localStorage.getItem('spin-hills-user-phone');
     if (!phoneFromStorage) {
       router.replace('/entrar');
@@ -144,7 +132,7 @@ export default function DashboardPage() {
     router.push('/');
   };
 
-  const isLoading = isClientLoading || isPrizesLoading || isLimitedSpinsLoading;
+  const isLoading = isClientLoading || isPrizesLoading || isLimitedSpinsLoading || !isClient;
 
   if (!isClient) {
     return (
@@ -176,45 +164,18 @@ export default function DashboardPage() {
       {isLoading ? <DashboardSkeleton /> : (
         <main className="flex-1 container mx-auto px-4 py-8 space-y-6 md:space-y-8 animate-fade-in-up">
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-              <Card className="bg-dark-gray border-gold/20 text-center shadow-lg shadow-gold-glow">
-              <CardHeader>
-                  <CardTitle className="font-headline text-4xl text-gold uppercase tracking-wider flex items-center justify-center gap-3">
-                  <FerrisWheel className="h-10 w-10 animate-spin [animation-duration:10s]" />
-                  Spin Hills
-                  </CardTitle>
-                  <CardDescription>
-                  Giros disponíveis:
-                  <span className="text-5xl font-bold text-ice-white block mt-2">{clientData?.girosDisponiveis ?? 0}</span>
-                  </CardDescription>
-              </CardHeader>
-              <CardContent>
-                  {(clientData?.girosDisponiveis ?? 0) > 0 ? (
-                  <Button onClick={() => router.push('/spin')} className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base">
-                      <Sparkles className="mr-2 h-5 w-5" />
-                      Girar agora!
-                  </Button>
-                  ) : (
-                  <Button disabled className="w-full bg-muted text-muted-foreground h-12 text-base">
-                      Complete ações para liberar giros
-                  </Button>
-                  )}
-              </CardContent>
-              </Card>
-
               <Card className="bg-dark-gray border-gold/20">
                   <CardHeader className="pb-4">
-                      <CardTitle className="text-ice-white text-lg">✂️ Progresso para o próximo giro</CardTitle>
+                      <CardTitle className="text-ice-white text-lg">✂️ Progresso para o próximo giro de fidelidade</CardTitle>
                   </CardHeader>
                   <CardContent>
                       <Progress value={((clientData?.cortesAtuais ?? 0) / 5) * 100} className="bg-deep-black h-3 [&>div]:bg-gold" />
                       <p className="text-center text-muted-foreground text-sm mt-3">
                       <span className="font-bold text-gold">{clientData?.cortesAtuais ?? 0} / 5</span> cortes confirmados
                       </p>
-                      <p className="text-center text-xs text-muted-foreground/50 mt-2">Complete 5 cortes e ganhe 1 giro.</p>
+                      <p className="text-center text-xs text-muted-foreground/50 mt-2">Complete 5 cortes e ganhe 1 giro de fidelidade.</p>
                   </CardContent>
               </Card>
-          </div>
 
 
           <Card className="bg-dark-gray border-gold/20">

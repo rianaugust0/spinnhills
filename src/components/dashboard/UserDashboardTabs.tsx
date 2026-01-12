@@ -27,7 +27,12 @@ const PrizeCard = ({ prize }: { prize: any }) => {
 
   useEffect(() => {
     if (isClient && isValid(expiresAtDate)) {
-      setDaysLeft(differenceInDays(expiresAtDate, new Date()));
+      // Calculate difference from the start of today to the end of the expiration day
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const expirationDay = new Date(expiresAtDate);
+      expirationDay.setHours(23, 59, 59, 999);
+      setDaysLeft(differenceInDays(expirationDay, today));
     }
   }, [expiresAtDate, isClient]);
 
@@ -52,30 +57,34 @@ const PrizeCard = ({ prize }: { prize: any }) => {
   if (daysLeft === null) {
     return null; // or a loading skeleton for the card
   }
+  
+  const requiresHaircut = prize.type !== 'desconto_10';
 
   return (
     <Card className="bg-dark-gray border-gold/20 overflow-hidden">
       <CardContent className="p-4 flex flex-col justify-between h-full">
         <div>
-          <div className="flex items-center gap-3">
-             <div className="bg-gold/10 p-2 rounded-md">
-                <Ticket className="h-6 w-6 text-gold" />
-             </div>
-             <CardTitle className="text-ice-white text-lg font-bold">{prize.title}</CardTitle>
-          </div>
-          <CardDescription className="text-sm text-muted-foreground mt-2">{prize.description}</CardDescription>
-        </div>
-        <div className="mt-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+                <div className="bg-gold/10 p-2 rounded-md">
+                    <Ticket className="h-6 w-6 text-gold" />
+                </div>
+                <CardTitle className="text-ice-white text-lg font-bold">{prize.title}</CardTitle>
+            </div>
             {daysLeft >= 0 ? (
-                 <div className='flex justify-between items-center'>
-                    <Badge variant="outline" className='border-green-500/50 text-green-400'>
-                        <Calendar className="h-3 w-3 mr-1.5" />
-                         Válido por mais {daysLeft} dia{daysLeft !== 1 ? 's' : ''}
-                    </Badge>
-                    <Button size="sm" onClick={handleRedeemClick} className="h-9">Resgatar</Button>
-                 </div>
+                <Badge variant="outline" className='border-green-500/50 text-green-400'>
+                    <Calendar className="h-3 w-3 mr-1.5" />
+                     {daysLeft} dia{daysLeft !== 1 ? 's' : ''}
+                </Badge>
             ) : (
                  <Badge variant="destructive">Expirado</Badge>
+            )}
+          </div>
+           {requiresHaircut && <CardDescription className="text-xs text-muted-foreground mt-2 ml-1">Obrigatório realizar um corte para usar.</CardDescription>}
+        </div>
+        <div className="mt-4">
+            {daysLeft >= 0 && (
+                 <Button size="sm" onClick={handleRedeemClick} className="h-9 w-full">Resgatar</Button>
             )}
         </div>
       </CardContent>
@@ -98,7 +107,11 @@ const LimitedSpinCard = ({ limitedSpin }: { limitedSpin: any }) => {
     
     useEffect(() => {
         if(isClient && isValid(expiresAtDate)) {
-            setDaysLeft(differenceInDays(expiresAtDate, new Date()));
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const expirationDay = new Date(expiresAtDate);
+            expirationDay.setHours(23, 59, 59, 999);
+            setDaysLeft(differenceInDays(expirationDay, today));
         }
     }, [expiresAtDate, isClient]);
 
@@ -147,15 +160,22 @@ const RulesTab = () => (
         <CardHeader>
             <CardTitle className="flex items-center gap-2"><BookOpen/> Regras e Validade dos Prêmios</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-muted-foreground">
-           <p>✂️ <strong className="text-ice-white">Corte grátis:</strong> válido por 10 dias</p>
-           <p>🧴 <strong className="text-ice-white">Esfoliação:</strong> válido por 15 dias</p>
-           <p>✨ <strong className="text-ice-white">Sobrancelha:</strong> válido por 15 dias</p>
-           <p>💧 <strong className="text-ice-white">Hidratação:</strong> válido por 15 dias</p>
-           <p>🎯 <strong className="text-ice-white">1 giro extra:</strong> deve ser utilizado em até 10 dias (requer um corte)</p>
+        <CardContent className="space-y-4 text-muted-foreground">
+           <div className="space-y-2">
+                <p>✂️ <strong className="text-ice-white">Corte grátis:</strong> válido por 10 dias</p>
+                <p>🧴 <strong className="text-ice-white">Esfoliação:</strong> válido por 15 dias</p>
+                <p>✨ <strong className="text-ice-white">Sobrancelha:</strong> válido por 15 dias</p>
+                <p>💧 <strong className="text-ice-white">Hidratação:</strong> válido por 15 dias</p>
+                <p>🎁 <strong className="text-ice-white">Brinde Especial:</strong> válido por 7 dias</p>
+                <p>💸 <strong className="text-ice-white">10% OFF:</strong> válido por 30 dias</p>
+                <p>🎯 <strong className="text-ice-white">1 giro extra:</strong> deve ser ativado em até 10 dias (requer um corte)</p>
+           </div>
            <div className="border-t border-gold/20 my-4 pt-4">
-                <p className="font-bold text-amber-500">⚠️ Atenção:</p>
-                <p>Para utilizar qualquer prêmio, é obrigatório realizar um corte de cabelo no mesmo dia.</p>
+                <p className="font-bold text-amber-500 text-lg">⚠️ Regra de Ouro:</p>
+                <p className='text-base'>Para utilizar <strong className="text-ice-white">qualquer prêmio</strong> (exceto o desconto de 10%), é <strong className="text-ice-white">obrigatório realizar um corte de cabelo pagante</strong> no mesmo dia do resgate.</p>
+           </div>
+            <div className="border-t border-gold/20 my-4 pt-4">
+                <p className="font-bold text-red-500">Atenção:</p>
                 <p>Prêmios não utilizados dentro do prazo perdem a validade e não podem ser recuperados.</p>
            </div>
         </CardContent>
@@ -193,7 +213,7 @@ export function UserDashboardTabs({ activePrizes, activeLimitedSpin }: UserDashb
             <Card className="bg-dark-gray border-dashed border-gold/30 text-center p-8">
                 <Gift className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
                 <CardTitle className="text-muted-foreground font-normal">Você ainda não possui prêmios ativos.</CardTitle>
-                <CardDescription className="mt-2 text-sm">Gire a roleta para ganhar!</CardDescription>
+                <CardDescription className="mt-2 text-sm">Quando um prêmio for registrado para você, ele aparecerá aqui.</CardDescription>
             </Card>
         )}
       </TabsContent>
@@ -203,7 +223,9 @@ export function UserDashboardTabs({ activePrizes, activeLimitedSpin }: UserDashb
             <LimitedSpinCard limitedSpin={activeLimitedSpin} />
         ) : (
              <Card className="bg-dark-gray border-dashed border-gold/30 text-center p-8">
+                <Gift className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
                 <CardTitle className="text-muted-foreground font-normal">Nenhum giro extra ativo.</CardTitle>
+                <CardDescription className="mt-2 text-sm">O giro extra é um prêmio que pode ser ganho na roleta.</CardDescription>
             </Card>
         )}
       </TabsContent>

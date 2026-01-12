@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, User, Scissors, CheckCircle, Gift, Sparkles } from 'lucide-react';
+import { Loader2, ArrowLeft, User, Scissors, CheckCircle, Gift, Sparkles, FerrisWheel } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
 import { GrantPrizeOrSpinModal } from '@/components/admin/GrantPrizeOrSpinModal';
@@ -117,8 +117,10 @@ export default function ConfirmarCortePage() {
             // Filter for active and non-expired spins client-side
             const activeAndValidSpins = limitedSpinsSnapshot.docs.filter(doc => {
                 const data = doc.data();
+                if (data.status !== 'active') return false;
+                if (!data.expiresAt) return false;
                 const expiresAt = (data.expiresAt as Timestamp).toDate();
-                return data.status === 'active' && isAfter(expiresAt, now);
+                return isAfter(expiresAt, now);
             });
 
             if (activeAndValidSpins.length > 0) {
@@ -298,7 +300,7 @@ export default function ConfirmarCortePage() {
                             <p className='text-lg font-bold text-ice-white'>{client.cortesAtuais} / 5</p>
                         </div>
                         <div className='p-2 bg-deep-black rounded-lg border border-gold/10'>
-                            <p className='text-xs text-muted-foreground'>Giros</p>
+                            <p className='text-xs text-muted-foreground'>Giros Normais</p>
                             <p className='text-lg font-bold text-ice-white'>{client.girosDisponiveis}</p>
                         </div>
                     </div>
@@ -330,8 +332,8 @@ export default function ConfirmarCortePage() {
                         disabled={loading}
                         className="w-full h-12 text-base text-gold border-gold/50 hover:bg-gold/10 hover:text-gold"
                       >
-                        <Gift className="mr-2 h-4 w-4" />
-                        Adicionar Benefício
+                        <FerrisWheel className="mr-2 h-4 w-4" />
+                        Registrar Giro / Benefício
                       </Button>
                     </div>
 
@@ -348,5 +350,3 @@ export default function ConfirmarCortePage() {
     </div>
   );
 }
-
-    
