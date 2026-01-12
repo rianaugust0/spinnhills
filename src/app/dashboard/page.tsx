@@ -30,12 +30,25 @@ const DashboardSkeleton = () => (
         </Card>
 
         <Card className="bg-dark-gray/50 border-gold/10">
-            <CardHeader className="text-center">
-                 <Skeleton className="h-6 w-1/2 mx-auto" />
-                 <Skeleton className="h-4 w-4/5 mx-auto mt-2" />
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Info className='text-gold'/> Como Ganhar Mais Giros?</CardTitle>
             </CardHeader>
-            <CardContent>
-                 <Skeleton className="h-12 w-full" />
+            <CardContent className="space-y-4">
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-deep-black border border-gold/10">
+                    <Handshake className="h-8 w-8 text-gold/80 mt-1"/>
+                    <div>
+                        <h3 className="font-bold text-ice-white text-lg">Indique um Amigo e Ganhe</h3>
+                        <p className="text-sm text-muted-foreground mt-1 mb-3">Seu amigo faz o primeiro corte e você ganha 1 giro na hora!</p>
+                        <Skeleton className="h-10 w-40" />
+                    </div>
+                </div>
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-deep-black border border-gold/10">
+                    <Users className="h-8 w-8 text-gold/80 mt-1"/>
+                    <div>
+                        <h3 className="font-bold text-ice-white text-lg">Divulgue e Avalie</h3>
+                        <p className="text-sm text-muted-foreground">Siga nosso Instagram e faça uma avaliação 5 estrelas no Google. Mostre para o barbeiro e ganhe 1 giro. (Válido apenas 1 vez)</p>
+                    </div>
+                </div>
             </CardContent>
         </Card>
 
@@ -150,13 +163,11 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
-       {clientData?.referralCode && (
-        <ShareReferralModal
+      <ShareReferralModal
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
-          referralCode={clientData.referralCode}
+          referralCode={clientData?.referralCode || ''}
         />
-      )}
       <header className="p-4 flex justify-between items-center border-b border-gold/20">
         <div>
           {isLoading || !clientData ? (
@@ -196,7 +207,7 @@ export default function DashboardPage() {
                     <div>
                       <h3 className="font-bold text-ice-white text-lg">Indique um Amigo e Ganhe</h3>
                       <p className="text-sm text-muted-foreground mt-1 mb-3">Seu amigo faz o primeiro corte e você ganha 1 giro na hora!</p>
-                       <Button onClick={() => setIsShareModalOpen(true)} className="bg-gold text-deep-black hover:bg-gold/90">
+                       <Button onClick={() => setIsShareModalOpen(true)} className="bg-gold text-deep-black hover:bg-gold/90" disabled={!clientData?.referralCode}>
                         <Share2 className="mr-2 h-4 w-4" />
                         Indicar um amigo
                       </Button>
