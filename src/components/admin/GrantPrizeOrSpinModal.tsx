@@ -9,8 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, FerrisWheel } from 'lucide-react';
 import { initializeFirebase } from '@/firebase';
-import { doc, collection, serverTimestamp, getDocs, query, where, addDoc, updateDoc } from 'firebase/firestore';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { doc, collection, serverTimestamp, getDocs, query, where, addDoc, writeBatch } from 'firebase/firestore';
 import { allOutcomes as prizeOptions, PrizeOption } from '@/lib/prizes';
 import type { ClientData } from '@/app/admin/confirmar-corte/page';
 
@@ -54,17 +53,23 @@ export function GrantPrizeOrSpinModal({ isOpen, onClose, client, onClientUpdate 
         const prizeToGrant = prizeOptions.find(p => p.type === selectedPrizeType);
         if (!prizeToGrant) throw new Error('Prêmio selecionado inválido.');
 
+        const batch = writeBatch(firestore);
+        const now = serverTimestamp();
+
+        // Spin History
+        const spinDocRef = doc(collection(firestore, 'spins'));
+         batch.set(spinDocRef, {
+            userId: client.id,
+            origin: 'roleta_fisica',
+            result: prizeToGrant.type,
+            manual: true,
+            releasedBy: barberId,
+            notes: `Resultado do giro físico: ${prizeToGrant.title}. ${notes}`,
+            createdAt: now
+        });
+
         // Handle "try_again" case - just log it for history, no prize for user
         if (prizeToGrant.type === 'try_again') {
-             addDoc(collection(firestore, 'spins'), {
-                userId: client.id,
-                origin: 'roleta_fisica',
-                result: 'try_again',
-                manual: true,
-                releasedBy: barberId,
-                notes: `Resultado do giro físico: ${prizeToGrant.title}`,
-                createdAt: serverTimestamp()
-            });
              toast({ title: 'Registro Salvo', description: 'O resultado "Tente Novamente" foi registrado no histórico do cliente.' });
         }
         // Handle "limited_spin" (Giro Extra)
@@ -72,12 +77,13 @@ export function GrantPrizeOrSpinModal({ isOpen, onClose, client, onClientUpdate 
              const expirationDate = new Date();
              expirationDate.setDate(expirationDate.getDate() + prizeToGrant.validityDays);
             
-             addDocumentNonBlocking(collection(firestore, 'limitedSpins'), {
+             const limitedSpinRef = doc(collection(firestore, 'limitedSpins'));
+             batch.set(limitedSpinRef, {
                 userId: client.id,
                 type: "extra_spin",
                 status: "active",
                 condition: "valid_only_with_haircut",
-                createdAt: serverTimestamp(),
+                createdAt: now,
                 expiresAt: expirationDate,
                 usedAt: null,
                 usedByBarberId: null,
@@ -92,7 +98,8 @@ export function GrantPrizeOrSpinModal({ isOpen, onClose, client, onClientUpdate 
             const expirationDate = new Date();
             expirationDate.setDate(expirationDate.getDate() + prizeToGrant.validityDays);
 
-            addDocumentNonBlocking(collection(firestore, 'prizes'), {
+            const prizeDocRef = doc(collection(firestore, 'prizes'));
+            batch.set(prizeDocRef, {
                 userId: client.id,
                 userName: client.name,
                 userPhone: client.id, // client.id is the phone number
@@ -102,7 +109,7 @@ export function GrantPrizeOrSpinModal({ isOpen, onClose, client, onClientUpdate 
                 imageUrl: prizeToGrant.imageUrl,
                 status: 'active',
                 validityDays: prizeToGrant.validityDays,
-                createdAt: serverTimestamp(),
+                createdAt: now,
                 expiresAt: expirationDate,
                 grantedBy: barberId,
                 origin: 'roleta_fisica',
@@ -111,6 +118,7 @@ export function GrantPrizeOrSpinModal({ isOpen, onClose, client, onClientUpdate 
             toast({ title: 'Prêmio Registrado!', description: `"${prizeToGrant.title}" foi adicionado aos prêmios de ${client.name.split(' ')[0]}.` });
         }
         
+        await batch.commit();
         handleClose();
 
     } catch (error: any) {

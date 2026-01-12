@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { LogOut, FerrisWheel, Sparkles, Gift, Target } from 'lucide-react';
+import { LogOut, Handshake, Users, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -94,6 +94,7 @@ export default function DashboardPage() {
 
   const activePrizes = useMemo(() => {
     if (!activePrizesData) return [];
+    if (!isClient) return []; // Don't process on server
     const today = new Date();
     return activePrizesData.filter(prize => {
         const expiresAtDate = prize.expiresAt instanceof Timestamp ? prize.expiresAt.toDate() : prize.expiresAt;
@@ -103,7 +104,7 @@ export default function DashboardPage() {
         const dateB = b.expiresAt instanceof Timestamp ? b.expiresAt.toDate() : b.expiresAt;
         return dateA.getTime() - dateB.getTime();
     });
-  }, [activePrizesData]);
+  }, [activePrizesData, isClient]);
   
   const limitedSpinsQuery = useMemo(() => {
       if (!firestore || !clientPhone) return null;
@@ -117,14 +118,14 @@ export default function DashboardPage() {
   const { data: limitedSpinsData, isLoading: isLimitedSpinsLoading } = useCollection(limitedSpinsQuery);
   
   const activeLimitedSpin = useMemo(() => {
-      if (!limitedSpinsData || limitedSpinsData.length === 0) return null;
+      if (!limitedSpinsData || limitedSpinsData.length === 0 || !isClient) return null;
       const today = new Date();
       const activeSpin = limitedSpinsData.find(spin => {
         const expiresAtDate = spin.expiresAt instanceof Timestamp ? spin.expiresAt.toDate() : new Date(spin.expiresAt);
         return isAfter(expiresAtDate, today) || differenceInDays(expiresAtDate, today) >= 0;
       });
       return activeSpin || null;
-  }, [limitedSpinsData]);
+  }, [limitedSpinsData, isClient]);
 
 
   const handleLogout = () => {
@@ -164,47 +165,68 @@ export default function DashboardPage() {
       {isLoading ? <DashboardSkeleton /> : (
         <main className="flex-1 container mx-auto px-4 py-8 space-y-6 md:space-y-8 animate-fade-in-up">
           
-              <Card className="bg-dark-gray border-gold/20">
-                  <CardHeader className="pb-4">
-                      <CardTitle className="text-ice-white text-lg">✂️ Progresso para o próximo giro de fidelidade</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                      <Progress value={((clientData?.cortesAtuais ?? 0) / 5) * 100} className="bg-deep-black h-3 [&>div]:bg-gold" />
-                      <p className="text-center text-muted-foreground text-sm mt-3">
-                      <span className="font-bold text-gold">{clientData?.cortesAtuais ?? 0} / 5</span> cortes confirmados
-                      </p>
-                      <p className="text-center text-xs text-muted-foreground/50 mt-2">Complete 5 cortes e ganhe 1 giro de fidelidade.</p>
-                  </CardContent>
-              </Card>
+            <Card className="bg-dark-gray border-gold/20">
+                <CardHeader className="pb-4">
+                    <CardTitle className="text-ice-white text-lg">✂️ Progresso para o próximo giro de fidelidade</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Progress value={((clientData?.cortesAtuais ?? 0) / 5) * 100} className="bg-deep-black h-3 [&>div]:bg-gold" />
+                    <p className="text-center text-muted-foreground text-sm mt-3">
+                    <span className="font-bold text-gold">{clientData?.cortesAtuais ?? 0} / 5</span> cortes confirmados
+                    </p>
+                    <p className="text-center text-xs text-muted-foreground/50 mt-2">Complete 5 cortes e ganhe 1 giro de fidelidade.</p>
+                </CardContent>
+            </Card>
 
+            <Card className="bg-dark-gray border-gold/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Info className='text-gold'/> Como Ganhar Mais Giros?</CardTitle>
+              </CardHeader>
+              <CardContent className="text-muted-foreground space-y-3">
+                <div className="flex items-start gap-3">
+                  <Handshake className="h-6 w-6 text-gold/80 mt-1"/>
+                  <div>
+                    <h3 className="font-bold text-ice-white">Indique um Amigo</h3>
+                    <p className="text-sm">Seu amigo se cadastra, realiza o primeiro corte e você ganha 1 giro na hora!</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Users className="h-6 w-6 text-gold/80 mt-1"/>
+                  <div>
+                    <h3 className="font-bold text-ice-white">Divulgue e Avalie</h3>
+                    <p className="text-sm">Siga nosso Instagram e faça uma avaliação 5 estrelas no Google. Mostre para o barbeiro e ganhe 1 giro. (Válido apenas 1 vez)</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card className="bg-dark-gray border-gold/20">
-            <CardHeader className="text-center">
-              <CardTitle className="text-ice-white text-lg flex items-center justify-center gap-2">
-                  <WhatsappIcon className='h-6 w-6' />
-                  Entre no Grupo Oficial
-              </CardTitle>
-              <CardDescription className='text-sm text-muted-foreground mt-1'>Fique por dentro de avisos, novidades, prêmios e benefícios exclusivos.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <a 
-                  href="https://chat.whatsapp.com/GReZCTJDQbx1KxM9YrZji3" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className='w-full'
-              >
-                  <Button className="w-full bg-whatsapp text-white font-bold uppercase tracking-wider hover:bg-whatsapp/90 h-12 text-base">
-                      <WhatsappIcon className='h-5 w-5 mr-2' />
-                      Entrar no Grupo
-                  </Button>
-              </a>
-            </CardContent>
-          </Card>
+            <Card className="bg-dark-gray border-gold/20">
+              <CardHeader className="text-center">
+                <CardTitle className="text-ice-white text-lg flex items-center justify-center gap-2">
+                    <WhatsappIcon className='h-6 w-6' />
+                    Entre no Grupo Oficial
+                </CardTitle>
+                <CardDescription className='text-sm text-muted-foreground mt-1'>Fique por dentro de avisos, novidades, prêmios e benefícios exclusivos.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <a 
+                    href="https://chat.whatsapp.com/GReZCTJDQbx1KxM9YrZji3" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className='w-full'
+                >
+                    <Button className="w-full bg-whatsapp text-white font-bold uppercase tracking-wider hover:bg-whatsapp/90 h-12 text-base">
+                        <WhatsappIcon className='h-5 w-5 mr-2' />
+                        Entrar no Grupo
+                    </Button>
+                </a>
+              </CardContent>
+            </Card>
 
-          <UserDashboardTabs 
-              activePrizes={activePrizes}
-              activeLimitedSpin={activeLimitedSpin}
-          />
+            <UserDashboardTabs 
+                activePrizes={activePrizes}
+                activeLimitedSpin={activeLimitedSpin}
+            />
         </main>
       )}
     </div>

@@ -10,7 +10,7 @@ import { Loader2, ArrowLeft, User, Scissors, CheckCircle, Gift, Sparkles, Ferris
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
 import { GrantPrizeOrSpinModal } from '@/components/admin/GrantPrizeOrSpinModal';
-import { doc, getDoc, collection, query, where, getDocs, serverTimestamp, Timestamp, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, serverTimestamp, Timestamp, writeBatch, increment } from 'firebase/firestore';
 import { isAfter } from 'date-fns';
 
 const { firestore } = initializeFirebase();
@@ -87,11 +87,10 @@ export default function ConfirmarCortePage() {
         }
         const barberId = barberSnapshot.docs[0].id;
         
-        // --- Start Batch Write ---
         const batch = writeBatch(firestore);
+        const nowTimestamp = serverTimestamp();
 
         const userDocRef = doc(firestore, 'users', client.id);
-        const nowTimestamp = serverTimestamp();
 
         let newCortesAtuais = (client.cortesAtuais + 1);
         let newGirosDisponiveis = client.girosDisponiveis;
@@ -104,27 +103,25 @@ export default function ConfirmarCortePage() {
         }
 
         // --- Limited Spin Logic ---
-        // Query only by userId to avoid composite index requirement
         const limitedSpinsQuery = query(
           collection(firestore, "limitedSpins"),
-          where('userId', '==', client.id)
+          where('userId', '==', client.id),
+          where('status', '==', 'active')
         );
         const limitedSpinsSnapshot = await getDocs(limitedSpinsQuery);
         let convertedLimitedSpin = false;
 
         if (!limitedSpinsSnapshot.empty) {
             const now = new Date();
-            // Filter for active and non-expired spins client-side
             const activeAndValidSpins = limitedSpinsSnapshot.docs.filter(doc => {
                 const data = doc.data();
-                if (data.status !== 'active') return false;
                 if (!data.expiresAt) return false;
                 const expiresAt = (data.expiresAt as Timestamp).toDate();
                 return isAfter(expiresAt, now);
             });
 
             if (activeAndValidSpins.length > 0) {
-                const limitedSpinDoc = activeAndValidSpins[0]; // Process the first valid one
+                const limitedSpinDoc = activeAndValidSpins[0];
                 batch.update(limitedSpinDoc.ref, {
                     status: 'used',
                     usedAt: nowTimestamp,
@@ -136,14 +133,70 @@ export default function ConfirmarCortePage() {
             }
         }
         
-        // Optimistic UI updates
-        const updatedClientData = {
-          ...client,
+        // --- Referral Logic ---
+        const referralQuery = query(collection(firestore, "referrals"), where("referredUserId", "==", client.id), where("spinGranted", "==", false));
+        const referralSnapshot = await getDocs(referralQuery);
+        if (!referralSnapshot.empty) {
+            const referralDoc = referralSnapshot.docs[0];
+            const referrerId = referralDoc.data().referrerUserId;
+
+            const referrerUserRef = doc(firestore, "users", referrerId);
+            batch.update(referrerUserRef, { girosDisponiveis: increment(1) });
+            batch.update(referralDoc.ref, { spinGranted: true, haircutConfirmed: true });
+            
+            const spinDocRef = doc(collection(firestore, "spins"));
+            batch.set(spinDocRef, {
+                userId: referrerId,
+                origin: 'indicacao',
+                createdAt: nowTimestamp,
+                notes: `Indicou ${client.name} (${client.id})`
+            });
+
+            const referrerDoc = await getDoc(referrerUserRef);
+            if(referrerDoc.exists()) {
+                toast({
+                    title: 'Indicação Recompensada! 🎉',
+                    description: `${referrerDoc.data().name} ganhou +1 giro por indicar ${client.name.split(' ')[0]}!`,
+                    duration: 7000,
+                });
+            }
+        }
+
+
+        batch.update(userDocRef, {
+            cortesAtuais: newCortesAtuais,
+            totalCortes: increment(1),
+            girosDisponiveis: newGirosDisponiveis,
+            updatedAt: nowTimestamp,
+            lastVisit: nowTimestamp,
+        });
+
+        const cutsCollectionRef = collection(firestore, "cuts");
+        batch.set(doc(cutsCollectionRef), {
+            userId: client.id,
+            barberId: barberId,
+            pinUsed: pin,
+            confirmed: true,
+            date: nowTimestamp
+        });
+        
+        if (spinGrantedFromFidelity) {
+            const spinsCollectionRef = collection(firestore, "spins");
+            batch.set(doc(spinsCollectionRef), {
+                userId: client.id,
+                origin: 'fidelidade_5_cortes',
+                createdAt: nowTimestamp
+            });
+        }
+        
+        await batch.commit();
+
+        setClient(prev => prev ? ({
+          ...prev,
           cortesAtuais: newCortesAtuais,
           girosDisponiveis: newGirosDisponiveis,
-          totalCortes: client.totalCortes + 1,
-        };
-        setClient(updatedClientData);
+          totalCortes: prev.totalCortes + 1,
+        }) : null);
         setStep('success');
         
         toast({
@@ -165,39 +218,6 @@ export default function ConfirmarCortePage() {
                 duration: 5000,
             });
         }
-
-        // --- Prepare batch operations ---
-        batch.update(userDocRef, {
-            cortesAtuais: newCortesAtuais,
-            totalCortes: client.totalCortes + 1,
-            girosDisponiveis: newGirosDisponiveis,
-            updatedAt: nowTimestamp,
-            lastVisit: nowTimestamp, // Update last visit timestamp
-        });
-
-        const cutsCollectionRef = collection(firestore, "cuts");
-        batch.set(doc(cutsCollectionRef), {
-            userId: client.id,
-            barberId: barberId,
-            pinUsed: pin,
-            confirmed: true,
-            date: nowTimestamp
-        });
-        
-        if (spinGrantedFromFidelity) {
-            const spinsCollectionRef = collection(firestore, "spins");
-            batch.set(doc(spinsCollectionRef), {
-                userId: client.id,
-                origin: 'fidelidade_5_cortes',
-                manual: false,
-                releasedBy: null,
-                notes: null,
-                createdAt: nowTimestamp
-            });
-        }
-        
-        // --- Commit Batch Write ---
-        await batch.commit();
 
     } catch (error: any) {
         console.error(error);
@@ -333,7 +353,7 @@ export default function ConfirmarCortePage() {
                         className="w-full h-12 text-base text-gold border-gold/50 hover:bg-gold/10 hover:text-gold"
                       >
                         <FerrisWheel className="mr-2 h-4 w-4" />
-                        Registrar Giro / Benefício
+                        Registrar Giro Físico
                       </Button>
                     </div>
 

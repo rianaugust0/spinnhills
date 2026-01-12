@@ -8,14 +8,14 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, FerrisWheel } from 'lucide-react';
 import { initializeFirebase } from '@/firebase';
-import { collection, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, doc, getDoc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 
 const { firestore } = initializeFirebase();
 
 export default function EntrarPage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [referredBy, setReferredBy] = useState('');
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
@@ -31,12 +31,20 @@ export default function EntrarPage() {
       toast({ variant: 'destructive', title: 'Telefone inválido', description: 'Por favor, insira um telefone com DDD.' });
       return;
     }
+
+    const sanitizedReferredBy = referredBy.replace(/\D/g, '');
+    if (referredBy && sanitizedReferredBy.length < 10) {
+        toast({ variant: 'destructive', title: 'Telefone do indicador inválido' });
+        return;
+    }
     
     setLoading(true);
 
     try {
       const userDocRef = doc(firestore, 'users', sanitizedPhone);
       const userDoc = await getDoc(userDocRef);
+
+      const batch = writeBatch(firestore);
 
       if (!userDoc.exists()) {
         const newUser = {
@@ -45,25 +53,45 @@ export default function EntrarPage() {
           totalCortes: 0,
           cortesAtuais: 0,
           girosDisponiveis: 0,
+          instagramReviewRewardUsed: false,
+          referredBy: sanitizedReferredBy || null,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         };
-        setDocumentNonBlocking(userDocRef, newUser, {});
+        batch.set(userDocRef, newUser);
         toast({ title: `Bem-vindo, ${name.split(' ')[0]}!`, description: 'Sua jornada no SPIN HILLS começou.' });
+
+        // Create referral document if referredBy is provided
+        if (sanitizedReferredBy) {
+            const referrerDocRef = doc(firestore, 'users', sanitizedReferredBy);
+            const referrerDoc = await getDoc(referrerDocRef);
+            if (!referrerDoc.exists()) {
+                throw new Error('O cliente que indicou não foi encontrado.');
+            }
+            const referralDocRef = doc(collection(firestore, 'referrals'));
+            batch.set(referralDocRef, {
+                referrerUserId: sanitizedReferredBy,
+                referredUserId: sanitizedPhone,
+                haircutConfirmed: false,
+                spinGranted: false,
+                createdAt: serverTimestamp(),
+            });
+        }
+
       } else {
         toast({ title: `Bem-vindo de volta, ${userDoc.data().name.split(' ')[0]}!` });
       }
       
+      await batch.commit();
       localStorage.setItem('spin-hills-user-phone', sanitizedPhone);
-      
       router.push('/dashboard');
 
-    } catch (error) {
+    } catch (error: any) {
        console.error("Registration failed:", error);
        toast({
           variant: 'destructive',
           title: 'Ops! Algo deu errado.',
-          description: 'Não foi possível completar seu cadastro. Tente novamente.',
+          description: error.message || 'Não foi possível completar seu cadastro. Tente novamente.',
         });
     } finally {
         setLoading(false);
@@ -94,6 +122,13 @@ export default function EntrarPage() {
             placeholder="Seu Telefone (XX) XXXXX-XXXX"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
+            className="bg-dark-gray border-gold/30 focus:ring-gold focus:border-gold text-center text-lg h-12"
+          />
+          <Input
+            type="tel"
+            placeholder="Telefone de quem indicou (Opcional)"
+            value={referredBy}
+            onChange={(e) => setReferredBy(e.target.value)}
             className="bg-dark-gray border-gold/30 focus:ring-gold focus:border-gold text-center text-lg h-12"
           />
           <Button
