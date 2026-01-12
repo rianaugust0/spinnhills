@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { LogOut, Handshake, Users, Info, Share2 } from 'lucide-react';
+import { LogOut, Handshake, Users, Info, Share2, Instagram, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -218,6 +218,18 @@ export default function DashboardPage() {
                   <div>
                     <h3 className="font-bold text-ice-white text-lg">Divulgue e Avalie</h3>
                     <p className="text-sm text-muted-foreground">Siga nosso Instagram e faça uma avaliação 5 estrelas no Google. Mostre para o barbeiro e ganhe 1 giro. (Válido apenas 1 vez)</p>
+                     <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                        <Button asChild variant="outline" className="text-ice-white border-purple-500/50 hover:bg-purple-500/10 hover:text-ice-white">
+                           <a href="https://www.instagram.com/hillscut?igsh=MXJoZDAzb2dpdWt2MA==" target="_blank" rel="noopener noreferrer">
+                                <Instagram className="mr-2 h-4 w-4" /> Seguir no Instagram
+                           </a>
+                        </Button>
+                         <Button asChild variant="outline" className="text-ice-white border-blue-500/50 hover:bg-blue-500/10 hover:text-ice-white">
+                           <a href="https://g.page/r/CSwWRcEEtr-UEBM/review" target="_blank" rel="noopener noreferrer">
+                                <Star className="mr-2 h-4 w-4" /> Avaliar no Google
+                           </a>
+                        </Button>
+                     </div>
                   </div>
                 </div>
               </CardContent>
