@@ -1,0 +1,143 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "type": "object",
+      "description": "Representa um cliente da barbearia.",
+      "properties": {
+        "name": { "type": "string", "description": "Nome do cliente." },
+        "phone": { "type": "string", "description": "Telefone do cliente, usado como identificador único." },
+        "totalCortes": { "type": "number", "description": "Total de cortes já realizados na barbearia." },
+        "cortesAtuais": { "type": "number", "description": "Contador de cortes para o próximo giro (0 a 5)." },
+        "girosDisponiveis": { "type": "number", "description": "Quantidade de giros disponíveis na roleta SPIN HILLS." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o cliente foi cadastrado." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp da última atualização do documento." },
+        "lastVisit": { "type": "string", "format": "date-time", "description": "Timestamp da última visita do cliente para um corte." },
+        "instagramReviewRewardUsed": { "type": "boolean", "description": "Indica se o cliente já ganhou o giro por seguir no Instagram e avaliar." },
+        "referralCode": { "type": "string", "description": "Código único de indicação do cliente." }
+      },
+      "required": ["name", "phone", "totalCortes", "cortesAtuais", "girosDisponiveis", "createdAt", "updatedAt", "referralCode"]
+    },
+    "Prize": {
+      "title": "Prize",
+      "type": "object",
+      "description": "Representa um prêmio ganho por um usuário.",
+      "properties": {
+        "userId": { "type": "string", "description": "ID do usuário que ganhou o prêmio." },
+        "userName": { "type": "string", "description": "Nome do usuário que ganhou o prêmio." },
+        "userPhone": { "type": "string", "description": "Telefone do usuário que ganhou o prêmio." },
+        "type": { "type": "string", "enum": ["corte_gratis", "hidratacao", "esfoliacao", "sobrancelha", "desconto_10", "brinde"], "description": "Tipo do prêmio ganho." },
+        "title": { "type": "string", "description": "Nome do prêmio (ex: 'Corte Grátis')." },
+        "description": { "type": "string", "description": "Descrição do prêmio." },
+        "imageUrl": { "type": "string", "description": "URL de uma imagem para o prêmio." },
+        "status": { "type": "string", "enum": ["active", "used", "expired"], "description": "Status atual do prêmio." },
+        "validityDays": { "type": "number", "description": "Número de dias que o prêmio é válido após ser ganho." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o prêmio foi ganho." },
+        "expiresAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o prêmio expira." },
+        "usedAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o prêmio foi utilizado." },
+        "usedByBarberId": { "type": "string", "description": "ID do barbeiro que validou o uso do prêmio." }
+      },
+      "required": ["userId", "userName", "userPhone", "type", "title", "status", "validityDays", "createdAt", "expiresAt"]
+    },
+    "Barber": {
+        "title": "Barber",
+        "type": "object",
+        "description": "Representa um barbeiro que pode validar ações.",
+        "properties": {
+            "name": { "type": "string", "description": "Nome do barbeiro." },
+            "pin": { "type": "string", "description": "PIN numérico para validação." }
+        },
+        "required": ["name", "pin"]
+    },
+    "Spin": {
+      "title": "Spin",
+      "type": "object",
+      "description": "Registra um giro ganho por um usuário e sua origem.",
+      "properties": {
+        "userId": { "type": "string", "description": "ID do usuário que ganhou o giro." },
+        "origin": { "type": "string", "enum": ["fidelidade_5_cortes", "indicacao", "instagram_avaliacao", "roleta_fisica", "manual"], "description": "A razão pela qual o giro foi concedido." },
+        "manual": { "type": "boolean", "description": "Indica se o giro foi concedido manualmente por um barbeiro." },
+        "releasedBy": { "type": "string", "description": "ID do barbeiro que liberou o giro manualmente." },
+        "notes": { "type": "string", "description": "Observações sobre a liberação manual do giro." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o giro foi concedido." }
+      },
+      "required": ["userId", "origin", "createdAt"]
+    },
+    "Cut": {
+      "title": "Cut",
+      "type": "object",
+      "description": "Registra a confirmação de um corte de cabelo.",
+      "properties": {
+        "userId": { "type": "string", "description": "ID do cliente que recebeu o corte." },
+        "barberId": { "type": "string", "description": "ID do barbeiro que confirmou o corte." },
+        "pinUsed": { "type": "string", "description": "PIN utilizado para a confirmação." },
+        "confirmed": { "type": "boolean", "description": "Status da confirmação." },
+        "date": { "type": "string", "format": "date-time", "description": "Timestamp de quando o corte foi confirmado." }
+      },
+      "required": ["userId", "barberId", "pinUsed", "confirmed", "date"]
+    },
+    "LimitedSpin": {
+      "title": "LimitedSpin",
+      "type": "object",
+      "description": "Representa um giro condicional que requer uma ação para ser liberado.",
+      "properties": {
+        "userId": { "type": "string", "description": "ID do usuário que possui o giro." },
+        "type": { "type": "string", "enum": ["extra_spin"], "description": "Tipo do giro limitado." },
+        "status": { "type": "string", "enum": ["active", "used", "expired"], "description": "Status do giro limitado." },
+        "condition": { "type": "string", "description": "Condição para uso, ex: 'valid_only_with_haircut'." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o giro foi concedido." },
+        "expiresAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o giro expira." },
+        "usedAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o giro foi utilizado." },
+        "usedByBarberId": { "type": "string", "description": "ID do barbeiro que validou o uso do giro." }
+      },
+      "required": ["userId", "type", "status", "condition", "createdAt", "expiresAt"]
+    },
+    "Referral": {
+        "title": "Referral",
+        "type": "object",
+        "description": "Registra a indicação de um novo cliente por um cliente existente.",
+        "properties": {
+            "referrerUserId": { "type": "string", "description": "ID do cliente que indicou." },
+            "referredUserId": { "type": "string", "description": "ID do novo cliente que foi indicado." },
+            "referredByCode": { "type": "string", "description": "Código de indicação utilizado no cadastro." },
+            "haircutConfirmed": { "type": "boolean", "description": "Indica se o cliente indicado já teve seu primeiro corte confirmado." },
+            "spinGranted": { "type": "boolean", "description": "Indica se o giro de recompensa já foi concedido ao indicador." },
+            "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando a indicação foi criada." }
+        },
+        "required": ["referrerUserId", "referredUserId", "haircutConfirmed", "spinGranted", "createdAt", "referredByCode"]
+    }
+  },
+  "auth": {
+    "providers": []
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Documento de um único usuário."
+    },
+    "/prizes/{prizeId}": {
+      "schema": { "$ref": "#/entities/Prize" },
+      "description": "Coleção raiz para todos os prêmios de todos os usuários."
+    },
+    "/barbers/{barberId}": {
+      "schema": { "$ref": "#/entities/Barber" },
+      "description": "Documento de um barbeiro autorizado."
+    },
+    "/spins/{spinId}": {
+      "schema": { "$ref": "#/entities/Spin" },
+      "description": "Coleção para registrar o histórico de giros concedidos."
+    },
+    "/cuts/{cutId}": {
+      "schema": { "$ref": "#/entities/Cut" },
+      "description": "Coleção para registrar o histórico de cortes confirmados."
+    },
+    "/limitedSpins/{limitedSpinId}": {
+        "schema": { "$ref": "#/entities/LimitedSpin" },
+        "description": "Coleção para giros condicionais que requerem uma ação para serem ativados."
+    },
+    "/referrals/{referralId}": {
+        "schema": { "$ref": "#/entities/Referral" },
+        "description": "Coleção para rastrear indicações de clientes."
+    }
+  }
+}

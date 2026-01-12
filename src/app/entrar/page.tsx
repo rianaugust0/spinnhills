@@ -1,25 +1,35 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, FerrisWheel } from 'lucide-react';
 import { initializeFirebase } from '@/firebase';
-import { collection, doc, getDoc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, setDoc, serverTimestamp, writeBatch, query, where, getDocs } from 'firebase/firestore';
 
 const { firestore } = initializeFirebase();
 
-export default function EntrarPage() {
+function generateReferralCode(length = 6) {
+    const chars = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+function EntrarForm() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [referredBy, setReferredBy] = useState('');
   const [loading, setLoading] = useState(false);
-
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+
+  const refCode = searchParams.get('ref');
 
   const handleRegistration = async () => {
     if (name.length < 3) {
@@ -31,12 +41,6 @@ export default function EntrarPage() {
       toast({ variant: 'destructive', title: 'Telefone inválido', description: 'Por favor, insira um telefone com DDD.' });
       return;
     }
-
-    const sanitizedReferredBy = referredBy.replace(/\D/g, '');
-    if (referredBy && sanitizedReferredBy.length < 10) {
-        toast({ variant: 'destructive', title: 'Telefone do indicador inválido' });
-        return;
-    }
     
     setLoading(true);
 
@@ -47,6 +51,7 @@ export default function EntrarPage() {
       const batch = writeBatch(firestore);
 
       if (!userDoc.exists()) {
+        const referralCode = generateReferralCode();
         const newUser = {
           name: name,
           phone: sanitizedPhone,
@@ -54,28 +59,35 @@ export default function EntrarPage() {
           cortesAtuais: 0,
           girosDisponiveis: 0,
           instagramReviewRewardUsed: false,
-          referredBy: sanitizedReferredBy || null,
+          referralCode: referralCode,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         };
         batch.set(userDocRef, newUser);
         toast({ title: `Bem-vindo, ${name.split(' ')[0]}!`, description: 'Sua jornada no SPIN HILLS começou.' });
 
-        // Create referral document if referredBy is provided
-        if (sanitizedReferredBy) {
-            const referrerDocRef = doc(firestore, 'users', sanitizedReferredBy);
-            const referrerDoc = await getDoc(referrerDocRef);
-            if (!referrerDoc.exists()) {
-                throw new Error('O cliente que indicou não foi encontrado.');
+        // Create referral document if referred by a code
+        if (refCode) {
+            const q = query(collection(firestore, "users"), where("referralCode", "==", refCode));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                 console.warn(`Referral code ${refCode} not found.`);
+            } else {
+                const referrerDoc = querySnapshot.docs[0];
+                const referrerId = referrerDoc.id;
+                
+                const referralDocRef = doc(collection(firestore, 'referrals'));
+                batch.set(referralDocRef, {
+                    referrerUserId: referrerId,
+                    referredUserId: sanitizedPhone,
+                    referredByCode: refCode,
+                    haircutConfirmed: false,
+                    spinGranted: false,
+                    createdAt: serverTimestamp(),
+                });
+                toast({ title: 'Indicação registrada!', description: 'Seu amigo será recompensado após seu primeiro corte.' });
             }
-            const referralDocRef = doc(collection(firestore, 'referrals'));
-            batch.set(referralDocRef, {
-                referrerUserId: sanitizedReferredBy,
-                referredUserId: sanitizedPhone,
-                haircutConfirmed: false,
-                spinGranted: false,
-                createdAt: serverTimestamp(),
-            });
         }
 
       } else {
@@ -97,8 +109,8 @@ export default function EntrarPage() {
         setLoading(false);
     }
   };
-
-  return (
+  
+    return (
     <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
       <div className="w-full max-w-sm animate-fade-in-up">
         <FerrisWheel className="h-16 w-16 text-gold mx-auto mb-4" />
@@ -109,6 +121,11 @@ export default function EntrarPage() {
         <p className="text-muted-foreground mt-2 mb-6">
           Use seu nome e telefone para acessar seu painel de prêmios.
         </p>
+         {refCode && (
+            <div className="bg-green-900/40 text-green-300 p-3 rounded-md mb-4 border border-green-500/50">
+                <p className="text-sm font-bold">Você foi indicado! Continue o cadastro para garantir os benefícios.</p>
+            </div>
+        )}
         <div className="space-y-4">
           <Input
             type="text"
@@ -124,13 +141,6 @@ export default function EntrarPage() {
             onChange={(e) => setPhone(e.target.value)}
             className="bg-dark-gray border-gold/30 focus:ring-gold focus:border-gold text-center text-lg h-12"
           />
-          <Input
-            type="tel"
-            placeholder="Telefone de quem indicou (Opcional)"
-            value={referredBy}
-            onChange={(e) => setReferredBy(e.target.value)}
-            className="bg-dark-gray border-gold/30 focus:ring-gold focus:border-gold text-center text-lg h-12"
-          />
           <Button
             onClick={handleRegistration}
             disabled={loading}
@@ -141,5 +151,14 @@ export default function EntrarPage() {
         </div>
       </div>
     </div>
-  );
+    );
+}
+
+
+export default function EntrarPage() {
+    return (
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-deep-black"><Loader2 className="h-16 w-16 animate-spin text-gold" /></div>}>
+            <EntrarForm />
+        </Suspense>
+    )
 }

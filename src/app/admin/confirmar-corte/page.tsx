@@ -105,32 +105,28 @@ export default function ConfirmarCortePage() {
         // --- Limited Spin Logic ---
         const limitedSpinsQuery = query(
           collection(firestore, "limitedSpins"),
-          where('userId', '==', client.id),
-          where('status', '==', 'active')
+          where('userId', '==', client.id)
         );
         const limitedSpinsSnapshot = await getDocs(limitedSpinsQuery);
         let convertedLimitedSpin = false;
-
-        if (!limitedSpinsSnapshot.empty) {
+        
+        const activeLimitedSpins = limitedSpinsSnapshot.docs.filter(doc => {
+            const data = doc.data();
             const now = new Date();
-            const activeAndValidSpins = limitedSpinsSnapshot.docs.filter(doc => {
-                const data = doc.data();
-                if (!data.expiresAt) return false;
-                const expiresAt = (data.expiresAt as Timestamp).toDate();
-                return isAfter(expiresAt, now);
-            });
+            const expiresAt = (data.expiresAt as Timestamp).toDate();
+            return data.status === 'active' && isAfter(expiresAt, now);
+        });
 
-            if (activeAndValidSpins.length > 0) {
-                const limitedSpinDoc = activeAndValidSpins[0];
-                batch.update(limitedSpinDoc.ref, {
-                    status: 'used',
-                    usedAt: nowTimestamp,
-                    usedByBarberId: barberId,
-                });
-                newGirosDisponiveis += 1;
-                convertedLimitedSpin = true;
-                setExtraSpinConverted(true);
-            }
+        if (activeLimitedSpins.length > 0) {
+            const limitedSpinDoc = activeLimitedSpins[0];
+            batch.update(limitedSpinDoc.ref, {
+                status: 'used',
+                usedAt: nowTimestamp,
+                usedByBarberId: barberId,
+            });
+            newGirosDisponiveis += 1;
+            convertedLimitedSpin = true;
+            setExtraSpinConverted(true);
         }
         
         // --- Referral Logic ---
@@ -282,7 +278,7 @@ export default function ConfirmarCortePage() {
          <h1 className="font-headline text-xl text-ice-white uppercase">Ações do Cliente</h1>
          <div></div>
       </header>
-      <main className="flex-1 flex flex-col items-center container mx-auto px-4 py-8">
+      <main className="flex-1 flex flex-col items-center container mx-auto py-8">
         {step === 'findClient' ? (
             <Card className="w-full max-w-sm bg-dark-gray border-gold/20 text-center animate-fade-in-up">
                 <CardHeader>
