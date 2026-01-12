@@ -40,6 +40,7 @@ export default function ConfirmarCortePage() {
   const [step, setStep] = useState<'findClient' | 'confirmCut' | 'success'>('findClient');
   const [isGrantModalOpen, setIsGrantModalOpen] = useState(false);
   const [extraSpinConverted, setExtraSpinConverted] = useState(false);
+  const [finalGiros, setFinalGiros] = useState(0);
 
   const handleFindClient = async () => {
     const sanitizedPhone = phone.replace(/\D/g, '');
@@ -112,16 +113,27 @@ export default function ConfirmarCortePage() {
         const nowTimestamp = serverTimestamp();
 
         const userDocRef = doc(firestore, 'users', client.id);
+        const userDocSnap = await getDoc(userDocRef);
+        const currentClientData = userDocSnap.data() as ClientData;
 
-        let newCortesAtuais = (client.cortesAtuais + 1);
-        let newGirosDisponiveis = client.girosDisponiveis;
+
+        let newCortesAtuais = (currentClientData.cortesAtuais + 1);
         let spinGrantedFromFidelity = false;
+
+        const updates: any = {
+            totalCortes: increment(1),
+            updatedAt: nowTimestamp,
+            lastVisit: nowTimestamp,
+        };
 
         if (newCortesAtuais >= 5) {
             newCortesAtuais = 0;
-            newGirosDisponiveis += 1;
+            updates.girosDisponiveis = increment(1);
             spinGrantedFromFidelity = true;
         }
+        
+        updates.cortesAtuais = newCortesAtuais;
+
 
         // --- Limited Spin Logic ---
         const limitedSpinsQuery = query(
@@ -146,7 +158,7 @@ export default function ConfirmarCortePage() {
                 usedAt: nowTimestamp,
                 usedByBarberId: barberId,
             });
-            newGirosDisponiveis += 1;
+             updates.girosDisponiveis = increment((updates.girosDisponiveis ? 0 : 0) + 1);
             convertedLimitedSpin = true;
             setExtraSpinConverted(true);
         }
@@ -181,13 +193,7 @@ export default function ConfirmarCortePage() {
         }
 
 
-        batch.update(userDocRef, {
-            cortesAtuais: newCortesAtuais,
-            totalCortes: increment(1),
-            girosDisponiveis: newGirosDisponiveis,
-            updatedAt: nowTimestamp,
-            lastVisit: nowTimestamp,
-        });
+        batch.update(userDocRef, updates);
 
         const cutsCollectionRef = collection(firestore, "cuts");
         batch.set(doc(cutsCollectionRef), {
@@ -209,10 +215,15 @@ export default function ConfirmarCortePage() {
         
         await batch.commit();
 
+        const updatedUserDoc = await getDoc(userDocRef);
+        const finalUserData = updatedUserDoc.data() as ClientData;
+
+        setFinalGiros(finalUserData.girosDisponiveis);
+
         setClient(prev => prev ? ({
           ...prev,
           cortesAtuais: newCortesAtuais,
-          girosDisponiveis: newGirosDisponiveis,
+          girosDisponiveis: finalUserData.girosDisponiveis,
           totalCortes: prev.totalCortes + 1,
         }) : null);
         setStep('success');
@@ -279,7 +290,7 @@ export default function ConfirmarCortePage() {
                         </div>
                     )}
                     <p>Novo Progresso: <span className='font-bold text-gold'>{client?.cortesAtuais}/5</span></p>
-                    <p>Giros Disponíveis: <span className='font-bold text-gold'>{client?.girosDisponiveis}</span></p>
+                    <p>Giros Disponíveis: <span className='font-bold text-gold'>{finalGiros}</span></p>
                  </div>
                 <Button onClick={resetState} className='mt-8 w-full h-12 text-base'>Confirmar Outro Corte</Button>
                  <Button variant="ghost" onClick={() => router.push('/admin')} className='mt-2 w-full max-w-sm'>Voltar para o Menu</Button>
