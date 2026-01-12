@@ -11,7 +11,8 @@
         "cortesAtuais": { "type": "number", "description": "Contador de cortes para o próximo giro (0 a 5)." },
         "girosDisponiveis": { "type": "number", "description": "Quantidade de giros disponíveis na roleta SPIN HILLS." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp de quando o cliente foi cadastrado." },
-        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp da última atualização do documento." }
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp da última atualização do documento." },
+        "lastVisit": { "type": "string", "format": "date-time", "description": "Timestamp da última visita do cliente para um corte." }
       },
       "required": ["name", "phone", "totalCortes", "cortesAtuais", "girosDisponiveis", "createdAt", "updatedAt"]
     },
@@ -120,5 +121,3 @@
     }
   }
 }
-
-    

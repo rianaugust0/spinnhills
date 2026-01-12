@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -91,6 +91,7 @@ export default function ConfirmarCortePage() {
         const batch = writeBatch(firestore);
 
         const userDocRef = doc(firestore, 'users', client.id);
+        const nowTimestamp = serverTimestamp();
 
         let newCortesAtuais = (client.cortesAtuais + 1);
         let newGirosDisponiveis = client.girosDisponiveis;
@@ -111,23 +112,25 @@ export default function ConfirmarCortePage() {
         const limitedSpinsSnapshot = await getDocs(limitedSpinsQuery);
         let convertedLimitedSpin = false;
 
-        // Filter for non-expired spins in the client
-        const now = new Date();
-        const activeAndValidSpins = limitedSpinsSnapshot.docs.filter(doc => {
-            const expiresAt = (doc.data().expiresAt as Timestamp).toDate();
-            return isAfter(expiresAt, now);
-        });
-
-        if (activeAndValidSpins.length > 0) {
-            const limitedSpinDoc = activeAndValidSpins[0]; // Process the first valid one
-            batch.update(limitedSpinDoc.ref, {
-                status: 'used',
-                usedAt: serverTimestamp(),
-                usedByBarberId: barberId,
+        if (!limitedSpinsSnapshot.empty) {
+            const now = new Date();
+            // Filter for non-expired spins client-side to avoid complex queries
+            const activeAndValidSpins = limitedSpinsSnapshot.docs.filter(doc => {
+                const expiresAt = (doc.data().expiresAt as Timestamp).toDate();
+                return isAfter(expiresAt, now);
             });
-            newGirosDisponiveis += 1;
-            convertedLimitedSpin = true;
-            setExtraSpinConverted(true);
+
+            if (activeAndValidSpins.length > 0) {
+                const limitedSpinDoc = activeAndValidSpins[0]; // Process the first valid one
+                batch.update(limitedSpinDoc.ref, {
+                    status: 'used',
+                    usedAt: nowTimestamp,
+                    usedByBarberId: barberId,
+                });
+                newGirosDisponiveis += 1;
+                convertedLimitedSpin = true;
+                setExtraSpinConverted(true);
+            }
         }
         
         // Optimistic UI updates
@@ -165,7 +168,8 @@ export default function ConfirmarCortePage() {
             cortesAtuais: newCortesAtuais,
             totalCortes: client.totalCortes + 1,
             girosDisponiveis: newGirosDisponiveis,
-            updatedAt: serverTimestamp(),
+            updatedAt: nowTimestamp,
+            lastVisit: nowTimestamp, // Update last visit timestamp
         });
 
         const cutsCollectionRef = collection(firestore, "cuts");
@@ -174,7 +178,7 @@ export default function ConfirmarCortePage() {
             barberId: barberId,
             pinUsed: pin,
             confirmed: true,
-            date: serverTimestamp()
+            date: nowTimestamp
         });
         
         if (spinGrantedFromFidelity) {
@@ -185,7 +189,7 @@ export default function ConfirmarCortePage() {
                 manual: false,
                 releasedBy: null,
                 notes: null,
-                createdAt: serverTimestamp()
+                createdAt: nowTimestamp
             });
         }
         
@@ -343,5 +347,3 @@ export default function ConfirmarCortePage() {
     </div>
   );
 }
-
-    
