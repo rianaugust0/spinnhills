@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { initializeFirebase, useDoc, useCollection } from '@/firebase';
-import { doc, collection, query, where, Timestamp, getDoc } from 'firebase/firestore';
+import { doc, collection, query, where, Timestamp, getDoc, getDocs } from 'firebase/firestore';
 import { isAfter, differenceInDays } from 'date-fns';
 import { UserDashboardTabs } from '@/components/dashboard/UserDashboardTabs';
 import { Skeleton } from '@/components/ui/skeleton';
