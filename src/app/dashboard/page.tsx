@@ -207,7 +207,7 @@ export default function DashboardPage() {
                     <div>
                       <h3 className="font-bold text-ice-white text-lg">Indique um Amigo e Ganhe</h3>
                       <p className="text-sm text-muted-foreground mt-1 mb-3">Seu amigo faz o primeiro corte e você ganha 1 giro na hora!</p>
-                       <Button onClick={() => setIsShareModalOpen(true)} className="bg-gold text-deep-black hover:bg-gold/90" disabled={!clientData?.referralCode}>
+                       <Button onClick={() => setIsShareModalOpen(true)} className="bg-gold text-deep-black hover:bg-gold/90">
                         <Share2 className="mr-2 h-4 w-4" />
                         Indicar um amigo
                       </Button>
