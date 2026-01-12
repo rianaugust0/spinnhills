@@ -28,7 +28,7 @@ export default function AdminPage() {
              <Button
               onClick={() => router.push('/admin/liberar-giro')}
               variant="outline"
-              className="w-full h-12 text-base uppercase tracking-wider font-bold"
+              className="w-full h-12 text-base uppercase tracking-wider font-bold border-gold/50 text-gold hover:bg-gold/10 hover:text-gold"
             >
               <Gift className="mr-2" />
               Liberar Giro por Ação
@@ -36,7 +36,7 @@ export default function AdminPage() {
              <Button
               onClick={() => router.push('/admin/retorno-clientes')}
               variant="outline"
-              className="w-full h-12 text-base uppercase tracking-wider font-bold"
+              className="w-full h-12 text-base uppercase tracking-wider font-bold border-gold/50 text-gold hover:bg-gold/10 hover:text-gold"
             >
               <Users className="mr-2" />
               Retorno de Clientes
@@ -44,7 +44,7 @@ export default function AdminPage() {
              <Button
               onClick={() => router.push('/admin/dashboard')}
               variant="outline"
-              className="w-full h-12 text-base uppercase tracking-wider font-bold"
+              className="w-full h-12 text-base uppercase tracking-wider font-bold border-gold/50 text-gold hover:bg-gold/10 hover:text-gold"
             >
               <LayoutDashboard className="mr-2" />
               Painel de Prêmios

@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, User, Gift, Check, X, AlertCircle } from 'lucide-react';
+import { Loader2, ArrowLeft, User, Gift, Check, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, serverTimestamp, writeBatch, increment, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, serverTimestamp, writeBatch, increment } from 'firebase/firestore';
 
 const { firestore } = initializeFirebase();
 
@@ -24,7 +24,6 @@ export default function LiberarGiroPage() {
   const { toast } = useToast();
 
   const [phone, setPhone] = useState('');
-  const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [client, setClient] = useState<ClientInfo | null>(null);
   const [step, setStep] = useState<'findClient' | 'confirmAction'>('findClient');
@@ -164,7 +163,7 @@ export default function LiberarGiroPage() {
                                 </div>
                             ) : (
                                 <Button 
-                                    className='w-full' 
+                                    className='w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base' 
                                     onClick={handleGrantInstagramReviewSpin}
                                     disabled={loading}
                                 >
@@ -174,14 +173,15 @@ export default function LiberarGiroPage() {
                         </CardContent>
                     </Card>
                     
-                    <Card className="bg-deep-black border-gold/10 opacity-50">
+                    <Card className="bg-deep-black border-gold/10 opacity-50 cursor-not-allowed">
                         <CardHeader className='pb-4'>
-                             <CardTitle className="text-lg flex items-center gap-2">Indicação de Amigo <span className='text-xs'>(Em breve)</span></CardTitle>
-                             <CardDescription className='text-xs'>Conceder +1 giro para o cliente que indicou um amigo (após o primeiro corte do amigo).</CardDescription>
+                             <CardTitle className="text-lg flex items-center gap-2">Indicação de Amigo <span className='text-xs'>(Automático)</span></CardTitle>
+                             <CardDescription className='text-xs'>O giro por indicação é concedido automaticamente quando o amigo indicado faz o primeiro corte.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                             <Button className='w-full' disabled>
-                                Confirmar Giro por Indicação
+                            <Button className='w-full' disabled>
+                                <Info className='mr-2 h-4 w-4' />
+                                Ação automática
                             </Button>
                         </CardContent>
                     </Card>
@@ -190,7 +190,6 @@ export default function LiberarGiroPage() {
                      <Button variant="link" onClick={() => {
                          setClient(null);
                          setPhone('');
-                         setPin('');
                          setStep('findClient');
                      }} className='text-gold/80 w-full'>Buscar outro cliente</Button>
                 </CardContent>
@@ -200,3 +199,4 @@ export default function LiberarGiroPage() {
     </div>
   );
 }
+
