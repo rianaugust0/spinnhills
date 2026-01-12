@@ -109,7 +109,7 @@ export default function ClientReturnPage() {
     const userFirstName = name.split(' ')[0];
     const daysText = days ? `Faz ${days} dias que você não vem cortar o cabelo 💈` : "Notamos sua ausência e queremos você de volta! 💈";
     const message = `Olá ${userFirstName} 👋\n${daysText}\n\nTemos um prêmio especial te esperando 🎁\n\nTe esperamos!`;
-    const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, '')}&text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
