@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { initializeFirebase } from '@/firebase';
 import { GrantPrizeOrSpinModal } from '@/components/admin/GrantPrizeOrSpinModal';
 import { doc, getDoc, collection, query, where, getDocs, serverTimestamp, Timestamp, writeBatch } from 'firebase/firestore';
-import { updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { isAfter } from 'date-fns';
 
 const { firestore } = initializeFirebase();
 
@@ -106,13 +106,20 @@ export default function ConfirmarCortePage() {
         const limitedSpinsQuery = query(
           collection(firestore, "limitedSpins"),
           where('userId', '==', client.id),
-          where('status', '==', 'active'),
-          where('expiresAt', '>=', Timestamp.now())
+          where('status', '==', 'active')
         );
         const limitedSpinsSnapshot = await getDocs(limitedSpinsQuery);
         let convertedLimitedSpin = false;
-        if (!limitedSpinsSnapshot.empty) {
-            const limitedSpinDoc = limitedSpinsSnapshot.docs[0]; // Assuming only one active at a time
+
+        // Filter for non-expired spins in the client
+        const now = new Date();
+        const activeAndValidSpins = limitedSpinsSnapshot.docs.filter(doc => {
+            const expiresAt = (doc.data().expiresAt as Timestamp).toDate();
+            return isAfter(expiresAt, now);
+        });
+
+        if (activeAndValidSpins.length > 0) {
+            const limitedSpinDoc = activeAndValidSpins[0]; // Process the first valid one
             batch.update(limitedSpinDoc.ref, {
                 status: 'used',
                 usedAt: serverTimestamp(),
