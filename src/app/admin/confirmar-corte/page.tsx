@@ -104,20 +104,21 @@ export default function ConfirmarCortePage() {
         }
 
         // --- Limited Spin Logic ---
+        // Query only by userId to avoid composite index requirement
         const limitedSpinsQuery = query(
           collection(firestore, "limitedSpins"),
-          where('userId', '==', client.id),
-          where('status', '==', 'active')
+          where('userId', '==', client.id)
         );
         const limitedSpinsSnapshot = await getDocs(limitedSpinsQuery);
         let convertedLimitedSpin = false;
 
         if (!limitedSpinsSnapshot.empty) {
             const now = new Date();
-            // Filter for non-expired spins client-side to avoid complex queries
+            // Filter for active and non-expired spins client-side
             const activeAndValidSpins = limitedSpinsSnapshot.docs.filter(doc => {
-                const expiresAt = (doc.data().expiresAt as Timestamp).toDate();
-                return isAfter(expiresAt, now);
+                const data = doc.data();
+                const expiresAt = (data.expiresAt as Timestamp).toDate();
+                return data.status === 'active' && isAfter(expiresAt, now);
             });
 
             if (activeAndValidSpins.length > 0) {
@@ -347,3 +348,5 @@ export default function ConfirmarCortePage() {
     </div>
   );
 }
+
+    
