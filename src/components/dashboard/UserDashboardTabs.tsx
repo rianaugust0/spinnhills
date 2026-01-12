@@ -14,6 +14,11 @@ import { useEffect, useState } from "react";
 const PrizeCard = ({ prize }: { prize: any }) => {
   const router = useRouter();
   const [daysLeft, setDaysLeft] = useState<number | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Safely convert expiresAt to a Date object
   const expiresAtDate = prize.expiresAt instanceof Timestamp 
@@ -21,11 +26,15 @@ const PrizeCard = ({ prize }: { prize: any }) => {
     : new Date(prize.expiresAt);
 
   useEffect(() => {
-    if (isValid(expiresAtDate)) {
+    if (isClient && isValid(expiresAtDate)) {
       setDaysLeft(differenceInDays(expiresAtDate, new Date()));
     }
-  }, [expiresAtDate]);
+  }, [expiresAtDate, isClient]);
 
+
+  if (!isClient) {
+    return null; // or a loading skeleton
+  }
 
   if (!isValid(expiresAtDate)) {
       return (
@@ -77,17 +86,25 @@ const PrizeCard = ({ prize }: { prize: any }) => {
 
 const LimitedSpinCard = ({ limitedSpin }: { limitedSpin: any }) => {
     const [daysLeft, setDaysLeft] = useState<number | null>(null);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const expiresAtDate = limitedSpin.expiresAt instanceof Timestamp 
         ? limitedSpin.expiresAt.toDate() 
         : new Date(limitedSpin.expiresAt);
     
     useEffect(() => {
-        if(isValid(expiresAtDate)) {
+        if(isClient && isValid(expiresAtDate)) {
             setDaysLeft(differenceInDays(expiresAtDate, new Date()));
         }
-    }, [expiresAtDate]);
+    }, [expiresAtDate, isClient]);
 
+    if (!isClient) {
+        return null;
+    }
 
     if (!isValid(expiresAtDate)) {
         return (
@@ -197,3 +214,5 @@ export function UserDashboardTabs({ activePrizes, activeLimitedSpin }: UserDashb
     </Tabs>
   )
 }
+
+    

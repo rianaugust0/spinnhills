@@ -134,7 +134,7 @@ export default function AdminDashboardPage() {
     fetchActivePrizes();
   }, [isClient]);
 
-  if (!isClient || loading) {
+  if (!isClient) {
     return (
       <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
         <header className="p-4 flex justify-between items-center border-b border-gold/20 sticky top-0 bg-deep-black/80 backdrop-blur-sm z-10">
@@ -199,3 +199,5 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
+    

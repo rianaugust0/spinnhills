@@ -147,6 +147,10 @@ export default function DashboardPage() {
 
   const isLoading = !isClient || isClientLoading || isPrizesLoading || isLimitedSpinsLoading;
 
+  if (!isClient) {
+    return <DashboardSkeleton />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
       <header className="p-4 flex justify-between items-center border-b border-gold/20">
@@ -238,3 +242,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

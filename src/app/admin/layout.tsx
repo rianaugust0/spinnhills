@@ -25,19 +25,24 @@ export default function AdminLayout({
 
   useEffect(() => {
     // This code now runs only on the client
-    const sessionPin = sessionStorage.getItem('barber-pin');
-    if (sessionPin) {
-      validatePin(sessionPin, false).then((isValid) => {
-        if (isValid) {
-          setIsAuthenticated(true);
-        } else {
-          sessionStorage.removeItem('barber-pin');
+    const checkSession = async () => {
+        try {
+            const sessionPin = sessionStorage.getItem('barber-pin');
+            if (sessionPin) {
+                const isValid = await validatePin(sessionPin, false);
+                if (isValid) {
+                    setIsAuthenticated(true);
+                } else {
+                    sessionStorage.removeItem('barber-pin');
+                }
+            }
+        } catch (error) {
+            console.error("Failed to check session", error);
+        } finally {
+            setIsCheckingSession(false);
         }
-        setIsCheckingSession(false);
-      });
-    } else {
-      setIsCheckingSession(false);
-    }
+    };
+    checkSession();
   }, []);
 
   const validatePin = async (pinToValidate: string, showToast: boolean = true) => {
@@ -118,3 +123,5 @@ export default function AdminLayout({
 
   return <>{children}</>;
 }
+
+    
