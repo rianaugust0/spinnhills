@@ -28,8 +28,18 @@ function EntrarForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  
+  const refCodeFromUrl = searchParams.get('ref');
 
-  const refCode = searchParams.get('ref');
+  // Effect to store referral code from URL into localStorage
+  useEffect(() => {
+    if (refCodeFromUrl) {
+      localStorage.setItem('referralCode', refCodeFromUrl);
+      // Optionally, remove it from URL to keep it clean
+      // window.history.replaceState({}, document.title, "/entrar");
+    }
+  }, [refCodeFromUrl]);
+  
 
   const handleRegistration = async () => {
     if (name.length < 3) {
@@ -49,6 +59,7 @@ function EntrarForm() {
       const userDoc = await getDoc(userDocRef);
 
       const batch = writeBatch(firestore);
+      const refCodeFromStorage = localStorage.getItem('referralCode');
 
       if (!userDoc.exists()) {
         const referralCode = generateReferralCode();
@@ -66,27 +77,32 @@ function EntrarForm() {
         batch.set(userDocRef, newUser);
         toast({ title: `Bem-vindo, ${name.split(' ')[0]}!`, description: 'Sua jornada no SPIN HILLS começou.' });
 
-        // Create referral document if referred by a code
-        if (refCode) {
-            const q = query(collection(firestore, "users"), where("referralCode", "==", refCode));
+        // Create referral document if referred by a code from storage
+        if (refCodeFromStorage) {
+            const q = query(collection(firestore, "users"), where("referralCode", "==", refCodeFromStorage));
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
-                 console.warn(`Referral code ${refCode} not found.`);
+                 console.warn(`Referral code ${refCodeFromStorage} not found.`);
             } else {
                 const referrerDoc = querySnapshot.docs[0];
                 const referrerId = referrerDoc.id;
-                
-                const referralDocRef = doc(collection(firestore, 'referrals'));
-                batch.set(referralDocRef, {
-                    referrerUserId: referrerId,
-                    referredUserId: sanitizedPhone,
-                    referredByCode: refCode,
-                    haircutConfirmed: false,
-                    spinGranted: false,
-                    createdAt: serverTimestamp(),
-                });
-                toast({ title: 'Indicação registrada!', description: 'Seu amigo será recompensado após seu primeiro corte.' });
+
+                // Prevent self-referral
+                if (referrerId === sanitizedPhone) {
+                    console.warn("Self-referral attempt blocked.");
+                } else {
+                    const referralDocRef = doc(collection(firestore, 'referrals'));
+                    batch.set(referralDocRef, {
+                        referrerUserId: referrerId,
+                        referredUserId: sanitizedPhone,
+                        referredByCode: refCodeFromStorage,
+                        haircutConfirmed: false,
+                        spinGranted: false,
+                        createdAt: serverTimestamp(),
+                    });
+                    toast({ title: 'Indicação registrada!', description: 'Seu amigo será recompensado após seu primeiro corte.' });
+                }
             }
         }
 
@@ -96,6 +112,7 @@ function EntrarForm() {
       
       await batch.commit();
       localStorage.setItem('spin-hills-user-phone', sanitizedPhone);
+      localStorage.removeItem('referralCode'); // Clean up referral code after use
       router.push('/dashboard');
 
     } catch (error: any) {
@@ -121,7 +138,7 @@ function EntrarForm() {
         <p className="text-muted-foreground mt-2 mb-6">
           Use seu nome e telefone para acessar seu painel de prêmios.
         </p>
-         {refCode && (
+         {refCodeFromUrl && (
             <div className="bg-green-900/40 text-green-300 p-3 rounded-md mb-4 border border-green-500/50">
                 <p className="text-sm font-bold">Você foi indicado! Continue o cadastro para garantir os benefícios.</p>
             </div>
