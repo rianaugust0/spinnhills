@@ -89,15 +89,25 @@ export default function DashboardPage() {
     }
   }, [router]);
 
+  const userDocRef = useMemo(() => {
+    if (!firestore || !clientPhone) return null;
+    return doc(firestore, 'users', clientPhone);
+  }, [clientPhone]);
+
+  const { data: clientData, isLoading: isClientLoading } = useDoc(userDocRef);
+
   useEffect(() => {
-    if (!clientPhone) return;
+    if (!clientPhone || !clientData) return; // Wait for clientData
 
     const fetchReferrerInfo = async () => {
+        // Find if this user was referred by someone
         const referralsQuery = query(collection(firestore, 'referrals'), where('referredUserId', '==', clientPhone));
         const referralsSnapshot = await getDocs(referralsQuery);
         if (!referralsSnapshot.empty) {
             const referralDoc = referralsSnapshot.docs[0];
             const referrerId = referralDoc.data().referrerUserId;
+
+            // Now find the name of the person who referred them
             if (referrerId) {
                 const referrerUserDoc = await getDoc(doc(firestore, 'users', referrerId));
                 if (referrerUserDoc.exists()) {
@@ -107,14 +117,8 @@ export default function DashboardPage() {
         }
     };
     fetchReferrerInfo();
-  }, [clientPhone]);
+  }, [clientPhone, clientData]); // Rerun when clientData is available
 
-  const userDocRef = useMemo(() => {
-    if (!firestore || !clientPhone) return null;
-    return doc(firestore, 'users', clientPhone);
-  }, [clientPhone]);
-
-  const { data: clientData, isLoading: isClientLoading } = useDoc(userDocRef);
 
   const prizesQuery = useMemo(() => {
     if (!firestore || !clientPhone) return null;
@@ -205,7 +209,7 @@ export default function DashboardPage() {
       {isLoading ? <DashboardSkeleton /> : (
         <main className="flex-1 container mx-auto px-4 py-8 space-y-6 md:space-y-8 animate-fade-in-up">
             
-            {referrerName && (
+             {referrerName && (
                 <Card className="bg-green-900/40 border-green-500/50">
                     <CardContent className="p-4 flex items-center gap-4">
                         <Award className="h-8 w-8 text-green-300" />
@@ -278,3 +282,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
