@@ -50,6 +50,11 @@ service cloud.firestore {
       // Allow the app to create documents when a spin is granted.
       allow read, write: if true;
     }
+    
+    match /referrals/{referralId} {
+      // Allow app to manage referral documents
+      allow read, write: if true;
+    }
   }
 }
 
