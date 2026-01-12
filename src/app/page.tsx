@@ -3,20 +3,33 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { useEffect } from 'react';
-import { Sparkles, FerrisWheel } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Sparkles, FerrisWheel, Loader2 } from 'lucide-react';
 
 export default function WelcomePage() {
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // Check for session on load and redirect if it exists, only on client-side
+    // This now safely runs only on the client
     const userPhone = localStorage.getItem('spin-hills-user-phone');
     if (userPhone) {
       router.replace('/dashboard');
+    } else {
+      setIsClient(true);
     }
   }, [router]);
 
+  // Render a loading state or nothing on the server and during the initial client render
+  if (!isClient) {
+    return (
+       <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
+          <Loader2 className="h-16 w-16 animate-spin text-gold" />
+       </div>
+    );
+  }
+
+  // Render the full page only on the client after checking localStorage
   return (
     <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
       <div className="w-full max-w-md animate-fade-in-up space-y-4">

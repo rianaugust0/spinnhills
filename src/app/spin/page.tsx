@@ -26,11 +26,18 @@ const Confetti = dynamic(() => import('react-confetti'), { ssr: false });
 // Initialize Firebase
 const { firestore } = initializeFirebase();
 
+const LoadingScreen = () => (
+    <div className="flex min-h-screen items-center justify-center bg-deep-black">
+        <Loader2 className="h-16 w-16 animate-spin text-gold" />
+    </div>
+);
+
 export default function SpinPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { width, height } = useWindowSize();
   const [clientPhone, setClientPhone] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [prizeWon, setPrizeWon] = useState<PrizeOption | null>(null);
   const [mustSpin, setMustSpin] = useState(false);
@@ -41,6 +48,7 @@ export default function SpinPage() {
       router.replace('/entrar');
     } else {
       setClientPhone(phoneFromStorage);
+      setIsClient(true);
     }
   }, [router]);
 
@@ -114,14 +122,10 @@ export default function SpinPage() {
     }
   };
 
-  const isLoading = isClientLoading;
+  const isLoading = isClientLoading || !isClient;
 
   if (isLoading || !clientData) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-deep-black">
-        <Loader2 className="h-16 w-16 animate-spin text-gold" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (clientData.girosDisponiveis <= 0 && !isSpinning && !prizeWon) {
