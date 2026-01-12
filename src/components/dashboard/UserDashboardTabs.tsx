@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Ticket, Calendar, Gift, Target, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { differenceInDays, format, isValid } from "date-fns";
@@ -50,7 +51,7 @@ const PrizeCard = ({ prize }: { prize: any }) => {
       );
   }
 
-  const handleRedeemClick = () => {
+  const handleProceedToRedeem = () => {
     router.push(`/resgatar-premio?prizeId=${prize.id}`);
   };
 
@@ -84,7 +85,29 @@ const PrizeCard = ({ prize }: { prize: any }) => {
         </div>
         <div className="mt-4">
             {daysLeft >= 0 && (
-                 <Button size="sm" onClick={handleRedeemClick} className="h-9 w-full">Resgatar</Button>
+                 <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button size="sm" className="h-9 w-full">Resgatar</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-dark-gray border-gold/20 text-ice-white">
+                        <AlertDialogHeader>
+                        <AlertDialogTitle className="text-xl text-gold font-headline">⚠️ Atenção antes de resgatar</AlertDialogTitle>
+                        <AlertDialogDescription className="text-base text-ice-white/80">
+                            Este prêmio deve ser resgatado somente no momento do seu atendimento, dentro da barbearia.
+                            <br/><br/>
+                            Ao confirmar, você declara que está realizando seu corte agora. Prêmios resgatados fora da barbearia não poderão ser reutilizados.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel asChild>
+                            <Button variant="secondary" className="text-base">Cancelar</Button>
+                        </AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                            <Button onClick={handleProceedToRedeem} className="bg-gold text-deep-black text-base">Confirmar resgate</Button>
+                        </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             )}
         </div>
       </CardContent>
@@ -236,3 +259,5 @@ export function UserDashboardTabs({ activePrizes, activeLimitedSpin }: UserDashb
     </Tabs>
   )
 }
+
+    
