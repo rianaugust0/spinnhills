@@ -2,13 +2,13 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { LogOut, Handshake, Users, Info, Share2, Instagram, Star, Award } from 'lucide-react';
+import { LogOut, Handshake, Users, Info, Share2, Instagram, Star, Award, FerrisWheel } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { initializeFirebase, useDoc, useCollection } from '@/firebase';
-import { doc, collection, query, where, Timestamp, getDoc, getDocs } from 'firebase/firestore';
+import { doc, collection, query, where, Timestamp, getDocs, getDoc } from 'firebase/firestore';
 import { isAfter, differenceInDays } from 'date-fns';
 import { UserDashboardTabs } from '@/components/dashboard/UserDashboardTabs';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,6 +19,17 @@ const { firestore } = initializeFirebase();
 
 const DashboardSkeleton = () => (
     <div className="flex-1 container mx-auto px-4 py-8 space-y-6 md:space-y-8 animate-pulse">
+        
+        <Card className="bg-dark-gray/50 border-gold/10">
+            <CardHeader className="pb-4">
+                <Skeleton className="h-8 w-3/5" />
+            </CardHeader>
+            <CardContent>
+                <Skeleton className="h-6 w-1/2" />
+                <Skeleton className="h-4 w-4/5 mt-2" />
+            </CardContent>
+        </Card>
+
         <Card className="bg-dark-gray/50 border-gold/10">
             <CardHeader className="pb-4">
                 <Skeleton className="h-6 w-4/5" />
@@ -219,6 +230,24 @@ export default function DashboardPage() {
                         </div>
                     </CardContent>
                 </Card>
+            )}
+
+            {(clientData?.girosDisponiveis > 0) && (
+              <Card className="bg-dark-gray border-gold/20 text-center shadow-lg shadow-gold/5 animate-fade-in-up">
+                <CardHeader>
+                  <FerrisWheel className="h-12 w-12 mx-auto text-gold animate-pulse" />
+                  <CardTitle className="text-2xl text-gold font-headline tracking-wider">Giros Disponíveis na Roleta</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-4xl font-bold text-ice-white">{clientData.girosDisponiveis}</p>
+                  <p className="text-lg text-muted-foreground mt-1">
+                    Você tem {clientData.girosDisponiveis > 1 ? 'giros' : 'giro'} para usar!
+                  </p>
+                  <p className="text-sm text-muted-foreground/70 mt-4">
+                    Vá até a barbearia para usar seus giros na nossa roleta de prêmios.
+                  </p>
+                </CardContent>
+              </Card>
             )}
 
             <Card className="bg-dark-gray border-gold/20">
