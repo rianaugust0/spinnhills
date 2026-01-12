@@ -214,5 +214,3 @@ export function UserDashboardTabs({ activePrizes, activeLimitedSpin }: UserDashb
     </Tabs>
   )
 }
-
-    
