@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -63,8 +64,7 @@ export default function ConfirmSpinsPage() {
       try {
         const spinsQuery = query(
             collection(firestore, 'spins'), 
-            where('status', '==', 'used_pending_confirm'),
-            // orderBy('usedAt', 'desc') // This requires a composite index
+            where('status', '==', 'used_pending_confirm')
             );
         const spinsSnapshot = await getDocs(spinsQuery);
 
@@ -75,8 +75,10 @@ export default function ConfirmSpinsPage() {
         
         // Fetch user names for each spin
         const spinsWithUserData = await Promise.all(spinsList.map(async (spin) => {
-            const userDoc = await getDocs(query(collection(firestore, 'users'), where('phone', '==', spin.userId)));
-            const userName = userDoc.empty ? 'Cliente não encontrado' : userDoc.docs[0].data().name;
+            // Because userId is the phone number, which is the document ID for users
+            const userDocRef = doc(firestore, 'users', spin.userId);
+            const userDoc = await getDoc(userDocRef);
+            const userName = userDoc.exists() ? userDoc.data().name : 'Cliente não encontrado';
             return { ...spin, userName };
         }));
 
@@ -103,12 +105,14 @@ export default function ConfirmSpinsPage() {
   }, [isClient]);
 
   const handleOpenModal = async (clientPhone: string, clientName: string) => {
-      const userDocSnapshot = await getDocs(query(collection(firestore, 'users'), where('phone', '==', clientPhone)));
-      if(userDocSnapshot.empty){
+      const userDocRef = doc(firestore, 'users', clientPhone);
+      const userDocSnapshot = await getDoc(userDocRef);
+      
+      if(!userDocSnapshot.exists()){
           toast({variant: 'destructive', title: 'Cliente não encontrado'});
           return;
       }
-      const userData = userDocSnapshot.docs[0].data();
+      const userData = userDocSnapshot.data();
       setSelectedClient({
         id: clientPhone,
         name: clientName,
