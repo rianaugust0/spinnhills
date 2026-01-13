@@ -37,7 +37,6 @@ export default function ConfirmarCortePage() {
   const [client, setClient] = useState<ClientData | null>(null);
   const [referralInfo, setReferralInfo] = useState<ReferralInfo | null>(null);
   const [step, setStep] = useState<'findClient' | 'confirmCut' | 'success'>('findClient');
-  const [isGrantModalOpen, setIsGrantModalOpen] = useState(false);
   const [extraSpinConverted, setExtraSpinConverted] = useState(false);
   const [finalAvailableSpins, setFinalAvailableSpins] = useState(0);
 
@@ -267,12 +266,6 @@ export default function ConfirmarCortePage() {
     }
   }
 
-  const handleClientUpdate = (updatedData: Partial<ClientData>) => {
-    if (client) {
-      setClient({ ...client, ...updatedData });
-    }
-  };
-
   const resetState = () => {
     setStep('findClient');
     setClient(null);
@@ -307,11 +300,6 @@ export default function ConfirmarCortePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
-      {client && <GrantPrizeOrSpinModal 
-        isOpen={isGrantModalOpen}
-        onClose={() => setIsGrantModalOpen(false)}
-        client={client}
-      />}
       <header className="p-4 flex justify-between items-center">
         <Button variant="ghost" size="icon" onClick={() => step === 'confirmCut' ? resetState() : router.back()} aria-label="Voltar">
           <ArrowLeft className="h-5 w-5 text-gold" />
@@ -387,20 +375,8 @@ export default function ConfirmarCortePage() {
                             {loading ? <Loader2 className="animate-spin" /> : 'Confirmar e Contabilizar'}
                         </Button>
                     </div>
-
-                    <div className="space-y-2 pt-2 border-t border-gold/10">
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsGrantModalOpen(true)}
-                        disabled={loading}
-                        className="w-full h-12 text-base text-gold border-gold/50 hover:bg-gold/10 hover:text-gold"
-                      >
-                        <FerrisWheel className="mr-2 h-4 w-4" />
-                        Registrar Giro Físico
-                      </Button>
-                    </div>
-
-                     <Button variant="link" onClick={resetState} className='text-gold/80'>Buscar outro cliente</Button>
+                    
+                    <Button variant="link" onClick={resetState} className='text-gold/80'>Buscar outro cliente</Button>
                 </CardContent>
             </Card>
         )}

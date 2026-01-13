@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Scissors, LayoutDashboard, UserPlus, Users, Gift, CheckCircle } from 'lucide-react';
+import { Scissors, LayoutDashboard, UserPlus, Users, Gift, CheckCircle, FerrisWheel } from 'lucide-react';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -31,6 +31,14 @@ export default function AdminPage() {
             >
               <CheckCircle className="mr-2" />
               Confirmar Giros Usados
+            </Button>
+            <Button
+              onClick={() => router.push('/admin/giro-manual')}
+              variant="outline"
+              className="w-full h-12 text-base uppercase tracking-wider font-bold border-gold/50 text-gold hover:bg-gold/10 hover:text-gold"
+            >
+              <FerrisWheel className="mr-2" />
+              Conceder Giro Manual
             </Button>
              <Button
               onClick={() => router.push('/admin/liberar-giro')}
