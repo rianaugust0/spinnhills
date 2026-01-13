@@ -71,12 +71,10 @@ export default function LiberarGiroPage() {
         const batch = writeBatch(firestore);
         const userDocRef = doc(firestore, 'users', client.id);
 
-        // Mark reward as used on the user document
         batch.update(userDocRef, { 
             instagramReviewRewardUsed: true 
         });
 
-        // Create a new spin document
         const spinDocRef = doc(collection(firestore, 'spins'));
         batch.set(spinDocRef, {
             userId: client.id,
@@ -94,7 +92,6 @@ export default function LiberarGiroPage() {
             description: `${client.name.split(' ')[0]} ganhou +1 giro.`,
         });
         
-        // Optimistic update on client state
         setClient(prev => prev ? ({ ...prev, instagramReviewRewardUsed: true }) : null);
 
     } catch (error: any) {
@@ -191,7 +188,6 @@ export default function LiberarGiroPage() {
                             </Button>
                         </CardContent>
                     </Card>
-
 
                      <Button variant="link" onClick={resetState} className='text-gold/80 w-full'>Buscar outro cliente</Button>
                 </CardContent>
