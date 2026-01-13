@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { initializeFirebase } from '@/firebase';
-import { collection, getDocs, query, where, Timestamp, writeBatch, doc } from 'firebase/firestore';
+import { collection, getDocs, query, where, Timestamp, writeBatch, doc, getDoc } from 'firebase/firestore';
 import { Loader2, ArrowLeft, CheckCircle, User, Clock, Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
