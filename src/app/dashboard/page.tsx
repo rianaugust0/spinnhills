@@ -165,12 +165,18 @@ export default function DashboardPage() {
     return query(
         collection(firestore, 'spins'),
         where('userId', '==', clientPhone),
-        where('status', '==', 'available'),
-        orderBy('createdAt', 'asc')
+        where('status', '==', 'available')
     );
   }, [clientPhone]);
 
-  const { data: availableSpins, isLoading: isSpinsLoading } = useCollection(availableSpinsQuery);
+  const { data: availableSpinsData, isLoading: isSpinsLoading } = useCollection(availableSpinsQuery);
+  
+  const availableSpins = useMemo(() => {
+    if (!availableSpinsData) return [];
+    // Sort client-side
+    return availableSpinsData.sort((a, b) => (a.createdAt as Timestamp).toMillis() - (b.createdAt as Timestamp).toMillis());
+  }, [availableSpinsData]);
+
   const availableSpinsCount = availableSpins?.length ?? 0;
 
   const limitedSpinsQuery = useMemo(() => {
@@ -386,5 +392,7 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
 
     
