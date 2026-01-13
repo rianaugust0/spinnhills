@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, User, Gift, Check, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, serverTimestamp, writeBatch, increment } from 'firebase/firestore';
+import { doc, getDoc, collection, serverTimestamp, writeBatch } from 'firebase/firestore';
 
 const { firestore } = initializeFirebase();
 
@@ -109,11 +109,16 @@ export default function LiberarGiroPage() {
     }
   };
 
+  const resetState = () => {
+    setClient(null);
+    setPhone('');
+    setStep('findClient');
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
       <header className="p-4 flex justify-between items-center">
-        <Button variant="ghost" size="icon" onClick={() => step === 'confirmAction' ? setStep('findClient') : router.back()} aria-label="Voltar">
+        <Button variant="ghost" size="icon" onClick={() => step === 'confirmAction' ? resetState() : router.back()} aria-label="Voltar">
           <ArrowLeft className="h-5 w-5 text-gold" />
         </Button>
          <h1 className="font-headline text-xl text-ice-white uppercase">Liberar Giro por Ação</h1>
@@ -188,11 +193,7 @@ export default function LiberarGiroPage() {
                     </Card>
 
 
-                     <Button variant="link" onClick={() => {
-                         setClient(null);
-                         setPhone('');
-                         setStep('findClient');
-                     }} className='text-gold/80 w-full'>Buscar outro cliente</Button>
+                     <Button variant="link" onClick={resetState} className='text-gold/80 w-full'>Buscar outro cliente</Button>
                 </CardContent>
             </Card>
         )}
@@ -200,4 +201,3 @@ export default function LiberarGiroPage() {
     </div>
   );
 }
-
