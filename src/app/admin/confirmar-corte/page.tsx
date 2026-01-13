@@ -10,7 +10,7 @@ import { Loader2, ArrowLeft, User, Scissors, CheckCircle, Gift, Sparkles, Ferris
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
 import { GrantPrizeOrSpinModal } from '@/components/admin/GrantPrizeOrSpinModal';
-import { doc, getDoc, collection, query, where, getDocs, serverTimestamp, Timestamp, writeBatch, increment } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, serverTimestamp, Timestamp, writeBatch, increment, addDoc } from 'firebase/firestore';
 import { isAfter } from 'date-fns';
 
 const { firestore } = initializeFirebase();
@@ -19,7 +19,6 @@ export type ClientData = {
     id: string;
     name: string;
     cortesAtuais: number;
-    girosDisponiveis: number;
     totalCortes: number;
 }
 
@@ -40,7 +39,7 @@ export default function ConfirmarCortePage() {
   const [step, setStep] = useState<'findClient' | 'confirmCut' | 'success'>('findClient');
   const [isGrantModalOpen, setIsGrantModalOpen] = useState(false);
   const [extraSpinConverted, setExtraSpinConverted] = useState(false);
-  const [finalGiros, setFinalGiros] = useState(0);
+  const [finalAvailableSpins, setFinalAvailableSpins] = useState(0);
 
   const handleFindClient = async () => {
     const sanitizedPhone = phone.replace(/\D/g, '');
@@ -60,7 +59,6 @@ export default function ConfirmarCortePage() {
             id: userDoc.id,
             name: userData.name,
             cortesAtuais: userData.cortesAtuais,
-            girosDisponiveis: userData.girosDisponiveis,
             totalCortes: userData.totalCortes || 0,
         });
 
@@ -128,7 +126,14 @@ export default function ConfirmarCortePage() {
 
         if (newCortesAtuais >= 5) {
             newCortesAtuais = 0; // Reset counter
-            updates.girosDisponiveis = increment(1); // Safely increment spins
+            const newSpinRef = doc(collection(firestore, 'spins'));
+            batch.set(newSpinRef, {
+                userId: client.id,
+                status: 'available',
+                origin: 'fidelidade_5_cortes',
+                createdAt: nowTimestamp,
+                usedAt: null,
+            });
             spinGrantedFromFidelity = true;
         }
         
@@ -158,7 +163,17 @@ export default function ConfirmarCortePage() {
                 usedAt: nowTimestamp,
                 usedByBarberId: barberId,
             });
-             updates.girosDisponiveis = increment((updates.girosDisponiveis ? 0 : 0) + 1);
+
+            // Grant a new available spin
+            const newSpinRef = doc(collection(firestore, 'spins'));
+            batch.set(newSpinRef, {
+                userId: client.id,
+                status: 'available',
+                origin: 'giro_extra_convertido',
+                createdAt: nowTimestamp,
+                usedAt: null,
+            });
+
             convertedLimitedSpin = true;
             setExtraSpinConverted(true);
         }
@@ -170,19 +185,20 @@ export default function ConfirmarCortePage() {
             const referralDoc = referralSnapshot.docs[0];
             const referrerId = referralDoc.data().referrerUserId;
 
-            const referrerUserRef = doc(firestore, "users", referrerId);
-            batch.update(referrerUserRef, { girosDisponiveis: increment(1) });
-            batch.update(referralDoc.ref, { spinGranted: true, haircutConfirmed: true });
-            
-            const spinDocRef = doc(collection(firestore, "spins"));
-            batch.set(spinDocRef, {
+            // Grant a spin to the referrer
+            const newSpinRef = doc(collection(firestore, 'spins'));
+            batch.set(newSpinRef, {
                 userId: referrerId,
+                status: 'available',
                 origin: 'indicacao',
                 createdAt: nowTimestamp,
-                notes: `Indicou ${client.name} (${client.id})`
+                usedAt: null,
+                notes: `Indicou ${client.name} (${client.id})`,
             });
-
-            const referrerDoc = await getDoc(referrerUserRef);
+            
+            batch.update(referralDoc.ref, { spinGranted: true, haircutConfirmed: true });
+            
+            const referrerDoc = await getDoc(doc(firestore, "users", referrerId));
             if(referrerDoc.exists()) {
                 toast({
                     title: 'Indicação Recompensada! 🎉',
@@ -204,26 +220,16 @@ export default function ConfirmarCortePage() {
             date: nowTimestamp
         });
         
-        if (spinGrantedFromFidelity) {
-            const spinsCollectionRef = collection(firestore, "spins");
-            batch.set(doc(spinsCollectionRef), {
-                userId: client.id,
-                origin: 'fidelidade_5_cortes',
-                createdAt: nowTimestamp
-            });
-        }
-        
         await batch.commit();
 
-        const updatedUserDoc = await getDoc(userDocRef);
-        const finalUserData = updatedUserDoc.data() as ClientData;
-
-        setFinalGiros(finalUserData.girosDisponiveis);
+        // Fetch final spin count
+        const finalSpinsQuery = query(collection(firestore, 'spins'), where('userId', '==', client.id), where('status', '==', 'available'));
+        const finalSpinsSnapshot = await getDocs(finalSpinsQuery);
+        setFinalAvailableSpins(finalSpinsSnapshot.size);
 
         setClient(prev => prev ? ({
           ...prev,
           cortesAtuais: newCortesAtuais,
-          girosDisponiveis: finalUserData.girosDisponiveis,
           totalCortes: prev.totalCortes + 1,
         }) : null);
         setStep('success');
@@ -290,7 +296,7 @@ export default function ConfirmarCortePage() {
                         </div>
                     )}
                     <p>Novo Progresso: <span className='font-bold text-gold'>{client?.cortesAtuais}/5</span></p>
-                    <p>Giros Disponíveis: <span className='font-bold text-gold'>{finalGiros}</span></p>
+                    <p>Giros Disponíveis: <span className='font-bold text-gold'>{finalAvailableSpins}</span></p>
                  </div>
                 <Button onClick={resetState} className='mt-8 w-full h-12 text-base'>Confirmar Outro Corte</Button>
                  <Button variant="ghost" onClick={() => router.push('/admin')} className='mt-2 w-full max-w-sm'>Voltar para o Menu</Button>
@@ -305,7 +311,6 @@ export default function ConfirmarCortePage() {
         isOpen={isGrantModalOpen}
         onClose={() => setIsGrantModalOpen(false)}
         client={client}
-        onClientUpdate={handleClientUpdate}
       />}
       <header className="p-4 flex justify-between items-center">
         <Button variant="ghost" size="icon" onClick={() => step === 'confirmCut' ? resetState() : router.back()} aria-label="Voltar">
@@ -358,8 +363,8 @@ export default function ConfirmarCortePage() {
                             <p className='text-lg font-bold text-ice-white'>{client.cortesAtuais} / 5</p>
                         </div>
                         <div className='p-2 bg-deep-black rounded-lg border border-gold/10'>
-                            <p className='text-xs text-muted-foreground'>Giros Normais</p>
-                            <p className='text-lg font-bold text-ice-white'>{client.girosDisponiveis}</p>
+                            <p className='text-xs text-muted-foreground'>Total de Cortes</p>
+                            <p className='text-lg font-bold text-ice-white'>{client.totalCortes}</p>
                         </div>
                     </div>
                     

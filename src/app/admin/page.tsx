@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Scissors, LayoutDashboard, UserPlus, Users, Gift } from 'lucide-react';
+import { Scissors, LayoutDashboard, UserPlus, Users, Gift, CheckCircle } from 'lucide-react';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -24,6 +23,14 @@ export default function AdminPage() {
             >
               <Scissors className="mr-2" />
               Confirmar Corte
+            </Button>
+            <Button
+              onClick={() => router.push('/admin/confirmar-giros')}
+              variant="outline"
+              className="w-full h-12 text-base uppercase tracking-wider font-bold border-gold/50 text-gold hover:bg-gold/10 hover:text-gold"
+            >
+              <CheckCircle className="mr-2" />
+              Confirmar Giros Usados
             </Button>
              <Button
               onClick={() => router.push('/admin/liberar-giro')}

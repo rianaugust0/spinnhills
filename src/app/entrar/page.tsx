@@ -68,7 +68,6 @@ function EntrarForm() {
           phone: sanitizedPhone,
           totalCortes: 0,
           cortesAtuais: 0,
-          girosDisponiveis: 0,
           instagramReviewRewardUsed: false,
           referralCode: referralCode,
           createdAt: serverTimestamp(),

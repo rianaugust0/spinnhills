@@ -2,17 +2,19 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { LogOut, Handshake, Users, Info, Share2, Instagram, Star, Award, FerrisWheel } from 'lucide-react';
+import { LogOut, Handshake, Users, Info, Share2, Instagram, Star, Award, FerrisWheel, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useRouter } from 'next/navigation';
 import { initializeFirebase, useDoc, useCollection } from '@/firebase';
-import { doc, collection, query, where, Timestamp, getDocs, getDoc } from 'firebase/firestore';
+import { doc, collection, query, where, Timestamp, getDocs, getDoc, orderBy, limit, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { isAfter, differenceInDays } from 'date-fns';
 import { UserDashboardTabs } from '@/components/dashboard/UserDashboardTabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShareReferralModal } from '@/components/dashboard/ShareReferralModal';
+import { useToast } from '@/hooks/use-toast';
 
 
 const { firestore } = initializeFirebase();
@@ -84,10 +86,12 @@ const DashboardSkeleton = () => (
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [clientPhone, setClientPhone] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [referrerName, setReferrerName] = useState<string | null>(null);
+  const [isUsingSpin, setIsUsingSpin] = useState(false);
   
   useEffect(() => {
     // This now safely runs only on the client
@@ -156,6 +160,19 @@ export default function DashboardPage() {
     });
   }, [activePrizesData, isClient]);
   
+  const availableSpinsQuery = useMemo(() => {
+    if (!firestore || !clientPhone) return null;
+    return query(
+        collection(firestore, 'spins'),
+        where('userId', '==', clientPhone),
+        where('status', '==', 'available'),
+        orderBy('createdAt', 'asc')
+    );
+  }, [clientPhone]);
+
+  const { data: availableSpins, isLoading: isSpinsLoading } = useCollection(availableSpinsQuery);
+  const availableSpinsCount = availableSpins?.length ?? 0;
+
   const limitedSpinsQuery = useMemo(() => {
       if (!firestore || !clientPhone) return null;
       return query(
@@ -178,12 +195,44 @@ export default function DashboardPage() {
   }, [limitedSpinsData, isClient]);
 
 
+  const handleUseSpin = async () => {
+    if (!availableSpins || availableSpins.length === 0) {
+      toast({ variant: 'destructive', title: 'Você não tem giros disponíveis.' });
+      return;
+    }
+    setIsUsingSpin(true);
+
+    const spinToUse = availableSpins[0]; // Oldest available spin
+    const spinDocRef = doc(firestore, 'spins', spinToUse.id);
+
+    try {
+      await updateDoc(spinDocRef, {
+        status: 'used_pending_confirm',
+        usedAt: serverTimestamp()
+      });
+      toast({
+        title: 'Giro utilizado!',
+        description: 'Aguardando confirmação do barbeiro para registrar seu prêmio.'
+      });
+    } catch (error: any) {
+      console.error("Error using spin: ", error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao usar o giro',
+        description: error.message || 'Tente novamente mais tarde.'
+      });
+    } finally {
+      setIsUsingSpin(false);
+    }
+  };
+
+
   const handleLogout = () => {
     localStorage.removeItem('spin-hills-user-phone');
     router.push('/');
   };
 
-  const isLoading = isClientLoading || isPrizesLoading || isLimitedSpinsLoading || !isClient;
+  const isLoading = isClientLoading || isPrizesLoading || isSpinsLoading || isLimitedSpinsLoading || !isClient;
 
   if (!isClient) {
     return (
@@ -232,20 +281,46 @@ export default function DashboardPage() {
                 </Card>
             )}
 
-            {(clientData?.girosDisponiveis > 0) && (
+            {(availableSpinsCount > 0) && (
               <Card className="bg-dark-gray border-gold/20 text-center shadow-lg shadow-gold/5 animate-fade-in-up">
                 <CardHeader>
                   <FerrisWheel className="h-12 w-12 mx-auto text-gold animate-pulse" />
                   <CardTitle className="text-2xl text-gold font-headline tracking-wider">Giros Disponíveis na Roleta</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-4xl font-bold text-ice-white">{clientData.girosDisponiveis}</p>
+                  <p className="text-4xl font-bold text-ice-white">{availableSpinsCount}</p>
                   <p className="text-lg text-muted-foreground mt-1">
-                    Você tem {clientData.girosDisponiveis > 1 ? 'giros' : 'giro'} para usar!
+                    Você tem {availableSpinsCount > 1 ? 'giros' : 'giro'} para usar!
                   </p>
-                  <p className="text-sm text-muted-foreground/70 mt-4">
+                  <p className="text-sm text-muted-foreground/70 mt-2">
                     Vá até a barbearia para usar seus giros na nossa roleta de prêmios.
                   </p>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button className='mt-4' size='lg' disabled={isUsingSpin}>
+                           {isUsingSpin ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FerrisWheel className='mr-2 h-4 w-4'/>}
+                           Usar 1 Giro Agora
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-dark-gray border-gold/20 text-ice-white">
+                        <AlertDialogHeader>
+                        <AlertDialogTitle className="text-xl text-gold font-headline">⚠️ Atenção antes de usar o Giro</AlertDialogTitle>
+                        <AlertDialogDescription className="text-base text-ice-white/80">
+                            Você está prestes a usar 1 giro na roleta física. O giro será debitado do seu perfil imediatamente.
+                            <br/><br/>
+                            O prêmio que você ganhar será registrado pelo barbeiro.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel asChild>
+                            <Button variant="secondary" className="text-base">Cancelar</Button>
+                        </AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                            <Button onClick={handleUseSpin} className="bg-gold text-deep-black text-base">Confirmar e Girar</Button>
+                        </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
                 </CardContent>
               </Card>
             )}

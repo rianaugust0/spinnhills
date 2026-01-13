@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, FerrisWheel } from 'lucide-react';
 import { initializeFirebase } from '@/firebase';
-import { doc, collection, serverTimestamp, getDocs, query, where, addDoc, writeBatch } from 'firebase/firestore';
+import { doc, collection, serverTimestamp, getDocs, query, where, addDoc, writeBatch, orderBy, limit, getDoc, updateDoc } from 'firebase/firestore';
 import { allOutcomes as prizeOptions, PrizeOption } from '@/lib/prizes';
 import type { ClientData } from '@/app/admin/confirmar-corte/page';
 
@@ -19,11 +19,10 @@ interface GrantPrizeOrSpinModalProps {
   isOpen: boolean;
   onClose: () => void;
   client: ClientData;
-  onClientUpdate: (updatedData: Partial<ClientData>) => void;
 }
 
 
-export function GrantPrizeOrSpinModal({ isOpen, onClose, client, onClientUpdate }: GrantPrizeOrSpinModalProps) {
+export function GrantPrizeOrSpinModal({ isOpen, onClose, client }: GrantPrizeOrSpinModalProps) {
   const { toast } = useToast();
   const [selectedPrizeType, setSelectedPrizeType] = useState<PrizeOption['type'] | ''>('');
   const [notes, setNotes] = useState('');
@@ -50,23 +49,38 @@ export function GrantPrizeOrSpinModal({ isOpen, onClose, client, onClientUpdate 
         }
         const barberId = barberSnapshot.docs[0].id;
         
+        // Find the spin that is pending confirmation
+        const pendingSpinsQuery = query(
+          collection(firestore, 'spins'), 
+          where('userId', '==', client.id), 
+          where('status', '==', 'used_pending_confirm'),
+          orderBy('usedAt', 'asc'),
+          limit(1)
+        );
+        const pendingSpinsSnapshot = await getDocs(pendingSpinsQuery);
+
+        if(pendingSpinsSnapshot.empty) {
+            throw new Error('Nenhum giro pendente de confirmação encontrado para este cliente. Peça para ele usar o giro no app primeiro.');
+        }
+        const spinToConfirmDoc = pendingSpinsSnapshot.docs[0];
+
+
         const prizeToGrant = prizeOptions.find(p => p.type === selectedPrizeType);
         if (!prizeToGrant) throw new Error('Prêmio selecionado inválido.');
 
         const batch = writeBatch(firestore);
         const now = serverTimestamp();
 
-        // Spin History
-        const spinDocRef = doc(collection(firestore, 'spins'));
-         batch.set(spinDocRef, {
-            userId: client.id,
-            origin: 'roleta_fisica',
-            result: prizeToGrant.type,
-            manual: true,
-            releasedBy: barberId,
-            notes: `Resultado do giro físico: ${prizeToGrant.title}. ${notes}`,
-            createdAt: now
+        // Confirm the spin and add prize info
+        batch.update(spinToConfirmDoc.ref, {
+            status: 'confirmed',
+            prizeType: prizeToGrant.type,
+            prizeTitle: prizeToGrant.title,
+            confirmedAt: now,
+            confirmedByBarberId: barberId,
+            notes: notes
         });
+
 
         // Handle "try_again" case - just log it for history, no prize for user
         if (prizeToGrant.type === 'try_again') {
@@ -149,10 +163,10 @@ export function GrantPrizeOrSpinModal({ isOpen, onClose, client, onClientUpdate 
       <DialogContent className="bg-dark-gray border-gold/20 text-ice-white">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-headline text-2xl text-gold uppercase">
-            <FerrisWheel /> Registrar Giro Físico
+            <FerrisWheel /> Registrar Prêmio da Roleta
           </DialogTitle>
           <DialogDescription>
-            Selecione o prêmio que <strong className='text-gold'>{client.name.split(' ')[0]}</strong> tirou na roleta física.
+            Confirme o prêmio que <strong className='text-gold'>{client.name.split(' ')[0]}</strong> tirou. Isso concluirá o giro que ele usou no app.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
@@ -188,7 +202,7 @@ export function GrantPrizeOrSpinModal({ isOpen, onClose, client, onClientUpdate 
             </Button>
           </DialogClose>
           <Button onClick={handleConfirm} disabled={loading || !selectedPrizeType}>
-            {loading ? <Loader2 className="animate-spin" /> : 'Confirmar Registro'}
+            {loading ? <Loader2 className="animate-spin" /> : 'Confirmar Prêmio'}
           </Button>
         </DialogFooter>
       </DialogContent>

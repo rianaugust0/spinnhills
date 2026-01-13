@@ -71,18 +71,19 @@ export default function LiberarGiroPage() {
         const batch = writeBatch(firestore);
         const userDocRef = doc(firestore, 'users', client.id);
 
-        // Concede o giro
+        // Mark reward as used on the user document
         batch.update(userDocRef, { 
-            girosDisponiveis: increment(1),
             instagramReviewRewardUsed: true 
         });
 
-        // Registra a origem do giro
+        // Create a new spin document
         const spinDocRef = doc(collection(firestore, 'spins'));
         batch.set(spinDocRef, {
             userId: client.id,
             origin: 'instagram_avaliacao',
+            status: 'available',
             createdAt: serverTimestamp(),
+            usedAt: null,
             notes: 'Giro concedido por seguir o Instagram e avaliar no Google.'
         });
 
@@ -177,7 +178,7 @@ export default function LiberarGiroPage() {
                         <CardHeader className='pb-4'>
                              <CardTitle className="text-lg flex items-center gap-2">Indicação de Amigo <span className='text-xs'>(Automático)</span></CardTitle>
                              <CardDescription className='text-xs'>O giro por indicação é concedido automaticamente quando o amigo indicado faz o primeiro corte.</CardDescription>
-                        </CardHeader>
+                        </Header>
                         <CardContent>
                             <Button className='w-full' disabled>
                                 <Info className='mr-2 h-4 w-4' />
