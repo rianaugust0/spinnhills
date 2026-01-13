@@ -53,16 +53,17 @@ export function GrantPrizeOrSpinModal({ isOpen, onClose, client }: GrantPrizeOrS
         const pendingSpinsQuery = query(
           collection(firestore, 'spins'), 
           where('userId', '==', client.id), 
-          where('status', '==', 'used_pending_confirm'),
-          orderBy('usedAt', 'asc'),
-          limit(1)
+          where('status', '==', 'used_pending_confirm')
         );
         const pendingSpinsSnapshot = await getDocs(pendingSpinsQuery);
 
         if(pendingSpinsSnapshot.empty) {
             throw new Error('Nenhum giro pendente de confirmação encontrado para este cliente. Peça para ele usar o giro no app primeiro.');
         }
-        const spinToConfirmDoc = pendingSpinsSnapshot.docs[0];
+
+        // Sort by usedAt client-side to get the oldest one
+        const sortedSpins = pendingSpinsSnapshot.docs.sort((a, b) => a.data().usedAt.toMillis() - b.data().usedAt.toMillis());
+        const spinToConfirmDoc = sortedSpins[0];
 
 
         const prizeToGrant = prizeOptions.find(p => p.type === selectedPrizeType);
