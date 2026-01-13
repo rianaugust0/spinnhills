@@ -67,13 +67,22 @@ export default function ClientReturnPage() {
 
     const fetchClients = async () => {
       try {
-        const clientsQuery = query(collection(firestore, 'users'), orderBy('lastVisit', 'asc'));
+        const clientsQuery = query(collection(firestore, 'users'));
         const clientsSnapshot = await getDocs(clientsQuery);
 
-        const clientsList = clientsSnapshot.docs.map(doc => ({
+        let clientsList = clientsSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         } as Client));
+        
+        // Sort clients by lastVisit date, putting those without a date at the end
+        clientsList.sort((a, b) => {
+            const dateA = a.lastVisit ? a.lastVisit.toDate().getTime() : 0;
+            const dateB = b.lastVisit ? b.lastVisit.toDate().getTime() : 0;
+            if (dateA === 0) return 1; // a goes to the end
+            if (dateB === 0) return -1; // b goes to the end
+            return dateA - dateB; // Oldest first
+        });
         
         setClients(clientsList);
       } catch (error) {
