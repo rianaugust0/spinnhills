@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'SPIN HILLS - HillsCut Barbearia',
   description: 'Clube de fidelidade e roleta de prêmios da Hillscut Barbearia.',
   icons: {
-    icon: 'https://i.imgur.com/2U2l5aD.png',
+    icon: 'https://imgur.com/GUoe19M',
   }
 };
 
