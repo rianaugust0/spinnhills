@@ -8,6 +8,18 @@ import { Bebas_Neue, Poppins } from 'next/font/google';
 export const metadata: Metadata = {
   title: 'SPIN HILLS - HillsCut Barbearia',
   description: 'Clube de fidelidade e roleta de prêmios da Hillscut Barbearia.',
+  openGraph: {
+    title: 'SPIN HILLS - HillsCut Barbearia',
+    description: 'Corte, gire e ganhe prêmios exclusivos!',
+    images: [
+      {
+        url: 'https://i.imgur.com/5zBjbwT.jpeg',
+        width: 1200,
+        height: 630,
+        alt: 'HillsCut Barbearia',
+      },
+    ],
+  },
   icons: {
     icon: 'https://imgur.com/GUoe19M',
   }
@@ -32,6 +44,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="dark">
+      <head>
+        <meta charSet="utf-8" />
+      </head>
       <body className={`${bebasNeue.variable} ${poppins.variable} bg-deep-black text-ice-white font-body`}>
         <FirebaseClientProvider>
           {children}
