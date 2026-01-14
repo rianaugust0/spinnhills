@@ -16,7 +16,7 @@ export const metadata: Metadata = {
         url: 'https://i.imgur.com/5zBjbwT.jpeg',
         width: 1200,
         height: 630,
-        alt: 'HillsCut Barbearia',
+        alt: 'HillsCut Barbearia - Corte, gire e ganhe!',
       },
     ],
   },
