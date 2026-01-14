@@ -180,7 +180,7 @@ export default function LiberarGiroPage() {
                         <CardHeader className='pb-4'>
                              <CardTitle className="text-lg flex items-center gap-2">Indicação de Amigo <span className='text-xs'>(Automático)</span></CardTitle>
                              <CardDescription className='text-xs'>O giro por indicação é concedido automaticamente quando o amigo indicado faz o primeiro corte.</CardDescription>
-                        </Header>
+                        </CardHeader>
                         <CardContent>
                             <Button className='w-full' disabled>
                                 <Info className='mr-2 h-4 w-4' />

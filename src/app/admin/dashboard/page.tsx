@@ -3,53 +3,28 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { initializeFirebase } from '@/firebase';
-import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
-import { Loader2, ArrowLeft, BotMessageSquare, AlertTriangle, CalendarCheck, ShieldCheck } from 'lucide-react';
+import { collection, getDocs, query, Timestamp, updateDoc, doc, serverTimestamp, where } from 'firebase/firestore';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { PrizesList } from '@/components/admin/PrizesList';
-import { isSameDay, isWithinInterval, addDays, startOfDay } from 'date-fns';
+import { isAfter, startOfDay } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 
 const { firestore } = initializeFirebase();
 
-interface PrizeSummary {
-  expiringToday: number;
-  expiringIn3Days: number;
-  totalActive: number;
-}
-
 const DashboardSkeleton = () => (
     <div className='animate-pulse'>
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <Card className="bg-dark-gray/50 border-gold/10">
-                <CardHeader className="p-4 pb-2">
-                    <Skeleton className="h-10 w-1/4 mx-auto" />
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
-                    <Skeleton className="h-4 w-3/4 mx-auto" />
-                </CardContent>
-            </Card>
-             <Card className="bg-dark-gray/50 border-gold/10">
-                <CardHeader className="p-4 pb-2">
-                    <Skeleton className="h-10 w-1/4 mx-auto" />
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
-                    <Skeleton className="h-4 w-3/4 mx-auto" />
-                </CardContent>
-            </Card>
-             <Card className="bg-dark-gray/50 border-gold/10">
-                <CardHeader className="p-4 pb-2">
-                    <Skeleton className="h-10 w-1/4 mx-auto" />
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
-                    <Skeleton className="h-4 w-3/4 mx-auto" />
-                </CardContent>
-            </Card>
-        </section>
+        <div className="flex items-center justify-center rounded-md bg-muted p-1 h-12 w-full mb-6">
+            <Skeleton className="h-10 w-1/3" />
+            <Skeleton className="h-10 w-1/3" />
+            <Skeleton className="h-10 w-1/3" />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(3)].map((_, i) => (
+            {[...Array(6)].map((_, i) => (
                 <Card key={i} className="bg-dark-gray/50 border-gold/10">
                     <CardHeader className="p-4">
                         <Skeleton className="h-5 w-1/2" />
@@ -57,6 +32,7 @@ const DashboardSkeleton = () => (
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
                         <Skeleton className="h-5 w-3/4" />
+                        <Skeleton className="h-4 w-1/2 mt-1" />
                     </CardContent>
                      <div className="p-4 pt-0">
                         <Skeleton className="h-11 w-full" />
@@ -70,69 +46,120 @@ const DashboardSkeleton = () => (
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [allPrizes, setAllPrizes] = useState<any[]>([]);
-  const [summary, setSummary] = useState<PrizeSummary>({
-    expiringToday: 0,
-    expiringIn3Days: 0,
-    totalActive: 0,
-  });
   const [isClient, setIsClient] = useState(false);
+
+  const fetchPrizes = async () => {
+    // No setLoading(true) here to avoid flicker on tab change
+    try {
+      const prizesQuery = query(collection(firestore, 'prizes'));
+      const prizesSnapshot = await getDocs(prizesQuery);
+
+      const prizes = prizesSnapshot.docs.map((doc) => {
+          const prizeData = doc.data();
+          return {
+              id: doc.id,
+              ...prizeData,
+              expiresAt: (prizeData.expiresAt as Timestamp).toDate(),
+              createdAt: (prizeData.createdAt as Timestamp).toDate(),
+              contactedAt: prizeData.contactedAt ? (prizeData.contactedAt as Timestamp).toDate() : null,
+              redeemedAt: prizeData.redeemedAt ? (prizeData.redeemedAt as Timestamp).toDate() : null,
+          }
+      });
+      
+      prizes.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      setAllPrizes(prizes);
+      
+    } catch (error) {
+      console.error("Failed to fetch prizes:", error);
+      toast({ variant: 'destructive', title: 'Erro ao buscar prêmios' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   useEffect(() => {
-    if (!isClient) return;
+    if (isClient) {
+      fetchPrizes();
+    }
+  }, [isClient]);
 
-    const fetchActivePrizes = async () => {
-      // No setLoading(true) here, skeleton handles initial state
-      try {
-        const today = startOfDay(new Date());
-        
-        const prizesQuery = query(
-          collection(firestore, 'prizes'),
-          where('status', '==', 'active')
-        );
-        const prizesSnapshot = await getDocs(prizesQuery);
+  const handleUpdateStatus = async (prizeId: string, status: 'in_contact' | 'redeemed') => {
+      const prizeRef = doc(firestore, 'prizes', prizeId);
+      const updates: any = { status };
+      let successMessage = '';
 
-        let prizes = prizesSnapshot.docs.map((doc) => {
-            const prizeData = doc.data();
-            const expiresAtDate = (prizeData.expiresAt as Timestamp).toDate();
-            return {
-                id: doc.id,
-                ...prizeData,
-                expiresAt: expiresAtDate,
-            }
-        }).filter(p => p.expiresAt >= today); // Filter out already expired prizes
-        
-        // Sort all prizes by expiration date
-        prizes.sort((a, b) => a.expiresAt.getTime() - b.expiresAt.getTime());
-
-        // Calculate summary
-        const expiringToday = prizes.filter(p => isSameDay(p.expiresAt, today)).length;
-        const expiringIn3Days = prizes.filter(p => 
-            !isSameDay(p.expiresAt, today) && 
-            isWithinInterval(p.expiresAt, { start: addDays(today, 1), end: addDays(today, 3) })
-        ).length;
-
-        setSummary({
-            expiringToday,
-            expiringIn3Days,
-            totalActive: prizes.length
-        });
-        setAllPrizes(prizes);
-        
-      } catch (error) {
-        console.error("Failed to fetch active prizes:", error);
-      } finally {
-        setLoading(false);
+      if (status === 'in_contact') {
+          updates.contactedAt = serverTimestamp();
+          successMessage = 'Status atualizado para "Em Contato".';
+      } else if (status === 'redeemed') {
+          updates.redeemedAt = serverTimestamp();
+          successMessage = 'Prêmio marcado como "Resgatado".';
       }
+
+      try {
+          await updateDoc(prizeRef, updates);
+          toast({ title: 'Sucesso!', description: successMessage });
+          // Refresh the list
+          await fetchPrizes();
+      } catch (error) {
+          console.error("Failed to update prize status:", error);
+          toast({ variant: 'destructive', title: 'Erro ao atualizar status do prêmio' });
+      }
+  };
+
+
+  const { activePrizes, inContactPrizes, redeemedPrizes, expiredPrizes } = useMemo(() => {
+    const today = startOfDay(new Date());
+    const lists = {
+        activePrizes: [] as any[],
+        inContactPrizes: [] as any[],
+        redeemedPrizes: [] as any[],
+        expiredPrizes: [] as any[],
     };
 
-    fetchActivePrizes();
-  }, [isClient]);
+    allPrizes.forEach(prize => {
+      const isExpired = !isAfter(prize.expiresAt, today) && prize.status !== 'redeemed';
+      
+      if (isExpired && prize.status !== 'expired') {
+          // Update status in Firestore if it's not already 'expired' or 'redeemed'
+          updateDoc(doc(firestore, 'prizes', prize.id), { status: 'expired' });
+          lists.expiredPrizes.push({ ...prize, status: 'expired' });
+      } else {
+        switch (prize.status) {
+            case 'active':
+                lists.activePrizes.push(prize);
+                break;
+            case 'in_contact':
+                lists.inContactPrizes.push(prize);
+                break;
+            case 'redeemed':
+                lists.redeemedPrizes.push(prize);
+                break;
+            case 'expired':
+                lists.expiredPrizes.push(prize);
+                break;
+            default:
+                break;
+        }
+      }
+    });
+
+    return lists;
+  }, [allPrizes]);
+  
+  const tabs = [
+    { value: "active", label: "Ativos", data: activePrizes, emptyMessage: "Nenhum prêmio ativo no momento." },
+    { value: "in_contact", label: "Em Contato", data: inContactPrizes, emptyMessage: "Nenhum prêmio em contato." },
+    { value: "redeemed", label: "Resgatados", data: redeemedPrizes, emptyMessage: "Nenhum prêmio foi resgatado ainda." },
+    { value: "expired", label: "Expirados", data: expiredPrizes, emptyMessage: "Nenhum prêmio expirado." },
+  ];
 
   if (!isClient) {
     return (
@@ -158,42 +185,32 @@ export default function AdminDashboardPage() {
           <ArrowLeft className="h-5 w-5 text-gold" />
         </Button>
         <h1 className="font-headline text-xl text-ice-white uppercase">Painel de Prêmios</h1>
-        <div></div>
+        <Button variant="ghost" size="icon" onClick={fetchPrizes} aria-label="Atualizar">
+          <Loader2 className={loading ? 'animate-spin' : ''} />
+        </Button>
       </header>
       <main className="flex-1 container mx-auto px-4 py-8">
         
         {loading ? <DashboardSkeleton /> : (
-            <>
-                {/* Summary Cards */}
-                <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 animate-fade-in-up">
-                    <Card className="bg-red-900/40 border-red-500/50 text-center">
-                        <CardHeader className="p-4 pb-2">
-                            <CardTitle className="text-4xl font-bold text-red-300">{summary.expiringToday}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 pt-0">
-                            <p className="text-sm font-medium text-red-300/80">Vencem Hoje</p>
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-yellow-900/40 border-yellow-500/50 text-center">
-                        <CardHeader className="p-4 pb-2">
-                            <CardTitle className="text-4xl font-bold text-yellow-300">{summary.expiringIn3Days}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 pt-0">
-                            <p className="text-sm font-medium text-yellow-300/80">Vencem em até 3 dias</p>
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-dark-gray border-gold/20 text-center">
-                        <CardHeader className="p-4 pb-2">
-                            <CardTitle className="text-4xl font-bold text-ice-white">{summary.totalActive}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 pt-0">
-                            <p className="text-sm font-medium text-muted-foreground">Total de Prêmios Ativos</p>
-                        </CardContent>
-                    </Card>
-                </section>
-
-                <PrizesList prizes={allPrizes} />
-            </>
+            <Tabs defaultValue="active" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+                {tabs.map(tab => (
+                  <TabsTrigger key={tab.value} value={tab.value} className="flex-wrap">
+                    {tab.label} ({tab.data.length})
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {tabs.map(tab => (
+                 <TabsContent key={tab.value} value={tab.value} className="mt-6">
+                    <PrizesList 
+                        prizes={tab.data} 
+                        status={tab.value as any}
+                        emptyMessage={tab.emptyMessage}
+                        onUpdateStatus={handleUpdateStatus}
+                    />
+                 </TabsContent>
+              ))}
+            </Tabs>
         )}
       </main>
     </div>
