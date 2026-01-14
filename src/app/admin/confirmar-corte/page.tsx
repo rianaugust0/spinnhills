@@ -304,7 +304,7 @@ export default function ConfirmarCortePage() {
         <Button variant="ghost" size="icon" onClick={() => step === 'confirmCut' ? resetState() : router.back()} aria-label="Voltar">
           <ArrowLeft className="h-5 w-5 text-gold" />
         </Button>
-         <h1 className="font-headline text-xl text-ice-white uppercase">Ações do Cliente</h1>
+         <h1 className="font-headline text-xl text-ice-white uppercase">Confirmar Corte</h1>
          <div></div>
       </header>
       <main className="flex-1 flex flex-col items-center container mx-auto py-8">

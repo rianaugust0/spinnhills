@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { initializeFirebase, useDoc } from '@/firebase';
-import { doc, runTransaction, serverTimestamp, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
+import { doc, runTransaction, serverTimestamp, collection, query, where, getDocs, getDoc, updateDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
@@ -56,15 +56,15 @@ export function ResgateForm() {
       }
       const barber = barberSnapshot.docs[0];
 
-      setSuccess(true);
-      toast({ title: 'Prêmio resgatado com sucesso!', description: `${prizeData?.title} foi validado.` });
-      
-      updateDocumentNonBlocking(prizeDocRef, {
-        status: 'used',
-        usedAt: serverTimestamp(),
+      await updateDoc(prizeDocRef, {
+        status: 'redeemed',
+        redeemedAt: serverTimestamp(),
         usedByBarberId: barber.id,
       });
 
+      setSuccess(true);
+      toast({ title: 'Prêmio resgatado com sucesso!', description: `${prizeData?.title} foi validado.` });
+      
     } catch (error: any) {
       console.error("Redemption failed:", error);
       setSuccess(false);
