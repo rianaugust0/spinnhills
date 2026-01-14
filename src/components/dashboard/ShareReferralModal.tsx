@@ -35,7 +35,7 @@ export function ShareReferralModal({ isOpen, onClose, referralCode }: ShareRefer
   };
 
   const handleShareWhatsApp = () => {
-    const text = `🎉 Parabéns! Você ganhou 50% OFF no seu primeiro atendimento na Hills Cut Barbearia ✂️\n\nPara garantir o benefício, faça seu cadastro pelo link abaixo. O desconto será liberado automaticamente após o registro.\n\n👉 Acesse agora: ${referralLink}`;
+    const text = `Fala, craque! ✂️ \n\nDescobri a Hills Cut Barbearia e lembrei de você. Os caras são feras!\n\nUsando meu link, você já começa com 50% DE DESCONTO no primeiro corte. Só fazer o cadastro e já era.\n\nBora dar um tapa no visual? Clica aí: \n👉 ${referralLink}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, '_blank');
   };
