@@ -117,7 +117,7 @@ export default function ClientReturnPage() {
   const openWhatsApp = (phone: string, name: string, days: number | null) => {
     const userFirstName = name.split(' ')[0];
     const daysText = days ? `Faz ${days} dias que você não vem cortar o cabelo 💈` : "Notamos sua ausência e queremos você de volta! 💈";
-    const message = `Olá ${userFirstName} 👋\n${daysText}\n\nTemos um prêmio especial te esperando 🎁\n\nTe esperamos!`;
+    const message = `Olá ${userFirstName} 👋\n${daysText}\n\nQue tal agendar seu próximo corte? Estamos te esperando!\n\nAtt, HillsCut Barbearia`;
     const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -135,8 +135,8 @@ export default function ClientReturnPage() {
         {loading ? <ClientListSkeleton /> : (
             <Card className="bg-dark-gray border-gold/20">
                 <CardHeader>
-                    <CardTitle>Lista de Clientes</CardTitle>
-                    <CardDescription>Acompanhe a frequência dos seus clientes e incentive o retorno.</CardDescription>
+                    <CardTitle>Lista de Clientes por Última Visita</CardTitle>
+                    <CardDescription>Acompanhe a frequência dos seus clientes e incentive o retorno. A lista mostra os mais antigos primeiro.</CardDescription>
                 </CardHeader>
                 <CardContent>
                    {clients.length > 0 ? (
