@@ -109,8 +109,13 @@ export default function ClientReturnPage() {
 
   const openWhatsApp = (phone: string, name: string) => {
     const userFirstName = name.split(' ')[0];
-    // Usando Unicode escapes para garantir que os emojis funcionem (😎 = \u{1F60E}, ✂️ = \u{2702}\u{FE0F})
-    const message = `E aí, ${userFirstName}! Tudo certo? \nFaz um tempo que você não aparece por aqui, bora marcar aquele corte e voltar pro estilo? \u{1F60E}\u{2702}\u{FE0F}`;
+    
+    // Gerando emojis de forma infalível via CodePoint
+    const emojiCool = String.fromCodePoint(0x1F60E);
+    const emojiScissors = String.fromCodePoint(0x2702, 0xFE0F);
+
+    const message = `E aí, ${userFirstName}! Tudo certo? \nFaz um tempo que você não aparece por aqui, bora marcar aquele corte e voltar pro estilo? ${emojiCool}${emojiScissors}`;
+    
     const whatsappUrl = `https://api.whatsapp.com/send?phone=55${phone.replace(/\D/g, '')}&text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -187,4 +192,3 @@ export default function ClientReturnPage() {
     </div>
   );
 }
-

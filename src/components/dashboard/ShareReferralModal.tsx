@@ -35,8 +35,12 @@ export function ShareReferralModal({ isOpen, onClose, referralCode }: ShareRefer
   };
 
   const handleShareWhatsApp = () => {
-    // Usando Unicode escapes para emojis (✂️ = \u{2702}\u{FE0F}, 👉 = \u{1F449})
-    const text = `Fala, craque! \u{2702}\u{FE0F} \n\nDescobri a Hills Cut Barbearia e lembrei de você. Os caras são feras!\n\nUsando meu link, você já começa com 50% DE DESCONTO no primeiro corte. Só fazer o cadastro e já era.\n\nBora dar um tapa no visual? Clica aí: \n\u{1F449} ${referralLink}`;
+    // Gerando emojis de forma infalível via CodePoint
+    const emojiScissors = String.fromCodePoint(0x2702, 0xFE0F);
+    const emojiPoint = String.fromCodePoint(0x1F449);
+
+    const text = `Fala, craque! ${emojiScissors} \n\nDescobri a Hills Cut Barbearia e lembrei de você. Os caras são feras!\n\nUsando meu link, você já começa com 50% DE DESCONTO no primeiro corte. Só fazer o cadastro e já era.\n\nBora dar um tapa no visual? Clica aí: \n${emojiPoint} ${referralLink}`;
+    
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -77,4 +81,3 @@ export function ShareReferralModal({ isOpen, onClose, referralCode }: ShareRefer
     </Dialog>
   );
 }
-
