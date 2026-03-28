@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Share2, Copy, Check } from 'lucide-react';
+import { Share2, Copy, Check } from 'lucide-react';
 import { WhatsappIcon } from '@/components/ui/WhatsappIcon';
 
 interface ShareReferralModalProps {
@@ -35,8 +35,8 @@ export function ShareReferralModal({ isOpen, onClose, referralCode }: ShareRefer
   };
 
   const handleShareWhatsApp = () => {
-    const text = `Fala, craque! ✂️ \n\nDescobri a Hills Cut Barbearia e lembrei de você. Os caras são feras!\n\nUsando meu link, você já começa com 50% DE DESCONTO no primeiro corte. Só fazer o cadastro e já era.\n\nBora dar um tapa no visual? Clica aí: \n👉 ${referralLink}`;
-    // Usando o formato de API padrão do WhatsApp para melhor suporte a caracteres e dispositivos
+    // Usando Unicode escapes para emojis (✂️ = \u{2702}\u{FE0F}, 👉 = \u{1F449})
+    const text = `Fala, craque! \u{2702}\u{FE0F} \n\nDescobri a Hills Cut Barbearia e lembrei de você. Os caras são feras!\n\nUsando meu link, você já começa com 50% DE DESCONTO no primeiro corte. Só fazer o cadastro e já era.\n\nBora dar um tapa no visual? Clica aí: \n\u{1F449} ${referralLink}`;
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -77,3 +77,4 @@ export function ShareReferralModal({ isOpen, onClose, referralCode }: ShareRefer
     </Dialog>
   );
 }
+

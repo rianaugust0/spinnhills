@@ -75,13 +75,13 @@ export default function ClientReturnPage() {
           ...doc.data()
         } as Client));
         
-        // Sort clients by lastVisit date, putting those without a date at the end
+        // Sort clients by lastVisit date, oldest first
         clientsList.sort((a, b) => {
             const dateA = a.lastVisit ? a.lastVisit.toDate().getTime() : 0;
             const dateB = b.lastVisit ? b.lastVisit.toDate().getTime() : 0;
-            if (dateA === 0) return 1; // a goes to the end
-            if (dateB === 0) return -1; // b goes to the end
-            return dateA - dateB; // Oldest first
+            if (dateA === 0) return 1;
+            if (dateB === 0) return -1;
+            return dateA - dateB;
         });
         
         setClients(clientsList);
@@ -109,7 +109,8 @@ export default function ClientReturnPage() {
 
   const openWhatsApp = (phone: string, name: string) => {
     const userFirstName = name.split(' ')[0];
-    const message = `E aí, ${userFirstName}! Tudo certo? \nFaz um tempo que você não aparece por aqui, bora marcar aquele corte e voltar pro estilo?😎✂️`;
+    // Usando Unicode escapes para garantir que os emojis funcionem (😎 = \u{1F60E}, ✂️ = \u{2702}\u{FE0F})
+    const message = `E aí, ${userFirstName}! Tudo certo? \nFaz um tempo que você não aparece por aqui, bora marcar aquele corte e voltar pro estilo? \u{1F60E}\u{2702}\u{FE0F}`;
     const whatsappUrl = `https://api.whatsapp.com/send?phone=55${phone.replace(/\D/g, '')}&text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -186,3 +187,4 @@ export default function ClientReturnPage() {
     </div>
   );
 }
+
