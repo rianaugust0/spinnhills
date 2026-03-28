@@ -100,13 +100,6 @@ export default function ClientReturnPage() {
     return differenceInDays(new Date(), lastVisit.toDate());
   };
 
-  const getBadgeVariant = (days: number | null): 'destructive' | 'secondary' | 'default' => {
-    if (days === null) return 'secondary';
-    if (days >= 15) return 'destructive';
-    if (days >= 8) return 'secondary';
-    return 'default';
-  };
-  
   const getBadgeClass = (days: number | null) => {
     if (days === null) return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     if (days >= 15) return 'bg-red-900/40 text-red-300 border-red-500/50';
@@ -114,11 +107,10 @@ export default function ClientReturnPage() {
     return 'bg-green-900/40 text-green-300 border-green-500/50';
   }
 
-  const openWhatsApp = (phone: string, name: string, days: number | null) => {
+  const openWhatsApp = (phone: string, name: string) => {
     const userFirstName = name.split(' ')[0];
-    const daysText = days ? `Faz ${days} dias que você não vem cortar o cabelo 💈` : "Notamos sua ausência e queremos você de volta! 💈";
-    const message = `Olá ${userFirstName} 👋\n${daysText}\n\nQue tal agendar seu próximo corte? Estamos te esperando!\n\nAtt, HillsCut Barbearia`;
-    const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+    const message = `E aí, ${userFirstName}! Tudo certo? \nFaz um tempo que você não aparece por aqui, bora marcar aquele corte e voltar pro estilo?😎✂️`;
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=55${phone.replace(/\D/g, '')}&text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -168,7 +160,7 @@ export default function ClientReturnPage() {
                                                 <Button 
                                                     size="sm" 
                                                     className='bg-whatsapp hover:bg-whatsapp/90 text-white h-9'
-                                                    onClick={() => openWhatsApp(client.phone, client.name, days)}
+                                                    onClick={() => openWhatsApp(client.phone, client.name)}
                                                 >
                                                     <WhatsappIcon className='h-4 w-4 mr-2'/>
                                                     Chamar
