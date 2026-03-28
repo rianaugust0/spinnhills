@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -162,10 +163,18 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
         title: 'Falha na validação',
         description: error.message || 'Não foi possível confirmar o corte.',
       });
+      setPin(''); // Limpa o pin em caso de erro para tentar de novo
     } finally {
       setLoading(false);
     }
   };
+
+  // Auto-submit quando atingir 4 dígitos
+  useEffect(() => {
+    if (pin.length === 4 && !loading && !showSuccess) {
+      handleConfirm();
+    }
+  }, [pin]);
 
   const handleClose = () => {
     setPin('');
@@ -229,6 +238,7 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
              <Input
                 type="password"
                 inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="****"
                 maxLength={4}
                 value={pin}
@@ -244,7 +254,8 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
             disabled={loading || pin.length < 4}
             className="w-full bg-gold text-deep-black font-bold h-12 text-lg uppercase tracking-wider hover:bg-gold/90"
           >
-            {loading ? <Loader2 className="animate-spin" /> : 'Validar e Contabilizar'}
+            {loading ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle className="mr-2" />}
+            {loading ? 'Validando...' : 'Validar e Contabilizar'}
           </Button>
           <DialogClose asChild>
              <Button variant="ghost" className="w-full text-muted-foreground hover:text-ice-white">Cancelar</Button>

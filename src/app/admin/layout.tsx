@@ -81,6 +81,13 @@ export default function AdminLayout({
     }
   };
 
+  // Auto-login ao digitar 4 dígitos
+  useEffect(() => {
+    if (pin.length === 4 && !isAuthenticated && !loading) {
+      handleLogin();
+    }
+  }, [pin]);
+
   if (isCheckingSession) {
       return (
          <div className="flex min-h-screen items-center justify-center bg-deep-black">
@@ -102,6 +109,7 @@ export default function AdminLayout({
             <Input
               type="password"
               inputMode="numeric"
+              pattern="[0-9]*"
               placeholder="Digite o PIN do barbeiro"
               maxLength={4}
               value={pin}

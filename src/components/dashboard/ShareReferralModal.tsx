@@ -36,7 +36,8 @@ export function ShareReferralModal({ isOpen, onClose, referralCode }: ShareRefer
 
   const handleShareWhatsApp = () => {
     const text = `Fala, craque! ✂️ \n\nDescobri a Hills Cut Barbearia e lembrei de você. Os caras são feras!\n\nUsando meu link, você já começa com 50% DE DESCONTO no primeiro corte. Só fazer o cadastro e já era.\n\nBora dar um tapa no visual? Clica aí: \n👉 ${referralLink}`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    // Usando o formato de API padrão do WhatsApp para melhor suporte a caracteres e dispositivos
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, '_blank');
   };
 
