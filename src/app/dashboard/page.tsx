@@ -1,19 +1,19 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { LogOut, Handshake, Users, Info, Share2, Instagram, Star, Award, FerrisWheel, Loader2 } from 'lucide-react';
+import { LogOut, Handshake, Users, Info, Share2, Instagram, Star, Award, FerrisWheel, Loader2, Scissors } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useRouter } from 'next/navigation';
 import { initializeFirebase, useDoc, useCollection } from '@/firebase';
-import { doc, collection, query, where, Timestamp, getDocs, getDoc, orderBy, limit, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, collection, query, where, Timestamp, getDocs, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { isAfter, differenceInDays } from 'date-fns';
 import { UserDashboardTabs } from '@/components/dashboard/UserDashboardTabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShareReferralModal } from '@/components/dashboard/ShareReferralModal';
+import { ConfirmCutModal } from '@/components/dashboard/ConfirmCutModal';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -90,6 +90,7 @@ export default function DashboardPage() {
   const [clientPhone, setClientPhone] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isConfirmCutModalOpen, setIsConfirmCutModalOpen] = useState(false);
   const [referrerName, setReferrerName] = useState<string | null>(null);
   const [isUsingSpin, setIsUsingSpin] = useState(false);
   
@@ -259,6 +260,14 @@ export default function DashboardPage() {
           onClose={() => setIsShareModalOpen(false)}
           referralCode={clientData?.referralCode || ''}
         />
+        {clientData && (
+          <ConfirmCutModal
+            isOpen={isConfirmCutModalOpen}
+            onClose={() => setIsConfirmCutModalOpen(false)}
+            clientPhone={clientData.phone}
+            clientName={clientData.name}
+          />
+        )}
       <header className="p-4 flex justify-between items-center border-b border-gold/20">
         <div>
           {isLoading || !clientData ? (
@@ -331,16 +340,28 @@ export default function DashboardPage() {
               </Card>
             )}
 
-            <Card className="bg-dark-gray border-gold/20">
-                <CardHeader className="pb-4">
-                    <CardTitle className="text-ice-white text-lg">✂️ Progresso para o próximo giro de fidelidade</CardTitle>
+            <Card className="bg-dark-gray border-gold/20 overflow-hidden">
+                <CardHeader className="pb-4 bg-gold/5">
+                    <CardTitle className="text-gold text-lg flex items-center gap-2"><Scissors className="h-5 w-5"/> Registro de Corte</CardTitle>
+                    <CardDescription className="text-ice-white/60">Está na barbearia? Registre seu corte agora e acumule giros.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <Progress value={((clientData?.cortesAtuais ?? 0) / 5) * 100} className="bg-deep-black h-3 [&>div]:bg-gold" />
-                    <p className="text-center text-muted-foreground text-sm mt-3">
-                    <span className="font-bold text-gold">{clientData?.cortesAtuais ?? 0} / 5</span> cortes confirmados
-                    </p>
-                    <p className="text-center text-xs text-muted-foreground/50 mt-2">Complete 5 cortes e ganhe 1 giro de fidelidade.</p>
+                <CardContent className="pt-6 space-y-6">
+                    <div>
+                        <div className="flex justify-between items-end mb-2">
+                            <span className="text-sm text-muted-foreground uppercase">Fidelidade</span>
+                            <span className="text-xl font-bold text-gold">{clientData?.cortesAtuais ?? 0} / 5</span>
+                        </div>
+                        <Progress value={((clientData?.cortesAtuais ?? 0) / 5) * 100} className="bg-deep-black h-3 [&>div]:bg-gold" />
+                        <p className="text-xs text-muted-foreground/50 mt-3 text-center italic">Complete 5 cortes e ganhe 1 giro automático.</p>
+                    </div>
+
+                    <Button 
+                      onClick={() => setIsConfirmCutModalOpen(true)}
+                      className="w-full bg-gold text-deep-black font-bold h-14 text-lg uppercase tracking-wider hover:bg-gold/90 shadow-lg shadow-gold/10"
+                    >
+                      <Scissors className="mr-2" />
+                      Registrar Novo Corte
+                    </Button>
                 </CardContent>
             </Card>
 
@@ -392,7 +413,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
-
-    
