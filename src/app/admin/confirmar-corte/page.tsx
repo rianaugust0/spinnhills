@@ -1,30 +1,18 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, User, Scissors, CheckCircle, Gift, Sparkles, FerrisWheel, Handshake } from 'lucide-react';
+import { Loader2, ArrowLeft, User, Scissors, CheckCircle, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, collection, query, where, getDocs, serverTimestamp, Timestamp, writeBatch, increment, addDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, serverTimestamp, Timestamp, writeBatch, increment } from 'firebase/firestore';
 import { isAfter } from 'date-fns';
 
 const { firestore } = initializeFirebase();
-
-export type ClientData = {
-    id: string;
-    name: string;
-    cortesAtuais: number;
-    totalCortes: number;
-}
-
-type ReferralInfo = {
-    referrerName: string;
-    status: 'Pendente' | 'Concluída';
-}
 
 export default function ConfirmarCortePage() {
   const router = useRouter();
@@ -33,312 +21,110 @@ export default function ConfirmarCortePage() {
   const [phone, setPhone] = useState('');
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
-  const [client, setClient] = useState<ClientData | null>(null);
-  const [referralInfo, setReferralInfo] = useState<ReferralInfo | null>(null);
+  const [client, setClient] = useState<any>(null);
   const [step, setStep] = useState<'findClient' | 'confirmCut' | 'success'>('findClient');
-  const [extraSpinConverted, setExtraSpinConverted] = useState(false);
-  const [finalAvailableSpins, setFinalAvailableSpins] = useState(0);
+
+  const MASTER_PIN = '2277';
 
   const handleFindClient = async () => {
-    const sanitizedPhone = phone.replace(/\D/g, '');
-    if (sanitizedPhone.length < 10) {
+    const sanitized = phone.replace(/\D/g, '');
+    if (sanitized.length < 10) {
       toast({ variant: 'destructive', title: 'Telefone inválido' });
       return;
     }
     setLoading(true);
-    setReferralInfo(null);
     try {
-      const userDocRef = doc(firestore, 'users', sanitizedPhone);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        setClient({
-            id: userDoc.id,
-            name: userData.name,
-            cortesAtuais: userData.cortesAtuais,
-            totalCortes: userData.totalCortes || 0,
-        });
-
-        const referralQuery = query(collection(firestore, "referrals"), where("referredUserId", "==", sanitizedPhone));
-        const referralSnapshot = await getDocs(referralQuery);
-        if (!referralSnapshot.empty) {
-            const referralDoc = referralSnapshot.docs[0].data();
-            const referrerDoc = await getDoc(doc(firestore, "users", referralDoc.referrerUserId));
-            if(referrerDoc.exists()){
-                setReferralInfo({
-                    referrerName: referrerDoc.data().name,
-                    status: referralDoc.spinGranted ? 'Concluída' : 'Pendente',
-                });
-            }
-        }
+      const snap = await getDoc(doc(firestore, 'users', sanitized));
+      if (snap.exists()) {
+        setClient({ id: snap.id, ...snap.data() });
         setStep('confirmCut');
       } else {
         toast({ variant: 'destructive', title: 'Cliente não encontrado' });
-        setClient(null);
       }
     } catch (error) {
       console.error(error);
-      toast({ variant: 'destructive', title: 'Erro ao buscar cliente' });
     } finally {
       setLoading(false);
     }
   };
 
   const handleConfirmCut = async () => {
-     if (pin.length < 4) {
+    if (pin !== MASTER_PIN) {
       toast({ variant: 'destructive', title: 'PIN inválido' });
+      setPin('');
       return;
     }
-    if (!client) return;
-
     setLoading(true);
-    setExtraSpinConverted(false);
-
     try {
-        let barberId = 'admin_master';
-        
-        // Bypass para senha mestre 2277
-        if (pin !== '2277') {
-            const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pin));
-            const barberSnapshot = await getDocs(barbersQuery);
+      const batch = writeBatch(firestore);
+      const now = serverTimestamp();
+      const userRef = doc(firestore, 'users', client.id);
 
-            if (barberSnapshot.empty) {
-                throw new Error('PIN do barbeiro inválido.');
-            }
-            barberId = barberSnapshot.docs[0].id;
-        }
-        
-        const batch = writeBatch(firestore);
-        const nowTimestamp = serverTimestamp();
+      let newCortes = (client.cortesAtuais || 0) + 1;
+      if (newCortes >= 5) {
+        newCortes = 0;
+        const spinRef = doc(collection(firestore, 'spins'));
+        batch.set(spinRef, { userId: client.id, status: 'available', origin: 'fidelidade_5_cortes', createdAt: now });
+      }
 
-        const userDocRef = doc(firestore, 'users', client.id);
-        const userDocSnap = await getDoc(userDocRef);
-        const currentClientData = userDocSnap.data() as any;
+      batch.update(userRef, { cortesAtuais: newCortes, totalCortes: increment(1), lastVisit: now, updatedAt: now });
+      batch.set(doc(collection(firestore, 'cuts')), { userId: client.id, barberId: 'admin_master', date: now });
 
-        let newCortesAtuais = (currentClientData.cortesAtuais || 0) + 1;
-        let spinGrantedFromFidelity = false;
-
-        const updates: any = {
-            totalCortes: increment(1),
-            updatedAt: nowTimestamp,
-            lastVisit: nowTimestamp,
-        };
-
-        if (newCortesAtuais >= 5) {
-            newCortesAtuais = 0;
-            const newSpinRef = doc(collection(firestore, 'spins'));
-            batch.set(newSpinRef, {
-                userId: client.id,
-                status: 'available',
-                origin: 'fidelidade_5_cortes',
-                createdAt: nowTimestamp,
-                usedAt: null,
-            });
-            spinGrantedFromFidelity = true;
-        }
-        
-        updates.cortesAtuais = newCortesAtuais;
-
-        const limitedSpinsQuery = query(
-          collection(firestore, "limitedSpins"),
-          where('userId', '==', client.id),
-          where('status', '==', 'active')
-        );
-        const limitedSpinsSnapshot = await getDocs(limitedSpinsQuery);
-        let convertedLimitedSpin = false;
-        
-        const activeLimitedSpins = limitedSpinsSnapshot.docs.filter(doc => {
-            const data = doc.data();
-            const now = new Date();
-            const expiresAt = (data.expiresAt as Timestamp).toDate();
-            return data.status === 'active' && isAfter(expiresAt, now);
-        });
-
-        if (activeLimitedSpins.length > 0) {
-            const limitedSpinDoc = activeLimitedSpins[0];
-            batch.update(limitedSpinDoc.ref, {
-                status: 'used',
-                usedAt: nowTimestamp,
-                usedByBarberId: barberId,
-            });
-
-            const newSpinRef = doc(collection(firestore, 'spins'));
-            batch.set(newSpinRef, {
-                userId: client.id,
-                status: 'available',
-                origin: 'giro_extra_convertido',
-                createdAt: nowTimestamp,
-                usedAt: null,
-            });
-
-            convertedLimitedSpin = true;
-            setExtraSpinConverted(true);
-        }
-        
-        const referralQuery = query(collection(firestore, "referrals"), where("referredUserId", "==", client.id), where("spinGranted", "==", false));
-        const referralSnapshot = await getDocs(referralQuery);
-        if (!referralSnapshot.empty) {
-            const referralDoc = referralSnapshot.docs[0];
-            const referrerId = referralDoc.data().referrerUserId;
-
-            const newSpinRef = doc(collection(firestore, 'spins'));
-            batch.set(newSpinRef, {
-                userId: referrerId,
-                status: 'available',
-                origin: 'indicacao',
-                createdAt: nowTimestamp,
-                usedAt: null,
-                notes: `Indicou ${client.name} (${client.id})`,
-            });
-            
-            batch.update(referralDoc.ref, { spinGranted: true, haircutConfirmed: true });
-        }
-
-        batch.update(userDocRef, updates);
-
-        const cutsCollectionRef = collection(firestore, "cuts");
-        batch.set(doc(cutsCollectionRef), {
-            userId: client.id,
-            barberId: barberId,
-            pinUsed: pin,
-            confirmed: true,
-            date: nowTimestamp
-        });
-        
-        await batch.commit();
-
-        const finalSpinsQuery = query(collection(firestore, 'spins'), where('userId', '==', client.id), where('status', '==', 'available'));
-        const finalSpinsSnapshot = await getDocs(finalSpinsQuery);
-        setFinalAvailableSpins(finalSpinsSnapshot.size);
-
-        setClient(prev => prev ? ({
-          ...prev,
-          cortesAtuais: newCortesAtuais,
-          totalCortes: prev.totalCortes + 1,
-        }) : null);
-        setStep('success');
-        
-    } catch (error: any) {
-        console.error(error);
-        setStep('confirmCut'); 
-        toast({
-            variant: 'destructive',
-            title: 'Falha na confirmação',
-            description: error.message || 'Não foi possível confirmar.',
-        });
+      await batch.commit();
+      setStep('success');
+    } catch (error) {
+      console.error(error);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-  }
-
-  const resetState = () => {
-    setStep('findClient');
-    setClient(null);
-    setPhone('');
-    setPin('');
-    setReferralInfo(null);
   };
-  
+
   if (step === 'success') {
-       return (
-        <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
-            <div className='animate-fade-in-up w-full max-w-sm'>
-                <CheckCircle className="h-24 w-24 text-green-500 mx-auto animate-pulse" />
-                <h1 className="font-headline text-4xl text-gold uppercase tracking-widest mt-4">Corte Confirmado!</h1>
-                <p className='text-ice-white text-lg mt-2'>O progresso de {client?.name.split(' ')[0]} foi atualizado.</p>
-                 <div className='mt-4 text-ice-white/80 space-y-1'>
-                    {extraSpinConverted && (
-                        <div className="flex items-center justify-center gap-2 text-green-400">
-                           <Sparkles className="h-5 w-5" />
-                           <span>Giro Extra convertido em +1 giro!</span>
-                        </div>
-                    )}
-                    <p>Novo Progresso: <span className='font-bold text-gold'>{client?.cortesAtuais}/5</span></p>
-                    <p>Giros Disponíveis: <span className='font-bold text-gold'>{finalAvailableSpins}</span></p>
-                 </div>
-                <Button onClick={resetState} className='mt-8 w-full h-12 text-base'>Confirmar Outro Corte</Button>
-                 <Button variant="ghost" onClick={() => router.push('/admin')} className='mt-2 w-full max-w-sm'>Voltar para o Menu</Button>
-            </div>
-        </div>
-      )
+    return (
+      <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
+        <CheckCircle className="h-24 w-24 text-green-500 animate-pulse" />
+        <h1 className="font-headline text-4xl text-gold mt-4">CORTE CONFIRMADO!</h1>
+        <Button onClick={() => {setStep('findClient'); setPhone(''); setPin('');}} className="mt-8 h-12 w-full max-w-sm">Próximo</Button>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
-      <header className="p-4 flex justify-between items-center">
-        <Button variant="ghost" size="icon" onClick={() => step === 'confirmCut' ? resetState() : router.back()} aria-label="Voltar">
+    <div className="flex flex-col min-h-screen bg-deep-black">
+      <header className="p-4 flex items-center border-b border-gold/20">
+        <Button variant="ghost" size="icon" onClick={() => step === 'confirmCut' ? setStep('findClient') : router.back()}>
           <ArrowLeft className="h-5 w-5 text-gold" />
         </Button>
-         <h1 className="font-headline text-xl text-ice-white uppercase">Confirmar Corte</h1>
-         <div></div>
+        <h1 className="font-headline text-xl text-ice-white ml-2">CONFIRMAR CORTE</h1>
       </header>
-      <main className="flex-1 flex flex-col items-center container mx-auto py-8">
+      <main className="container mx-auto py-8 px-4 flex justify-center">
         {step === 'findClient' ? (
-            <Card className="w-full max-w-sm bg-dark-gray border-gold/20 text-center animate-fade-in-up">
-                <CardHeader>
-                    <User className='h-12 w-12 mx-auto text-gold/50'/>
-                    <CardTitle className="font-headline text-3xl text-gold uppercase">Identificar Cliente</CardTitle>
-                    <CardDescription>Digite o telefone do cliente para buscar.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <Input
-                        type="tel"
-                        placeholder="Telefone do Cliente"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="bg-deep-black border-gold/30 focus:ring-gold focus:border-gold text-center text-lg h-12"
-                    />
-                    <Button
-                        onClick={handleFindClient}
-                        disabled={loading || !phone}
-                        className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base"
-                        >
-                        {loading ? <Loader2 className="animate-spin" /> : 'Buscar Cliente'}
-                    </Button>
-                </CardContent>
-            </Card>
-        ) : client && (
-             <Card className="w-full max-w-sm bg-dark-gray border-gold/20 text-center animate-fade-in-up">
-                <CardHeader>
-                     <Scissors className='h-12 w-12 mx-auto text-gold/50'/>
-                    <CardTitle className="font-headline text-3xl text-gold uppercase">Ações para <strong className='text-gold'>{client.name.split(' ')[0]}</strong></CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className='grid grid-cols-2 gap-4'>
-                        <div className='p-2 bg-deep-black rounded-lg border border-gold/10'>
-                            <p className='text-xs text-muted-foreground'>Progresso</p>
-                            <p className='text-lg font-bold text-ice-white'>{client.cortesAtuais} / 5</p>
-                        </div>
-                        <div className='p-2 bg-deep-black rounded-lg border border-gold/10'>
-                            <p className='text-xs text-muted-foreground'>Total de Cortes</p>
-                            <p className='text-lg font-bold text-ice-white'>{client.totalCortes}</p>
-                        </div>
-                    </div>
-                    
-                    <div className="space-y-2 p-4 border border-dashed border-gold/20 rounded-lg">
-                        <h3 className='font-bold text-ice-white mb-2'>CONFIRMAR CORTE</h3>
-                        <Input
-                            type="password"
-                            inputMode='numeric'
-                            placeholder="PIN do barbeiro"
-                            maxLength={4}
-                            value={pin}
-                            onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
-                            className="bg-deep-black border-gold/30 focus:ring-gold focus:border-gold text-center text-lg h-12 placeholder:text-muted-foreground/50"
-                        />
-                        <Button
-                            onClick={handleConfirmCut}
-                            disabled={loading || pin.length < 4}
-                            className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base"
-                        >
-                            {loading ? <Loader2 className="animate-spin" /> : 'Confirmar e Contabilizar'}
-                        </Button>
-                    </div>
-                    
-                    <Button variant="link" onClick={resetState} className='text-gold/80'>Buscar outro cliente</Button>
-                </CardContent>
-            </Card>
+          <Card className="w-full max-w-sm bg-dark-gray border-gold/20">
+            <CardHeader className="text-center">
+              <User className="h-12 w-12 mx-auto text-gold/50" />
+              <CardTitle className="text-gold uppercase">Identificar Cliente</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Input type="tel" placeholder="Telefone do Cliente" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-deep-black h-12 text-center" />
+              <Button onClick={handleFindClient} disabled={loading} className="w-full bg-gold text-deep-black font-bold h-12">
+                {loading ? <Loader2 className="animate-spin" /> : 'BUSCAR'}
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="w-full max-w-sm bg-dark-gray border-gold/20">
+            <CardHeader className="text-center">
+              <Scissors className="h-12 w-12 mx-auto text-gold/50" />
+              <CardTitle className="text-gold uppercase">{client.name.split(' ')[0]}</CardTitle>
+              <CardDescription>Progresso: {client.cortesAtuais}/5</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Input type="password" placeholder="PIN do Barbeiro" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} maxLength={4} className="bg-deep-black h-12 text-center" autoFocus />
+              <Button onClick={handleConfirmCut} disabled={loading || pin.length < 4} className="w-full bg-gold text-deep-black font-bold h-12">
+                {loading ? <Loader2 className="animate-spin" /> : 'CONFIRMAR'}
+              </Button>
+            </CardContent>
+          </Card>
         )}
       </main>
     </div>

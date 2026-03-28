@@ -22,8 +22,7 @@ export function ShareReferralModal({ isOpen, onClose, referralCode }: ShareRefer
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const link = `${window.location.origin}/entrar?ref=${referralCode}`;
-      setReferralLink(link);
+      setReferralLink(`${window.location.origin}/entrar?ref=${referralCode}`);
     }
   }, [referralCode]);
 
@@ -35,14 +34,13 @@ export function ShareReferralModal({ isOpen, onClose, referralCode }: ShareRefer
   };
 
   const handleShareWhatsApp = () => {
-    // Gerando emojis de forma infalível via CodePoint
     const emojiScissors = String.fromCodePoint(0x2702, 0xFE0F);
     const emojiPoint = String.fromCodePoint(0x1F449);
 
-    const text = `Fala, craque! ${emojiScissors} \n\nDescobri a Hills Cut Barbearia e lembrei de você. Os caras são feras!\n\nUsando meu link, você já começa com 50% DE DESCONTO no primeiro corte. Só fazer o cadastro e já era.\n\nBora dar um tapa no visual? Clica aí: \n${emojiPoint} ${referralLink}`;
+    const text = `Fala, craque! ${emojiScissors} \n\nDescobri a Hills Cut Barbearia e lembrei de você. Os caras são feras!\n\nSe cadastra pelo meu link pra garantir os benefícios e bora dar um tapa no visual: \n${emojiPoint} ${referralLink}`;
     
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(whatsappUrl, '_blank');
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
   };
 
   return (
@@ -53,29 +51,22 @@ export function ShareReferralModal({ isOpen, onClose, referralCode }: ShareRefer
             <Share2 /> Indicar um Amigo
           </DialogTitle>
           <DialogDescription>
-            Compartilhe seu link exclusivo. Quando seu amigo se cadastrar e fizer o primeiro corte, você ganha 1 giro!
+            Compartilhe seu link. Quando seu amigo fizer o primeiro corte, você ganha 1 giro!
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
-            <p className='text-sm text-muted-foreground'>Seu link de indicação:</p>
-            <div className="flex items-center space-x-2">
-                <Input value={referralLink} readOnly className="bg-deep-black border-gold/30" />
-                <Button size="icon" variant="outline" onClick={handleCopy}>
-                    {hasCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                </Button>
-            </div>
-            
-            <Button onClick={handleShareWhatsApp} className="w-full bg-whatsapp text-white font-bold uppercase tracking-wider hover:bg-whatsapp/90 h-12 text-base">
-                <WhatsappIcon className='h-5 w-5 mr-2' />
-                Compartilhar no WhatsApp
+          <div className="flex items-center space-x-2">
+            <Input value={referralLink} readOnly className="bg-deep-black border-gold/30" />
+            <Button size="icon" variant="outline" onClick={handleCopy}>
+              {hasCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
             </Button>
+          </div>
+          <Button onClick={handleShareWhatsApp} className="w-full bg-whatsapp text-white font-bold h-12">
+            <WhatsappIcon className="h-5 w-5 mr-2" /> Compartilhar no WhatsApp
+          </Button>
         </div>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              Fechar
-            </Button>
-          </DialogClose>
+          <DialogClose asChild><Button variant="secondary">Fechar</Button></DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

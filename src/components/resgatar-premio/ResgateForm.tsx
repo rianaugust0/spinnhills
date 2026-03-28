@@ -23,6 +23,8 @@ export function ResgateForm() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const MASTER_PIN = '2277';
+
   const prizeDocRef = useMemo(() => {
     if (!prizeId) return null;
     return doc(firestore, 'prizes', prizeId);
@@ -30,119 +32,56 @@ export function ResgateForm() {
 
   const { data: prizeData, isLoading: isPrizeLoading } = useDoc(prizeDocRef);
 
-  useEffect(() => {
-    if (!prizeId) {
-      toast({ variant: 'destructive', title: 'URL inválida', description: "O prêmio não foi especificado." });
-      router.push('/dashboard');
-    }
-  }, [prizeId, router, toast]);
-
   const handleRedeem = async () => {
-    if (pin.length < 4) {
-      toast({ variant: 'destructive', title: 'PIN inválido', description: 'O PIN do barbeiro deve ter 4 dígitos.' });
+    if (pin !== MASTER_PIN) {
+      toast({ variant: 'destructive', title: 'PIN inválido' });
+      setPin('');
       return;
     }
-    if (!prizeDocRef || !prizeData) return;
-
     setLoading(true);
-
     try {
-      let barberId = 'admin_master';
-
-      // Bypass para senha mestre 2277
-      if (pin !== '2277') {
-        const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pin));
-        const barberSnapshot = await getDocs(barbersQuery);
-
-        if (barberSnapshot.empty) {
-          throw new Error('PIN do barbeiro inválido.');
-        }
-        barberId = barberSnapshot.docs[0].id;
-      }
-
-      await updateDoc(prizeDocRef, {
+      await updateDoc(prizeDocRef!, {
         status: 'redeemed',
         redeemedAt: serverTimestamp(),
-        usedByBarberId: barberId,
+        usedByBarberId: 'admin_master',
       });
-
       setSuccess(true);
-      toast({ title: 'Prêmio resgatado com sucesso!', description: `${prizeData?.title} foi validado.` });
-      
     } catch (error: any) {
-      console.error("Redemption failed:", error);
-      setSuccess(false);
-      toast({
-        variant: 'destructive',
-        title: 'Ops! Algo deu errado.',
-        description: error.message || 'Não foi possível resgatar o prêmio.',
-      });
+      toast({ variant: 'destructive', title: 'Erro ao resgatar', description: error.message });
     } finally {
       setLoading(false);
     }
   };
 
-  if (isPrizeLoading) {
+  if (isPrizeLoading) return <div className="flex min-h-screen items-center justify-center bg-deep-black"><Loader2 className="animate-spin text-gold" /></div>;
+
+  if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-deep-black">
-        <Loader2 className="h-16 w-16 animate-spin text-gold" />
+      <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black text-center p-4">
+        <CheckCircle className="h-24 w-24 text-green-500 animate-pulse" />
+        <h1 className="font-headline text-4xl text-gold mt-4 uppercase">Resgatado!</h1>
+        <Button onClick={() => router.push('/dashboard')} className="mt-8 h-12 w-full max-w-sm">Voltar</Button>
       </div>
     );
   }
 
-  if (success) {
-      return (
-        <div className="flex flex-col min-h-screen items-center justify-center bg-deep-black p-4 text-center">
-            <div className='animate-fade-in-up'>
-                <CheckCircle className="h-24 w-24 text-green-500 mx-auto animate-pulse" />
-                <h1 className="font-headline text-4xl text-gold uppercase tracking-widest mt-4">Prêmio Resgatado!</h1>
-                <p className='text-ice-white text-lg mt-2'>"{prizeData?.title}" foi aplicado com sucesso.</p>
-                <Button onClick={() => router.push('/dashboard')} className='mt-8 w-full max-w-sm'>Voltar ao Início</Button>
-            </div>
-        </div>
-      )
-  }
-
   return (
-    <div className="flex flex-col min-h-screen bg-deep-black text-ice-white">
-        <header className="p-4 flex justify-between items-center">
-            <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="Voltar">
-            <ArrowLeft className="h-5 w-5 text-gold" />
+    <div className="flex flex-col min-h-screen bg-deep-black">
+      <header className="p-4"><Button variant="ghost" onClick={() => router.back()}><ArrowLeft className="h-5 w-5 text-gold" /></Button></header>
+      <main className="container mx-auto px-4 flex justify-center py-8">
+        <Card className="w-full max-w-sm bg-dark-gray border-gold/20 text-center">
+          <CardHeader>
+            <CardTitle className="text-gold uppercase">Resgatar Prêmio</CardTitle>
+            <CardDescription>{prizeData?.title}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Input type="password" inputMode="numeric" placeholder="PIN do Barbeiro" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} maxLength={4} className="bg-deep-black h-12 text-center" autoFocus />
+            <Button onClick={handleRedeem} disabled={loading || pin.length < 4} className="w-full bg-gold text-deep-black font-bold h-12 uppercase">
+              {loading ? <Loader2 className="animate-spin" /> : 'Confirmar Resgate'}
             </Button>
-        </header>
-
-        <main className="flex-1 flex flex-col items-center justify-center container mx-auto px-4 pb-8">
-            <Card className="w-full max-w-sm bg-dark-gray border-gold/20 text-center animate-fade-in-up">
-                <CardHeader>
-                    <CardTitle className="font-headline text-3xl text-gold uppercase">Resgatar Prêmio</CardTitle>
-                    <CardDescription>Peça para um barbeiro digitar o PIN para confirmar.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className='p-4 bg-deep-black rounded-lg border border-gold/10'>
-                        <p className='text-muted-foreground'>Prêmio:</p>
-                        <p className='text-xl font-bold text-ice-white'>{prizeData?.title}</p>
-                    </div>
-                    <div className="space-y-2">
-                        <Input
-                            type="password"
-                            inputMode='numeric'
-                            placeholder="Digite o PIN do barbeiro"
-                            maxLength={4}
-                            value={pin}
-                            onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
-                            className="bg-deep-black border-gold/30 focus:ring-gold focus:border-gold text-center text-lg h-12 placeholder:text-muted-foreground/50"
-                        />
-                        <Button
-                            onClick={handleRedeem}
-                            disabled={loading || !pin}
-                            className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base"
-                        >
-                            {loading ? <Loader2 className="animate-spin" /> : 'Confirmar Resgate'}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-        </main>
+          </CardContent>
+        </Card>
+      </main>
     </div>
   );
 }

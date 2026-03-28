@@ -7,10 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { initializeFirebase } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-
-const { firestore } = initializeFirebase();
 
 export default function AdminLayout({
   children,
@@ -23,78 +19,39 @@ export default function AdminLayout({
   const [loading, setLoading] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
 
+  const MASTER_PIN = '2277';
+
   useEffect(() => {
-    const checkSession = async () => {
-        try {
-            const sessionPin = sessionStorage.getItem('barber-pin');
-            if (sessionPin) {
-                const isValid = await validatePin(sessionPin, false);
-                if (isValid) {
-                    setIsAuthenticated(true);
-                } else {
-                    sessionStorage.removeItem('barber-pin');
-                }
-            }
-        } catch (error) {
-            console.error("Failed to check session", error);
-        } finally {
-            setIsCheckingSession(false);
-        }
-    };
-    checkSession();
-  }, []);
-
-  const validatePin = async (pinToValidate: string, showToast: boolean = true) => {
-    // Senha mestre 2277
-    if (pinToValidate === '2277') return true;
-
-    setLoading(true);
-    try {
-      const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pinToValidate));
-      const barberSnapshot = await getDocs(barbersQuery);
-      if (!barberSnapshot.empty) {
-        if (showToast) {
-            toast({ title: 'Acesso liberado!', description: 'Bem-vindo ao painel.' });
-        }
-        return true;
-      } else {
-        if (showToast) {
-            toast({ variant: 'destructive', title: 'PIN inválido' });
-        }
-        return false;
-      }
-    } catch (error) {
-      console.error(error);
-      if(showToast) {
-        toast({ variant: 'destructive', title: 'Erro ao validar acesso' });
-      }
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogin = async () => {
-    if (pin.length < 4) return;
-    const isValid = await validatePin(pin);
-    if (isValid) {
-      sessionStorage.setItem('barber-pin', pin);
+    const sessionPin = sessionStorage.getItem('barber-pin');
+    if (sessionPin === MASTER_PIN) {
       setIsAuthenticated(true);
     }
+    setIsCheckingSession(false);
+  }, []);
+
+  const handleLogin = async () => {
+    if (pin === MASTER_PIN) {
+      sessionStorage.setItem('barber-pin', pin);
+      setIsAuthenticated(true);
+      toast({ title: 'Acesso liberado!', description: 'Bem-vindo ao painel.' });
+    } else {
+      toast({ variant: 'destructive', title: 'PIN inválido' });
+      setPin('');
+    }
   };
 
   useEffect(() => {
-    if (pin.length === 4 && !isAuthenticated && !loading) {
+    if (pin.length === 4 && !isAuthenticated) {
       handleLogin();
     }
   }, [pin]);
 
   if (isCheckingSession) {
-      return (
-         <div className="flex min-h-screen items-center justify-center bg-deep-black">
-            <Loader2 className="h-16 w-16 animate-spin text-gold" />
-         </div>
-      )
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-deep-black">
+        <Loader2 className="h-16 w-16 animate-spin text-gold" />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
@@ -104,23 +61,23 @@ export default function AdminLayout({
           <CardHeader>
             <Shield className="h-12 w-12 mx-auto text-gold/50" />
             <CardTitle className="font-headline text-3xl text-gold uppercase">Área Restrita</CardTitle>
-            <CardDescription>Insira seu PIN de barbeiro para continuar.</CardDescription>
+            <CardDescription>Insira o PIN 2277 para continuar.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
               type="password"
               inputMode="numeric"
-              pattern="[0-9]*"
-              placeholder="Digite o PIN do barbeiro"
+              placeholder="Digite o PIN"
               maxLength={4}
               value={pin}
               onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
-              className="bg-deep-black border-gold/30 focus:ring-gold focus:border-gold text-center text-lg h-12 placeholder:text-muted-foreground/50"
+              className="bg-deep-black border-gold/30 focus:ring-gold focus:border-gold text-center text-lg h-12"
+              autoFocus
             />
             <Button
               onClick={handleLogin}
               disabled={loading || pin.length < 4}
-              className="w-full bg-gold text-deep-black font-bold uppercase tracking-wider hover:bg-gold/90 h-12 text-base"
+              className="w-full bg-gold text-deep-black font-bold h-12 text-base"
             >
               {loading ? <Loader2 className="animate-spin" /> : 'Entrar'}
             </Button>

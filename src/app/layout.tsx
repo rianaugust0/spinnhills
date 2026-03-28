@@ -8,18 +8,28 @@ import { Bebas_Neue, Poppins } from 'next/font/google';
 
 export const metadata: Metadata = {
   title: 'SPIN HILLS - HillsCut Barbearia',
-  description: 'Clube de fidelidade e roleta de prêmios da Hillscut Barbearia.',
+  description: 'Corte, gire e ganhe prêmios exclusivos!',
   openGraph: {
     title: 'SPIN HILLS - HillsCut Barbearia',
-    description: 'Corte, gire e ganhe prêmios exclusivos!',
+    description: 'Corte, gire e ganhe vantagens exclusivas na HillsCut.',
+    url: 'https://spinhills.vercel.app', // Placeholder, será substituído pelo seu domínio
+    siteName: 'SPIN HILLS',
     images: [
       {
         url: 'https://i.imgur.com/5zBjbwT.jpeg',
         width: 1200,
         height: 630,
-        alt: 'HillsCut Barbearia - Corte, gire e ganhe!',
+        alt: 'SPIN HILLS - HillsCut Barbearia',
       },
     ],
+    locale: 'pt_BR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SPIN HILLS - HillsCut Barbearia',
+    description: 'Corte, gire e ganhe vantagens exclusivas!',
+    images: ['https://i.imgur.com/5zBjbwT.jpeg'],
   },
   icons: {
     icon: 'https://imgur.com/GUoe19M',
