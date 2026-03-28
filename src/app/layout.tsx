@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'SPIN HILLS - HillsCut Barbearia',
     description: 'Corte, gire e ganhe vantagens exclusivas na HillsCut.',
-    url: 'https://spinhills.vercel.app', // Placeholder, será substituído pelo seu domínio
+    url: 'https://spinhills.vercel.app',
     siteName: 'SPIN HILLS',
     images: [
       {

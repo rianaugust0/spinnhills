@@ -93,7 +93,7 @@ export default function ClientReturnPage() {
                       <TableRow key={client.id} className="border-gold/5">
                         <TableCell className="font-medium">{client.name}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={days && days >= 15 ? 'text-red-400 border-red-400/30' : 'text-green-400 border-green-400/30'}>
+                          <Badge variant="outline" className={days && days >= 15 ? 'text-red-400 border-red-400/30' : (days && days >= 8 ? 'text-yellow-400 border-yellow-400/30' : 'text-green-400 border-green-400/30')}>
                             {days !== null ? `${days} dias` : 'N/A'}
                           </Badge>
                         </TableCell>

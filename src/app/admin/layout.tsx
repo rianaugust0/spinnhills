@@ -61,7 +61,7 @@ export default function AdminLayout({
           <CardHeader>
             <Shield className="h-12 w-12 mx-auto text-gold/50" />
             <CardTitle className="font-headline text-3xl text-gold uppercase">Área Restrita</CardTitle>
-            <CardDescription>Insira o PIN 2277 para continuar.</CardDescription>
+            <CardDescription>Insira o PIN para continuar.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input

@@ -73,7 +73,6 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
       }
       userUpdates.cortesAtuais = newCortesAtuais;
 
-      // Ativar giros limitados (Giro Extra)
       const limitedSpinsQuery = query(collection(firestore, "limitedSpins"), where('userId', '==', clientPhone), where('status', '==', 'active'));
       const lsSnapshot = await getDocs(limitedSpinsQuery);
       lsSnapshot.docs.forEach(lsDoc => {
@@ -86,7 +85,6 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
         }
       });
 
-      // Registrar o corte
       const cutRef = doc(collection(firestore, "cuts"));
       batch.set(cutRef, { userId: clientPhone, barberId: 'admin_master', confirmed: true, date: nowTimestamp });
 
@@ -149,7 +147,7 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
           <DialogTitle className="flex items-center gap-2 font-headline text-2xl text-gold uppercase">
             <Scissors className="h-6 w-6" /> Confirmar Novo Corte
           </DialogTitle>
-          <DialogDescription>O barbeiro deve digitar o PIN 2277 para validar.</DialogDescription>
+          <DialogDescription>O barbeiro deve digitar o PIN para validar.</DialogDescription>
         </DialogHeader>
         <div className="py-8 flex flex-col items-center gap-4">
           <Input
