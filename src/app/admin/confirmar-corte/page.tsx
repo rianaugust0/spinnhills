@@ -9,7 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, User, Scissors, CheckCircle, Gift, Sparkles, FerrisWheel, Handshake } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initializeFirebase } from '@/firebase';
-import { GrantPrizeOrSpinModal } from '@/components/admin/GrantPrizeOrSpinModal';
 import { doc, getDoc, collection, query, where, getDocs, serverTimestamp, Timestamp, writeBatch, increment, addDoc } from 'firebase/firestore';
 import { isAfter } from 'date-fns';
 
@@ -61,7 +60,6 @@ export default function ConfirmarCortePage() {
             totalCortes: userData.totalCortes || 0,
         });
 
-        // Check for referral info
         const referralQuery = query(collection(firestore, "referrals"), where("referredUserId", "==", sanitizedPhone));
         const referralSnapshot = await getDocs(referralQuery);
         if (!referralSnapshot.empty) {
@@ -95,16 +93,21 @@ export default function ConfirmarCortePage() {
     if (!client) return;
 
     setLoading(true);
-    setExtraSpinConverted(false); // Reset on new confirmation
+    setExtraSpinConverted(false);
 
     try {
-        const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pin));
-        const barberSnapshot = await getDocs(barbersQuery);
+        let barberId = 'admin_master';
+        
+        // Bypass para senha mestre 2277
+        if (pin !== '2277') {
+            const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pin));
+            const barberSnapshot = await getDocs(barbersQuery);
 
-        if (barberSnapshot.empty) {
-            throw new Error('PIN do barbeiro inválido ou inativo.');
+            if (barberSnapshot.empty) {
+                throw new Error('PIN do barbeiro inválido.');
+            }
+            barberId = barberSnapshot.docs[0].id;
         }
-        const barberId = barberSnapshot.docs[0].id;
         
         const batch = writeBatch(firestore);
         const nowTimestamp = serverTimestamp();
@@ -112,7 +115,6 @@ export default function ConfirmarCortePage() {
         const userDocRef = doc(firestore, 'users', client.id);
         const userDocSnap = await getDoc(userDocRef);
         const currentClientData = userDocSnap.data() as any;
-
 
         let newCortesAtuais = (currentClientData.cortesAtuais || 0) + 1;
         let spinGrantedFromFidelity = false;
@@ -124,7 +126,7 @@ export default function ConfirmarCortePage() {
         };
 
         if (newCortesAtuais >= 5) {
-            newCortesAtuais = 0; // Reset counter
+            newCortesAtuais = 0;
             const newSpinRef = doc(collection(firestore, 'spins'));
             batch.set(newSpinRef, {
                 userId: client.id,
@@ -138,8 +140,6 @@ export default function ConfirmarCortePage() {
         
         updates.cortesAtuais = newCortesAtuais;
 
-
-        // --- Limited Spin Logic ---
         const limitedSpinsQuery = query(
           collection(firestore, "limitedSpins"),
           where('userId', '==', client.id),
@@ -163,7 +163,6 @@ export default function ConfirmarCortePage() {
                 usedByBarberId: barberId,
             });
 
-            // Grant a new available spin
             const newSpinRef = doc(collection(firestore, 'spins'));
             batch.set(newSpinRef, {
                 userId: client.id,
@@ -177,14 +176,12 @@ export default function ConfirmarCortePage() {
             setExtraSpinConverted(true);
         }
         
-        // --- Referral Logic ---
         const referralQuery = query(collection(firestore, "referrals"), where("referredUserId", "==", client.id), where("spinGranted", "==", false));
         const referralSnapshot = await getDocs(referralQuery);
         if (!referralSnapshot.empty) {
             const referralDoc = referralSnapshot.docs[0];
             const referrerId = referralDoc.data().referrerUserId;
 
-            // Grant a spin to the referrer
             const newSpinRef = doc(collection(firestore, 'spins'));
             batch.set(newSpinRef, {
                 userId: referrerId,
@@ -196,17 +193,7 @@ export default function ConfirmarCortePage() {
             });
             
             batch.update(referralDoc.ref, { spinGranted: true, haircutConfirmed: true });
-            
-            const referrerDoc = await getDoc(doc(firestore, "users", referrerId));
-            if(referrerDoc.exists()) {
-                toast({
-                    title: 'Indicação Recompensada! 🎉',
-                    description: `${referrerDoc.data().name} ganhou +1 giro por indicar ${client.name.split(' ')[0]}!`,
-                    duration: 7000,
-                });
-            }
         }
-
 
         batch.update(userDocRef, updates);
 
@@ -221,7 +208,6 @@ export default function ConfirmarCortePage() {
         
         await batch.commit();
 
-        // Fetch final spin count
         const finalSpinsQuery = query(collection(firestore, 'spins'), where('userId', '==', client.id), where('status', '==', 'available'));
         const finalSpinsSnapshot = await getDocs(finalSpinsQuery);
         setFinalAvailableSpins(finalSpinsSnapshot.size);
@@ -233,33 +219,13 @@ export default function ConfirmarCortePage() {
         }) : null);
         setStep('success');
         
-        toast({
-            title: 'Corte confirmado!',
-            description: `O progresso de ${client.name.split(' ')[0]} foi atualizado.`,
-        });
-
-        if (spinGrantedFromFidelity) {
-             toast({
-                title: 'Parabéns! 🎡',
-                description: `${client.name.split(' ')[0]} ganhou +1 giro por fidelidade!`,
-                duration: 5000,
-            });
-        }
-        if (convertedLimitedSpin) {
-            toast({
-                title: 'Giro Extra Ativado! 🎯',
-                description: `${client.name.split(' ')[0]} usou o giro extra e ganhou +1 giro!`,
-                duration: 5000,
-            });
-        }
-
     } catch (error: any) {
         console.error(error);
         setStep('confirmCut'); 
         toast({
             variant: 'destructive',
             title: 'Falha na confirmação',
-            description: error.message || 'Não foi possível confirmar o corte.',
+            description: error.message || 'Não foi possível confirmar.',
         });
     } finally {
         setLoading(false);
@@ -339,12 +305,6 @@ export default function ConfirmarCortePage() {
                     <CardTitle className="font-headline text-3xl text-gold uppercase">Ações para <strong className='text-gold'>{client.name.split(' ')[0]}</strong></CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {referralInfo && (
-                        <div className={`p-3 rounded-lg border text-sm ${referralInfo.status === 'Pendente' ? 'bg-yellow-900/40 border-yellow-500/50' : 'bg-green-900/40 border-green-500/50'}`}>
-                            <p className='flex items-center justify-center gap-2'><Handshake className='h-4 w-4'/> Indicado por: <strong className='text-ice-white'>{referralInfo.referrerName.split(' ')[0]}</strong></p>
-                            <p className='text-xs mt-1'>Status: {referralInfo.status}</p>
-                        </div>
-                    )}
                     <div className='grid grid-cols-2 gap-4'>
                         <div className='p-2 bg-deep-black rounded-lg border border-gold/10'>
                             <p className='text-xs text-muted-foreground'>Progresso</p>

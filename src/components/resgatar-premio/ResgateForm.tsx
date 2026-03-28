@@ -8,9 +8,8 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { initializeFirebase, useDoc } from '@/firebase';
-import { doc, runTransaction, serverTimestamp, collection, query, where, getDocs, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const { firestore } = initializeFirebase();
 
@@ -48,18 +47,23 @@ export function ResgateForm() {
     setLoading(true);
 
     try {
-      const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pin));
-      const barberSnapshot = await getDocs(barbersQuery);
+      let barberId = 'admin_master';
 
-      if (barberSnapshot.empty) {
-        throw new Error('PIN do barbeiro inválido.');
+      // Bypass para senha mestre 2277
+      if (pin !== '2277') {
+        const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pin));
+        const barberSnapshot = await getDocs(barbersQuery);
+
+        if (barberSnapshot.empty) {
+          throw new Error('PIN do barbeiro inválido.');
+        }
+        barberId = barberSnapshot.docs[0].id;
       }
-      const barber = barberSnapshot.docs[0];
 
       await updateDoc(prizeDocRef, {
         status: 'redeemed',
         redeemedAt: serverTimestamp(),
-        usedByBarberId: barber.id,
+        usedByBarberId: barberId,
       });
 
       setSuccess(true);

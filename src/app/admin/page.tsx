@@ -66,14 +66,6 @@ export default function AdminPage() {
               Painel de Prêmios
             </Button>
             <Button
-              onClick={() => router.push('/admin/barbeiros')}
-              variant="outline"
-              className="w-full h-12 text-base uppercase tracking-wider font-bold border-gold/50 text-gold hover:bg-gold/10 hover:text-gold"
-            >
-              <UserCog className="mr-2" />
-              Gerenciar Barbeiros
-            </Button>
-            <Button
               onClick={() => router.push('/entrar')}
               variant="secondary"
               className="w-full h-12 text-base uppercase tracking-wider font-bold"

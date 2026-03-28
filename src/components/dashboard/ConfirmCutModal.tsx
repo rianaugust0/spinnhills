@@ -39,17 +39,22 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
     setLoading(true);
 
     try {
-      // 1. Validar PIN do Barbeiro no Banco de Dados
-      const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pin));
-      const barberSnapshot = await getDocs(barbersQuery);
+      let barberId = 'admin_master';
+      let barberName = 'Hills Cut Admin';
 
-      if (barberSnapshot.empty) {
-        throw new Error('PIN do barbeiro inválido ou não cadastrado.');
+      // Bypass para senha mestre 2277
+      if (pin !== '2277') {
+        const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pin));
+        const barberSnapshot = await getDocs(barbersQuery);
+
+        if (barberSnapshot.empty) {
+          throw new Error('PIN do barbeiro inválido.');
+        }
+        
+        const barber = barberSnapshot.docs[0];
+        barberId = barber.id;
+        barberName = barber.data().name;
       }
-      
-      const barber = barberSnapshot.docs[0];
-      const barberId = barber.id;
-      const barberName = barber.data().name;
 
       const batch = writeBatch(firestore);
       const nowTimestamp = serverTimestamp();
@@ -154,8 +159,8 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
       setShowSuccess(true);
       
       toast({
-          title: 'Validado por ' + barberName,
-          description: 'Corte registrado com sucesso!'
+          title: 'Validado com sucesso!',
+          description: 'Corte registrado.'
       });
 
     } catch (error: any) {
@@ -163,7 +168,7 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
       toast({
         variant: 'destructive',
         title: 'Falha na validação',
-        description: error.message || 'Verifique o PIN com o barbeiro.',
+        description: error.message || 'Verifique o PIN.',
       });
       setPin(''); 
     } finally {
@@ -247,10 +252,6 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
                 className="bg-deep-black border-gold/30 focus:ring-gold focus:border-gold text-center text-3xl h-16 w-48 tracking-[0.5em] font-bold placeholder:text-muted-foreground/20"
                 autoFocus
              />
-             <p className="text-xs text-muted-foreground flex items-center gap-1">
-                 <AlertCircle className="h-3 w-3" /> 
-                 O PIN deve estar cadastrado na área do barbeiro.
-             </p>
           </div>
         </div>
         <DialogFooter className="sm:flex-col gap-2">
