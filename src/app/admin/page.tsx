@@ -4,7 +4,7 @@
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Scissors, LayoutDashboard, UserPlus, Users, Gift, CheckCircle, FerrisWheel } from 'lucide-react';
+import { Scissors, LayoutDashboard, UserPlus, Users, Gift, CheckCircle, FerrisWheel, UserCog } from 'lucide-react';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -64,6 +64,14 @@ export default function AdminPage() {
             >
               <LayoutDashboard className="mr-2" />
               Painel de Prêmios
+            </Button>
+            <Button
+              onClick={() => router.push('/admin/barbeiros')}
+              variant="outline"
+              className="w-full h-12 text-base uppercase tracking-wider font-bold border-gold/50 text-gold hover:bg-gold/10 hover:text-gold"
+            >
+              <UserCog className="mr-2" />
+              Gerenciar Barbeiros
             </Button>
             <Button
               onClick={() => router.push('/entrar')}

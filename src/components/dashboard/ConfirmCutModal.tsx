@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Scissors, CheckCircle, Sparkles } from 'lucide-react';
+import { Loader2, Scissors, CheckCircle, Sparkles, AlertCircle } from 'lucide-react';
 import { initializeFirebase } from '@/firebase';
 import { doc, getDoc, collection, query, where, getDocs, serverTimestamp, Timestamp, writeBatch, increment } from 'firebase/firestore';
 import { isAfter } from 'date-fns';
@@ -32,28 +32,29 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
 
   const handleConfirm = async () => {
     if (pin.length < 4) {
-      toast({ variant: 'destructive', title: 'PIN inválido', description: 'O PIN deve ter 4 dígitos.' });
+      toast({ variant: 'destructive', title: 'PIN incompleto', description: 'O PIN deve ter 4 dígitos.' });
       return;
     }
 
     setLoading(true);
 
     try {
-      // 1. Validar PIN do Barbeiro
+      // 1. Validar PIN do Barbeiro no Banco de Dados
       const barbersQuery = query(collection(firestore, 'barbers'), where('pin', '==', pin));
       const barberSnapshot = await getDocs(barbersQuery);
 
       if (barberSnapshot.empty) {
-        throw new Error('PIN do barbeiro inválido ou inexistente.');
+        throw new Error('PIN do barbeiro inválido ou não cadastrado.');
       }
+      
       const barber = barberSnapshot.docs[0];
       const barberId = barber.id;
+      const barberName = barber.data().name;
 
       const batch = writeBatch(firestore);
       const nowTimestamp = serverTimestamp();
       const userDocRef = doc(firestore, 'users', clientPhone);
       
-      // Buscar dados atuais do usuário para lógica de fidelidade
       const userDocSnap = await getDoc(userDocRef);
       if (!userDocSnap.exists()) throw new Error('Usuário não encontrado.');
       const userData = userDocSnap.data();
@@ -67,7 +68,6 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
         lastVisit: nowTimestamp,
       };
 
-      // Lógica de 5 cortes = 1 giro
       if (newCortesAtuais >= 5) {
         newCortesAtuais = 0;
         const newSpinRef = doc(collection(firestore, 'spins'));
@@ -82,7 +82,6 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
       }
       userUpdates.cortesAtuais = newCortesAtuais;
 
-      // Lógica de Limited Spins (Giro Extra)
       const limitedSpinsQuery = query(
         collection(firestore, "limitedSpins"),
         where('userId', '==', clientPhone),
@@ -112,7 +111,6 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
         }
       });
 
-      // Lógica de Indicação (Recompensar quem indicou)
       const referralQuery = query(
         collection(firestore, "referrals"), 
         where("referredUserId", "==", clientPhone), 
@@ -140,12 +138,11 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
         });
       }
 
-      // Registrar o corte
       const cutRef = doc(collection(firestore, "cuts"));
       batch.set(cutRef, {
         userId: clientPhone,
         barberId: barberId,
-        pinUsed: pin,
+        barberName: barberName,
         confirmed: true,
         date: nowTimestamp
       });
@@ -156,20 +153,24 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
       setSuccessData({ cortesAtuais: newCortesAtuais, spinsEarned });
       setShowSuccess(true);
       
+      toast({
+          title: 'Validado por ' + barberName,
+          description: 'Corte registrado com sucesso!'
+      });
+
     } catch (error: any) {
       console.error(error);
       toast({
         variant: 'destructive',
         title: 'Falha na validação',
-        description: error.message || 'Não foi possível confirmar o corte.',
+        description: error.message || 'Verifique o PIN com o barbeiro.',
       });
-      setPin(''); // Limpa o pin em caso de erro para tentar de novo
+      setPin(''); 
     } finally {
       setLoading(false);
     }
   };
 
-  // Auto-submit quando atingir 4 dígitos
   useEffect(() => {
     if (pin.length === 4 && !loading && !showSuccess) {
       handleConfirm();
@@ -246,6 +247,10 @@ export function ConfirmCutModal({ isOpen, onClose, clientPhone, clientName }: Co
                 className="bg-deep-black border-gold/30 focus:ring-gold focus:border-gold text-center text-3xl h-16 w-48 tracking-[0.5em] font-bold placeholder:text-muted-foreground/20"
                 autoFocus
              />
+             <p className="text-xs text-muted-foreground flex items-center gap-1">
+                 <AlertCircle className="h-3 w-3" /> 
+                 O PIN deve estar cadastrado na área do barbeiro.
+             </p>
           </div>
         </div>
         <DialogFooter className="sm:flex-col gap-2">
